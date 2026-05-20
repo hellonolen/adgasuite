@@ -64,3 +64,17 @@ No dark dashboard redesign. No generic AI-product styling. No bulky placeholder 
 ## Build Rule
 
 Build from the ADGA Suite product requirements and existing frontend look/feel. Do not reuse legacy backend wiring.
+
+## Deployment
+
+Manual deploy:
+
+```sh
+npm run build:cf
+npx wrangler deploy
+```
+
+GitHub Actions are configured in `.github/workflows/cloudflare.yml`:
+
+- Pull requests run typecheck and Cloudflare build.
+- Pushes to `main` deploy to Cloudflare when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set as repository secrets.

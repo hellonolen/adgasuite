@@ -34,6 +34,19 @@ wrangler secret put WHOP_COMPANY_ID
 wrangler secret put SESSION_SECRET
 ```
 
+## GitHub Deployment
+
+The `main` branch runs `.github/workflows/cloudflare.yml`.
+
+Required GitHub repository secrets for automatic Cloudflare deploys:
+
+```sh
+CLOUDFLARE_API_TOKEN
+CLOUDFLARE_ACCOUNT_ID
+```
+
+The workflow typechecks and builds every pull request. Pushes to `main` deploy the Worker with `wrangler deploy`.
+
 ## Production Checks
 
 ```sh
