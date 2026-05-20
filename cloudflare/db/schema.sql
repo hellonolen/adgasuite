@@ -30,6 +30,133 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 
 CREATE INDEX IF NOT EXISTS idx_subscriptions_org ON subscriptions (organization_id);
 
+CREATE TABLE IF NOT EXISTS affiliates (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  referral_code TEXT NOT NULL UNIQUE,
+  referral_url TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  commission_rate_bps INTEGER NOT NULL DEFAULT 1000,
+  clicks INTEGER NOT NULL DEFAULT 0,
+  leads INTEGER NOT NULL DEFAULT 0,
+  signups INTEGER NOT NULL DEFAULT 0,
+  paid_accounts INTEGER NOT NULL DEFAULT 0,
+  revenue_cents INTEGER NOT NULL DEFAULT 0,
+  commission_owed_cents INTEGER NOT NULL DEFAULT 0,
+  payout_status TEXT NOT NULL DEFAULT 'not_due',
+  risk_flags_json TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS affiliate_events (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL,
+  affiliate_id TEXT,
+  referral_code TEXT,
+  event_type TEXT NOT NULL,
+  customer_email TEXT,
+  source TEXT,
+  campaign TEXT,
+  amount_cents INTEGER NOT NULL DEFAULT 0,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+  FOREIGN KEY (affiliate_id) REFERENCES affiliates(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS client_invoices (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL,
+  invoice_number TEXT NOT NULL,
+  owner_user_id TEXT,
+  client_name TEXT NOT NULL,
+  client_email TEXT,
+  client_company TEXT,
+  status TEXT NOT NULL DEFAULT 'draft',
+  currency TEXT NOT NULL DEFAULT 'USD',
+  subtotal_cents INTEGER NOT NULL DEFAULT 0,
+  discount_cents INTEGER NOT NULL DEFAULT 0,
+  tax_cents INTEGER NOT NULL DEFAULT 0,
+  total_cents INTEGER NOT NULL DEFAULT 0,
+  platform_fee_bps INTEGER NOT NULL DEFAULT 500,
+  platform_fee_cents INTEGER NOT NULL DEFAULT 0,
+  net_to_user_cents INTEGER NOT NULL DEFAULT 0,
+  fee_collection_status TEXT NOT NULL DEFAULT 'pending',
+  payment_status TEXT NOT NULL DEFAULT 'unpaid',
+  payment_link TEXT,
+  due_at TEXT,
+  sent_at TEXT,
+  paid_at TEXT,
+  voided_at TEXT,
+  notes TEXT,
+  line_items_json TEXT NOT NULL DEFAULT '[]',
+  document_links_json TEXT NOT NULL DEFAULT '[]',
+  r2_key TEXT,
+  activity_history_json TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+  FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_affiliates_org_status ON affiliates (organization_id, status);
+CREATE INDEX IF NOT EXISTS idx_affiliate_events_code ON affiliate_events (organization_id, referral_code, created_at);
+CREATE INDEX IF NOT EXISTS idx_client_invoices_org_status ON client_invoices (organization_id, status, created_at);
+CREATE INDEX IF NOT EXISTS idx_client_invoices_owner ON client_invoices (organization_id, owner_user_id, created_at);
+
+CREATE TABLE IF NOT EXISTS voice_notes (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL,
+  owner_user_id TEXT,
+  title TEXT NOT NULL,
+  resource_type TEXT,
+  resource_id TEXT,
+  r2_key TEXT,
+  file_name TEXT,
+  mime_type TEXT,
+  size_bytes INTEGER NOT NULL DEFAULT 0,
+  duration_seconds INTEGER,
+  transcription_status TEXT NOT NULL DEFAULT 'pending',
+  transcript_text TEXT,
+  transcript_vtt TEXT,
+  word_count INTEGER,
+  stt_model TEXT NOT NULL DEFAULT '@cf/openai/whisper',
+  agent_summary TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+  FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS sms_messages (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL,
+  provider TEXT NOT NULL DEFAULT 'open_source_gateway',
+  direction TEXT NOT NULL DEFAULT 'outbound',
+  to_number TEXT NOT NULL,
+  from_number TEXT,
+  body TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'queued',
+  provider_message_id TEXT,
+  provider_response TEXT,
+  resource_type TEXT,
+  resource_id TEXT,
+  created_by TEXT,
+  sent_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_voice_notes_org_created ON voice_notes (organization_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_voice_notes_resource ON voice_notes (resource_type, resource_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_sms_messages_org_created ON sms_messages (organization_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_sms_messages_resource ON sms_messages (resource_type, resource_id, created_at);
+
 CREATE TABLE IF NOT EXISTS email_events (
   id TEXT PRIMARY KEY,
   organization_id TEXT,
@@ -81,12 +208,53 @@ CREATE TABLE IF NOT EXISTS leads (
   email TEXT NOT NULL,
   company TEXT NOT NULL,
   job_title TEXT,
+  phone TEXT,
+  website TEXT,
+  preferred_contact_method TEXT,
+  best_time_to_contact TEXT,
+  social_profiles_json TEXT,
+  linkedin_url TEXT,
+  business_phone TEXT,
+  business_email TEXT,
+  industry TEXT,
+  business_type TEXT,
+  company_size TEXT,
+  revenue_range TEXT,
+  location TEXT,
+  city TEXT,
+  state_region TEXT,
+  country TEXT,
+  timezone TEXT,
+  business_state TEXT,
+  need_summary TEXT,
   source TEXT,
+  qr_source TEXT,
+  referral_source TEXT,
   status TEXT NOT NULL DEFAULT 'Warm',
   score INTEGER NOT NULL DEFAULT 50,
+  urgency TEXT NOT NULL DEFAULT 'Normal',
+  urgency_reason TEXT,
+  priority TEXT NOT NULL DEFAULT 'medium',
+  estimated_value_cents INTEGER NOT NULL DEFAULT 0,
+  deal_type TEXT,
+  stage TEXT NOT NULL DEFAULT 'New',
   owner_user_id TEXT,
   next_action TEXT,
+  follow_up_due_at TEXT,
+  follow_up_sequence TEXT,
+  follow_up_status TEXT NOT NULL DEFAULT 'not_started',
+  last_follow_up_at TEXT,
+  next_scheduled_follow_up_at TEXT,
   notes TEXT,
+  document_links_json TEXT,
+  tags_json TEXT,
+  agent_summary TEXT,
+  agent_next_move TEXT,
+  activity_history_json TEXT,
+  received_at TEXT,
+  last_contacted_at TEXT,
+  assigned_at TEXT,
+  archived_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
@@ -95,21 +263,68 @@ CREATE TABLE IF NOT EXISTS leads (
 
 CREATE INDEX IF NOT EXISTS idx_leads_org_status ON leads (organization_id, status);
 CREATE INDEX IF NOT EXISTS idx_leads_org_email ON leads (organization_id, email);
+CREATE INDEX IF NOT EXISTS idx_leads_org_received ON leads (organization_id, received_at);
+CREATE INDEX IF NOT EXISTS idx_leads_org_followup ON leads (organization_id, follow_up_due_at);
+CREATE INDEX IF NOT EXISTS idx_leads_org_urgency ON leads (organization_id, urgency);
+CREATE INDEX IF NOT EXISTS idx_leads_org_source ON leads (organization_id, source);
 
 CREATE TABLE IF NOT EXISTS contacts (
   id TEXT PRIMARY KEY,
   organization_id TEXT NOT NULL,
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
+  full_name TEXT,
   email TEXT,
   phone TEXT,
   company TEXT,
   title TEXT,
+  website TEXT,
+  preferred_contact_method TEXT,
+  best_time_to_contact TEXT,
+  role_authority TEXT,
+  social_profiles_json TEXT,
+  linkedin_url TEXT,
+  x_url TEXT,
+  instagram_url TEXT,
+  facebook_url TEXT,
+  other_profile_url TEXT,
+  business_phone TEXT,
+  business_email TEXT,
+  industry TEXT,
+  business_type TEXT,
+  company_size TEXT,
+  revenue_range TEXT,
+  location TEXT,
+  city TEXT,
+  state_region TEXT,
+  country TEXT,
+  timezone TEXT,
+  business_state TEXT,
+  need_summary TEXT,
+  urgency TEXT,
+  priority TEXT,
+  source TEXT,
+  qr_source TEXT,
+  referral_source TEXT,
+  owner_user_id TEXT,
+  stage TEXT,
+  received_at TEXT,
+  last_contacted_at TEXT,
+  follow_up_due_at TEXT,
+  next_scheduled_follow_up_at TEXT,
+  follow_up_sequence TEXT,
+  follow_up_status TEXT,
+  document_links_json TEXT,
+  agent_summary TEXT,
+  agent_next_move TEXT,
+  activity_history_json TEXT,
+  archived_at TEXT,
   status TEXT NOT NULL DEFAULT 'lead',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
 );
+CREATE INDEX IF NOT EXISTS idx_contacts_org_email ON contacts (organization_id, email);
 
 CREATE TABLE IF NOT EXISTS deals (
   id TEXT PRIMARY KEY,
@@ -338,6 +553,27 @@ CREATE TABLE IF NOT EXISTS calendar_events (
 
 CREATE INDEX IF NOT EXISTS idx_calendar_events_org_time ON calendar_events (organization_id, starts_at);
 CREATE INDEX IF NOT EXISTS idx_calendar_events_deal ON calendar_events (deal_id);
+
+CREATE TABLE IF NOT EXISTS calendar_invite_deliveries (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL,
+  calendar_event_id TEXT NOT NULL,
+  recipient_email TEXT NOT NULL,
+  recipient_name TEXT,
+  channel TEXT NOT NULL DEFAULT 'email',
+  provider TEXT NOT NULL DEFAULT 'postmark',
+  status TEXT NOT NULL DEFAULT 'pending',
+  provider_status INTEGER,
+  provider_response TEXT,
+  sent_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+  FOREIGN KEY (calendar_event_id) REFERENCES calendar_events(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_calendar_invites_event ON calendar_invite_deliveries (calendar_event_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_calendar_invites_recipient ON calendar_invite_deliveries (organization_id, recipient_email, created_at);
 
 CREATE TABLE IF NOT EXISTS agent_approvals (
   id TEXT PRIMARY KEY,

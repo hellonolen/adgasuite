@@ -38,6 +38,9 @@ declare global {
     ADGA_LOCAL_ADMIN_BYPASS?: string;
     POSTMARK_SERVER_TOKEN?: string;
     POSTMARK_FROM_EMAIL?: string;
+    SMS_GATEWAY_URL?: string;
+    SMS_GATEWAY_API_KEY?: string;
+    SMS_GATEWAY_PROVIDER?: string;
     WHOP_API_KEY?: string;
     WHOP_WEBHOOK_SECRET?: string;
     WHOP_COMPANY_ID?: string;

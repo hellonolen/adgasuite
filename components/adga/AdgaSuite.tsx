@@ -687,19 +687,74 @@ const DEALS = [
 ];
 
 const LEADS = [
-  { id: 'L-9881', name: 'Aurore Chastain',  title: 'Head of Corp Dev',         company: 'Sutter Maritime',         sector: 'Logistics',   score: 92, intent: 'high',   value: 22000000, channel: 'Webinar', last: '2h ago',  status: 'hot' },
-  { id: 'L-9882', name: 'Beni Okonkwo',     title: 'CFO',                       company: 'Foundry Helix',           sector: 'Industrial',  score: 78, intent: 'high',   value: 14500000, channel: 'Outbound', last: '5h ago',  status: 'hot' },
-  { id: 'L-9883', name: 'Yusra Damiani',    title: 'VP Strategy',               company: 'Crinkle & Cull',          sector: 'Consumer',    score: 64, intent: 'med',    value: 3200000,  channel: 'Referral', last: '1d ago',  status: 'warm' },
-  { id: 'L-9884', name: 'Pieter Voorhees',  title: 'Director, Partnerships',    company: 'Calderwood Health',       sector: 'Healthcare',  score: 71, intent: 'med',    value: 9800000,  channel: 'Inbound', last: '1d ago',  status: 'warm' },
-  { id: 'L-9885', name: 'Linnea Bjorne',    title: 'Founder & CEO',             company: 'Stellaris Compute',       sector: 'SaaS',        score: 88, intent: 'high',   value: 11000000, channel: 'Conference', last: '3h ago', status: 'hot' },
-  { id: 'L-9886', name: 'Marcos Quinteros', title: 'GM, Defense Programs',      company: 'Ironhold Systems',        sector: 'Defense',     score: 55, intent: 'low',    value: 41000000, channel: 'RFP',     last: '4d ago',  status: 'warm' },
-  { id: 'L-9887', name: 'Saskia Krieg',     title: 'Managing Partner',          company: 'Brunswick Spectrum LP',   sector: 'Fintech',     score: 48, intent: 'low',    value: 6500000,  channel: 'Network', last: '6d ago',  status: 'cool' },
-  { id: 'L-9888', name: 'Atsuko Voorman',   title: 'COO',                       company: 'Pelagic Labs',            sector: 'Biotech',     score: 81, intent: 'high',   value: 19000000, channel: 'Outbound', last: '8h ago',  status: 'hot' },
-  { id: 'L-9889', name: 'Dimitrov Reyes',   title: 'Head of M&A',               company: 'Cantilever Group',        sector: 'Industrial',  score: 76, intent: 'med',    value: 28000000, channel: 'Banker',  last: '1d ago',  status: 'hot' },
-  { id: 'L-9890', name: 'Halle Brügger',    title: 'CRO',                       company: 'Northgate Botanicals',    sector: 'Consumer',    score: 36, intent: 'low',    value: 1800000,  channel: 'Inbound', last: '2w ago',  status: 'cool' },
-  { id: 'L-9891', name: 'Roan Iwasaki',     title: 'VP Corporate Development', company: 'Telluride Aerospace',     sector: 'Defense',     score: 69, intent: 'med',    value: 33000000, channel: 'Referral', last: '2d ago', status: 'warm' },
-  { id: 'L-9892', name: 'Esmé Petrov',      title: 'Investment Director',       company: 'Caraway Ventures',        sector: 'Fintech',     score: 84, intent: 'high',   value: 8500000,  channel: 'Network', last: '5h ago', status: 'hot' },
+  { id: 'L-9881', name: 'Aurore Chastain',  title: 'Head of Corp Dev',         company: 'Sutter Maritime',         sector: 'Logistics',   score: 92, intent: 'high',   value: 22000000, channel: 'Webinar', last: '2h ago',  status: 'hot', urgency: 'Immediate', priority: 'high', receivedAt: '2026-05-20T13:42:00.000Z', followUpDueAt: '2026-05-20T13:47:00.000Z', followUpStatus: 'due_now', preferredContact: 'Phone', phone: '(646) 555-0198', email: 'aurore@sutter.co', city: 'New York', state: 'NY', social: { linkedin: 'linkedin.com/in/aurorechastain' } },
+  { id: 'L-9882', name: 'Beni Okonkwo',     title: 'CFO',                       company: 'Foundry Helix',           sector: 'Industrial',  score: 78, intent: 'high',   value: 14500000, channel: 'Outbound', last: '5h ago',  status: 'hot', urgency: 'Same Day', priority: 'high', receivedAt: '2026-05-20T10:18:00.000Z', followUpDueAt: '2026-05-20T20:00:00.000Z', followUpStatus: 'scheduled', preferredContact: 'Email', email: 'beni@foundryhelix.com', city: 'Chicago', state: 'IL' },
+  { id: 'L-9883', name: 'Yusra Damiani',    title: 'VP Strategy',               company: 'Crinkle & Cull',          sector: 'Consumer',    score: 64, intent: 'med',    value: 3200000,  channel: 'Referral', last: '1d ago',  status: 'warm', urgency: 'Scheduled', priority: 'medium', receivedAt: '2026-05-19T15:20:00.000Z', followUpDueAt: '2026-05-22T14:00:00.000Z', followUpStatus: 'scheduled', email: 'yusra@crinklecull.com' },
+  { id: 'L-9884', name: 'Pieter Voorhees',  title: 'Director, Partnerships',    company: 'Calderwood Health',       sector: 'Healthcare',  score: 71, intent: 'med',    value: 9800000,  channel: 'Inbound', last: '1d ago',  status: 'warm', urgency: 'Normal', priority: 'medium', receivedAt: '2026-05-19T12:04:00.000Z', followUpDueAt: '2026-05-21T18:00:00.000Z', followUpStatus: 'upcoming' },
+  { id: 'L-9885', name: 'Linnea Bjorne',    title: 'Founder & CEO',             company: 'Stellaris Compute',       sector: 'SaaS',        score: 88, intent: 'high',   value: 11000000, channel: 'Conference', last: '3h ago', status: 'hot', urgency: 'Immediate', priority: 'high', receivedAt: '2026-05-20T12:30:00.000Z', followUpDueAt: '2026-05-20T12:35:00.000Z', followUpStatus: 'overdue' },
+  { id: 'L-9886', name: 'Marcos Quinteros', title: 'GM, Defense Programs',      company: 'Ironhold Systems',        sector: 'Defense',     score: 55, intent: 'low',    value: 41000000, channel: 'RFP',     last: '4d ago',  status: 'warm', urgency: 'Low', priority: 'medium', receivedAt: '2026-05-16T16:10:00.000Z', followUpStatus: 'not_started' },
+  { id: 'L-9887', name: 'Saskia Krieg',     title: 'Managing Partner',          company: 'Brunswick Spectrum LP',   sector: 'Fintech',     score: 48, intent: 'low',    value: 6500000,  channel: 'Network', last: '6d ago',  status: 'cool', urgency: 'Low', priority: 'low', receivedAt: '2026-05-14T09:25:00.000Z', followUpStatus: 'stale' },
+  { id: 'L-9888', name: 'Atsuko Voorman',   title: 'COO',                       company: 'Pelagic Labs',            sector: 'Biotech',     score: 81, intent: 'high',   value: 19000000, channel: 'Outbound', last: '8h ago',  status: 'hot', urgency: 'Same Day', priority: 'high', receivedAt: '2026-05-20T07:50:00.000Z', followUpDueAt: '2026-05-20T19:30:00.000Z', followUpStatus: 'scheduled' },
+  { id: 'L-9889', name: 'Dimitrov Reyes',   title: 'Head of M&A',               company: 'Cantilever Group',        sector: 'Industrial',  score: 76, intent: 'med',    value: 28000000, channel: 'Banker',  last: '1d ago',  status: 'hot', urgency: 'Scheduled', priority: 'high', receivedAt: '2026-05-19T17:44:00.000Z', followUpDueAt: '2026-05-22T16:00:00.000Z', followUpStatus: 'scheduled' },
+  { id: 'L-9890', name: 'Halle Brügger',    title: 'CRO',                       company: 'Northgate Botanicals',    sector: 'Consumer',    score: 36, intent: 'low',    value: 1800000,  channel: 'Inbound', last: '2w ago',  status: 'cool', urgency: 'Low', priority: 'low', receivedAt: '2026-05-06T11:10:00.000Z', followUpStatus: 'stale' },
+  { id: 'L-9891', name: 'Roan Iwasaki',     title: 'VP Corporate Development', company: 'Telluride Aerospace',     sector: 'Defense',     score: 69, intent: 'med',    value: 33000000, channel: 'Referral', last: '2d ago', status: 'warm', urgency: 'Normal', priority: 'medium', receivedAt: '2026-05-18T14:05:00.000Z', followUpDueAt: '2026-05-21T15:00:00.000Z', followUpStatus: 'upcoming' },
+  { id: 'L-9892', name: 'Esmé Petrov',      title: 'Investment Director',       company: 'Caraway Ventures',        sector: 'Fintech',     score: 84, intent: 'high',   value: 8500000,  channel: 'Network', last: '5h ago', status: 'hot', urgency: 'Same Day', priority: 'high', receivedAt: '2026-05-20T10:05:00.000Z', followUpDueAt: '2026-05-20T18:00:00.000Z', followUpStatus: 'scheduled' },
 ];
+
+function formatDateTime(value) {
+  if (!value) return 'Not set';
+  try {
+    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value));
+  } catch (e) {
+    return value;
+  }
+}
+
+function leadReceivedTime(lead) {
+  return new Date(lead.receivedAt || lead.created_at || 0).getTime() || 0;
+}
+
+function normalizeCreatedLead(record) {
+  const fullName = record.full_name || record.name || record.title || 'New lead';
+  const value = Number(record.estimated_value_cents || 0) / 100;
+  return {
+    id: record.id,
+    name: fullName,
+    title: record.job_title || 'Contact',
+    company: record.company || 'Unassigned',
+    sector: record.industry || record.business_type || 'Unassigned',
+    score: record.score || 55,
+    intent: record.urgency === 'Immediate' || record.priority === 'high' ? 'high' : 'med',
+    value,
+    channel: record.qr_source ? 'QR' : record.source || 'Manual',
+    last: 'Just now',
+    status: String(record.status || 'warm').toLowerCase(),
+    urgency: record.urgency || 'Normal',
+    priority: record.priority || 'medium',
+    receivedAt: record.received_at || record.created_at || new Date().toISOString(),
+    followUpDueAt: record.follow_up_due_at || record.next_scheduled_follow_up_at || null,
+    followUpStatus: record.follow_up_status || 'not_started',
+    preferredContact: record.preferred_contact_method || '',
+    phone: record.phone || '',
+    email: record.email || '',
+    city: record.city || '',
+    state: record.state_region || '',
+    social: (() => { try { return JSON.parse(record.social_profiles_json || '{}'); } catch (e) { return {}; } })(),
+    notes: record.notes || '',
+    needSummary: record.need_summary || '',
+    nextAction: record.next_action || record.agent_next_move || 'Review lead and determine next action.',
+  };
+}
+
+function normalizeStoredLead(record) {
+  const social = (() => { try { return JSON.parse(record.social_profiles_json || '{}'); } catch (e) { return {}; } })();
+  return normalizeCreatedLead({
+    ...record,
+    name: record.full_name,
+    title: record.full_name,
+    social_profiles_json: JSON.stringify(social),
+  });
+}
 
 const DOCUMENTS = [
   { id: 'd1', name: 'CIM — Meridian Cold Chain.pdf',     ext: 'pdf',  size: '4.2 MB', updated: '2h ago',  deal: dealId(1210), owner: 'p1', signed: false },
@@ -944,10 +999,14 @@ const NAV = [
   { section: 'TOOLS', items: [
     { id: 'knowledge',    label: 'Knowledge Hub' },
     { id: 'intelligence', label: 'Intelligence' },
+    { id: 'voice-notes',  label: 'Voice Notes' },
+    { id: 'messaging',    label: 'Messaging' },
     { id: 'reports',      label: 'Reports' },
   ]},
   { section: 'ADMIN', items: [
     { id: 'admin',        label: 'Admin' },
+    { id: 'affiliates',   label: 'Affiliate Center' },
+    { id: 'invoicing',    label: 'Invoicing' },
     { id: 'billing',      label: 'Billing' },
     { id: 'settings',     label: 'Settings' },
   ]},
@@ -3799,6 +3858,165 @@ function BillingPage() {
   );
 }
 
+function AffiliateCenterPage() {
+  const rows = [
+    ['AFF-001', 'Northstar Partners', 'NORTHSTAR', 'Approved', '42', '8', '$18,420', '$1,842'],
+    ['AFF-002', 'DealDesk Media', 'DEALDESK', 'Pending', '19', '3', '$6,970', '$697'],
+    ['AFF-003', 'Operator Network', 'OPSNET', 'Approved', '88', '14', '$31,240', '$3,124'],
+  ];
+  return (
+    <>
+      <div className="page-h">
+        <div><h1>Affiliate Center</h1><div className="sub">Referral links, attribution, commission tracking, and payout status.</div></div>
+        <div className="page-actions"><button className="btn primary" type="button">New affiliate</button></div>
+      </div>
+      <div style={{padding:'0 32px 28px',display:'flex',flexDirection:'column',gap:14,overflow:'auto',flex:1}}>
+        <div className="kpis" style={{padding:0}}>
+          <KPI label="Affiliate revenue" value="$56.6K" delta="tracked"/>
+          <KPI label="Commission owed" value="$5.6K" delta="pending payout"/>
+          <KPI label="Paid accounts" value="25" delta="from referrals"/>
+          <KPI label="Risk flags" value="0" delta="clean"/>
+        </div>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Affiliates</div><span className="text-xs muted">Approve, pause, reject, or archive from here.</span></div>
+          <table className="tbl">
+            <thead><tr><th>ID</th><th>Name</th><th>Code</th><th>Status</th><th>Clicks</th><th>Paid accounts</th><th>Revenue</th><th>Commission</th></tr></thead>
+            <tbody>{rows.map(r => <tr key={r[0]}><td className="mono">{r[0]}</td><td>{r[1]}</td><td className="mono">{r[2]}</td><td><Pill tone={r[3]==='Approved'?'green':'amber'}>{r[3]}</Pill></td><td>{r[4]}</td><td>{r[5]}</td><td>{r[6]}</td><td>{r[7]}</td></tr>)}</tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function InvoicingCenterPage() {
+  const invoices = [
+    ['CL-2026-001', 'Axiom Group', 'Sent', '$12,500.00', '5.00%', '$625.00', '$11,875.00'],
+    ['CL-2026-002', 'Peak Co', 'Draft', '$4,800.00', '5.00%', '$240.00', '$4,560.00'],
+    ['CL-2026-003', 'Vertex Systems', 'Paid', '$18,000.00', '5.00%', '$900.00', '$17,100.00'],
+  ];
+  return (
+    <>
+      <div className="page-h">
+        <div><h1>Invoicing Center</h1><div className="sub">Owner invoices and user client invoices with platform transaction fee tracking.</div></div>
+        <div className="page-actions"><button className="btn primary" type="button">New invoice</button></div>
+      </div>
+      <div style={{padding:'0 32px 28px',display:'flex',flexDirection:'column',gap:14,overflow:'auto',flex:1}}>
+        <div className="kpis" style={{padding:0}}>
+          <KPI label="Invoice volume" value="$35.3K" delta="client invoices"/>
+          <KPI label="Fees tracked" value="$1.8K" delta="max 5%"/>
+          <KPI label="Unpaid" value="$17.3K" delta="2 invoices"/>
+          <KPI label="Net to users" value="$33.5K" delta="after platform fee"/>
+        </div>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Client invoices</div><span className="text-xs muted">D1 stores metadata. R2 stores generated PDFs/files.</span></div>
+          <table className="tbl">
+            <thead><tr><th>Invoice</th><th>Client</th><th>Status</th><th>Total</th><th>Platform fee</th><th>Fee amount</th><th>Net to user</th></tr></thead>
+            <tbody>{invoices.map(r => <tr key={r[0]}><td className="mono">{r[0]}</td><td>{r[1]}</td><td><Pill tone={r[2]==='Paid'?'green':r[2]==='Sent'?'blue':'gray'}>{r[2]}</Pill></td><td>{r[3]}</td><td>{r[4]}</td><td>{r[5]}</td><td>{r[6]}</td></tr>)}</tbody>
+          </table>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function VoiceNotesPage() {
+  const [result, setResult] = React.useState(null);
+  const [saving, setSaving] = React.useState(false);
+  const submit = async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setSaving(true);
+    try {
+      const response = await fetch('/api/voice-notes', { method: 'POST', body: form });
+      setResult(await response.json());
+      event.currentTarget.reset();
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <>
+      <div className="page-h">
+        <div><h1>Voice Notes</h1><div className="sub">Recordings, uploaded audio, transcripts, and agent-ready meeting notes.</div></div>
+      </div>
+      <div style={{padding:'0 32px 28px',display:'grid',gridTemplateColumns:'minmax(0,1fr) 420px',gap:14,overflow:'auto',flex:1}}>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Upload voice note</div><span className="text-xs muted">R2 stores audio. D1 stores transcript metadata.</span></div>
+          <form className="card-b" style={{display:'flex',flexDirection:'column',gap:12}} onSubmit={submit}>
+            <div className="field"><label>Title</label><input name="title" type="text" placeholder="Follow-up call, meeting recap, field note"/></div>
+            <div className="field"><label>Audio</label><input name="audio" type="file" accept="audio/*" required/></div>
+            <div className="row2">
+              <div className="field"><label>Resource type</label><input name="resource_type" type="text" placeholder="lead, deal, contact"/></div>
+              <div className="field"><label>Resource ID</label><input name="resource_id" type="text" placeholder="Optional"/></div>
+            </div>
+            <button className="btn primary" type="submit" disabled={saving}>{saving ? 'Processing...' : 'Upload and transcribe'}</button>
+          </form>
+        </div>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Latest transcript</div></div>
+          <div className="card-b">
+            {!result && <div className="text-sm muted">Upload audio to create a voice note and transcript.</div>}
+            {result?.voice_note && (
+              <dl className="kv">
+                <dt>Status</dt><dd><Pill tone={result.voice_note.transcription_status === 'completed' ? 'green' : 'amber'}>{result.voice_note.transcription_status}</Pill></dd>
+                <dt>Model</dt><dd className="mono text-xs">{result.voice_note.stt_model}</dd>
+                <dt>File</dt><dd>{result.voice_note.file_name}</dd>
+                <dt>Words</dt><dd>{result.voice_note.word_count || 0}</dd>
+                <dt>Transcript</dt><dd>{result.voice_note.transcript_text || 'Transcript pending or AI binding unavailable locally.'}</dd>
+              </dl>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function MessagingPage() {
+  const [result, setResult] = React.useState(null);
+  const [sending, setSending] = React.useState(false);
+  const submit = async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setSending(true);
+    try {
+      const response = await fetch('/api/messages/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: form.get('to'), message: form.get('message') }),
+      });
+      setResult(await response.json());
+    } finally {
+      setSending(false);
+    }
+  };
+  return (
+    <>
+      <div className="page-h">
+        <div><h1>Messaging</h1><div className="sub">SMS adapter for open-source/self-hosted gateways. Postmark remains email only.</div></div>
+      </div>
+      <div style={{padding:'0 32px 28px',display:'grid',gridTemplateColumns:'420px minmax(0,1fr)',gap:14,overflow:'auto',flex:1}}>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Send SMS</div></div>
+          <form className="card-b" style={{display:'flex',flexDirection:'column',gap:12}} onSubmit={submit}>
+            <div className="field"><label>Phone number</label><input name="to" type="tel" placeholder="+15551234567" required/></div>
+            <div className="field"><label>Message</label><textarea name="message" rows={5} placeholder="Meeting reminder, follow-up, or lead response" required/></div>
+            <button className="btn primary" type="submit" disabled={sending}>{sending ? 'Sending...' : 'Send SMS'}</button>
+          </form>
+        </div>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Gateway status</div></div>
+          <div className="card-b">
+            <p className="text-sm muted">Configure an open-source gateway endpoint with <span className="mono">SMS_GATEWAY_URL</span> and <span className="mono">SMS_GATEWAY_API_KEY</span>. The product code stays the same if we choose TextBee, httpSMS, Vendel, or another self-hosted gateway.</p>
+            {result?.sms && <dl className="kv"><dt>Status</dt><dd><Pill tone={result.sms.status === 'sent' ? 'green' : 'amber'}>{result.sms.status}</Pill></dd><dt>Provider</dt><dd>{result.sms.provider}</dd><dt>Response</dt><dd>{result.sms.provider_response}</dd></dl>}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function UsageRow({ label, v, max, unit }) {
   const pct = Math.min(100, (v / max) * 100);
   return (
@@ -4180,8 +4398,9 @@ function HomePage({ deals, openDeal, setRoute }) {
 
 /* Inbox + Tasks pages */
 
-function InboxPage({ openDeal, deals }) {
+function InboxPage({ openDeal, deals, meetingInbox = [] }) {
   const items = [
+    ...meetingInbox,
     { id: 'm1', from: 'Sutter Maritime · Aurore Chastain', subj: 'Re: Term sheet draft', preview: 'Thanks for sending — a few comments on §4. Otherwise looks aligned. Can we…', time: '12m', deal: 'DEAL-1210', unread: true, tag: 'Counterparty' },
     { id: 'm2', from: 'DocuSign', subj: 'Signature requested · Bramble LOI', preview: 'Maren, your signature is needed on document "LOI — Bramble & Co"…', time: '34m', deal: 'DEAL-1221', unread: true, tag: 'eSign' },
     { id: 'm3', from: 'Hana Okafor', subj: '@ you on Heliograph §4.3', preview: '@Maren — counsel flagged the assignment language. Two items inside.', time: '1h', deal: 'DEAL-1207', unread: true, tag: 'Mention' },
@@ -4282,7 +4501,19 @@ function TasksPage({ openDeal, deals, setQuickCreate }) {
   );
 }
 
-function CalendarPage({ deals, openDeal }) {
+function parseAttendees(value) {
+  return String(value || '')
+    .split(/[\n,]/)
+    .map(item => item.trim())
+    .filter(Boolean)
+    .map(item => {
+      const match = item.match(/^(.*?)\s*<([^>]+)>$/);
+      if (match) return { name: match[1].trim(), email: match[2].trim(), role: 'counterparty' };
+      return { email: item, role: 'counterparty' };
+    });
+}
+
+function CalendarPage({ deals, openDeal, onMeetingCreated }) {
   const seed = [
     { id: 'cal_001', title: 'Sutter Maritime pre-signing alignment', starts_at: '2026-05-20T14:00:00.000Z', ends_at: '2026-05-20T14:45:00.000Z', event_type: 'meeting', status: 'confirmed', deal_id: 'DEAL-1210', attendees: [{ name: 'Aurore Chastain', email: 'aurore.c@sutter.co' }], location: 'Zoom', notes: 'Final review of working capital peg, holdback mechanic, and signature timeline.' },
     { id: 'cal_002', title: 'Quorum Energy follow-up', starts_at: '2026-05-21T16:30:00.000Z', ends_at: '2026-05-21T17:00:00.000Z', event_type: 'call', status: 'tentative', deal_id: 'DEAL-1213', attendees: [{ name: 'Magnus Bell', email: 'mbell@quorum.energy' }], location: 'Google Meet', notes: 'Re-open dialogue on JV term sheet.' },
@@ -4296,6 +4527,9 @@ function CalendarPage({ deals, openDeal }) {
     ends_at: '2026-05-24T15:30',
     deal_id: deals?.[0]?.id || '',
     event_type: 'meeting',
+    meeting_url: '',
+    attendees: '',
+    send_invites: true,
   });
 
   React.useEffect(() => {
@@ -4320,7 +4554,9 @@ function CalendarPage({ deals, openDeal }) {
       ...draft,
       starts_at: new Date(draft.starts_at).toISOString(),
       ends_at: new Date(draft.ends_at).toISOString(),
-      attendees: [],
+      attendees: parseAttendees(draft.attendees),
+      meeting_url: draft.meeting_url || undefined,
+      send_invites: draft.send_invites,
       notes: 'Created from ADGA Suite calendar.',
     };
     const optimistic = { id: 'local-' + Date.now(), status: 'tentative', ...payload };
@@ -4333,7 +4569,10 @@ function CalendarPage({ deals, openDeal }) {
         body: JSON.stringify(payload),
       });
       const result = await response.json();
-      if (result?.event) setEvents(prev => prev.map(e => e.id === optimistic.id ? result.event : e).sort((a,b) => a.starts_at.localeCompare(b.starts_at)));
+      if (result?.event) {
+        setEvents(prev => prev.map(e => e.id === optimistic.id ? result.event : e).sort((a,b) => a.starts_at.localeCompare(b.starts_at)));
+        onMeetingCreated && onMeetingCreated(result.event, result.deliveries || []);
+      }
     } catch (e) {}
   };
 
@@ -4374,7 +4613,8 @@ function CalendarPage({ deals, openDeal }) {
                       <Pill tone={e.status === 'confirmed' ? 'green' : e.event_type === 'deadline' ? 'red' : 'amber'}>{e.status}</Pill>
                       <Pill tone="gray">{e.event_type}</Pill>
                     </div>
-                    <div className="sub">{e.location || 'No location'} · {(e.attendees || []).length} attendees</div>
+                    <div className="sub">{e.location || 'No location'} · {(e.attendees || []).length} attendees · {e.meeting_url ? 'meeting link ready' : 'no meeting link'}</div>
+                    {e.meeting_url && <div className="mono text-xs" style={{marginTop:5,color:'var(--text-2)'}}>{e.meeting_url}</div>}
                     {e.notes && <div style={{fontSize:12.5,color:'var(--text-2)',marginTop:6}}>{e.notes}</div>}
                   </div>
                   <div style={{display:'flex',gap:6}}>
@@ -4396,7 +4636,13 @@ function CalendarPage({ deals, openDeal }) {
               <div className="field"><label>Ends</label><input type="datetime-local" value={draft.ends_at} onChange={e=>setDraft(d=>({...d,ends_at:e.target.value}))}/></div>
               <div className="field"><label>Deal</label><select value={draft.deal_id} onChange={e=>setDraft(d=>({...d,deal_id:e.target.value}))}>{(deals||[]).slice(0,12).map(d=><option key={d.id} value={d.id}>{d.id} · {d.name.split(' — ')[0]}</option>)}</select></div>
               <div className="field"><label>Type</label><select value={draft.event_type} onChange={e=>setDraft(d=>({...d,event_type:e.target.value}))}><option value="meeting">Meeting</option><option value="call">Call</option><option value="deadline">Deadline</option><option value="reminder">Reminder</option><option value="internal">Internal</option></select></div>
-              <button className="btn primary" type="button" onClick={create}>Create calendar event</button>
+              <div className="field"><label>Attendees</label><textarea rows={3} value={draft.attendees} onChange={e=>setDraft(d=>({...d,attendees:e.target.value}))} placeholder="Name <email@company.com>, or one email per line"/></div>
+              <div className="field"><label>Meeting link</label><input type="url" value={draft.meeting_url} onChange={e=>setDraft(d=>({...d,meeting_url:e.target.value}))} placeholder="Leave blank to generate ADGA meeting link"/></div>
+              <label className="share-pw-row" style={{fontSize:12}}>
+                <input type="checkbox" checked={draft.send_invites} onChange={e=>setDraft(d=>({...d,send_invites:e.target.checked}))}/>
+                Send calendar invite to attendees
+              </label>
+              <button className="btn primary" type="button" onClick={create}>Create event and send invite</button>
             </div>
           </div>
           <div className="card">
@@ -4803,37 +5049,67 @@ const LEAD_RECS = {
   ],
 };
 
-function LeadsPage({ openDeal, setQuickCreate }) {
-  const [selectedLead, setSelectedLead] = React.useState(null);
-
+function LeadsPage({ openDeal, setQuickCreate, leads, selectedLead, setSelectedLead }) {
   if (selectedLead) {
     return <LeadDetail lead={selectedLead} onBack={() => setSelectedLead(null)}/>;
   }
-  return <LeadsList onOpen={setSelectedLead} setQuickCreate={setQuickCreate}/>;
+  return <LeadsList leads={leads} onOpen={setSelectedLead} setQuickCreate={setQuickCreate}/>;
 }
 
-function LeadsList({ onOpen, setQuickCreate }) {
+function LeadsList({ leads, onOpen, setQuickCreate }) {
+  const [view, setView] = React.useState('all');
+  const [sort, setSort] = React.useState('recent');
+  const [dateRange, setDateRange] = React.useState('all');
+  const [query, setQuery] = React.useState('');
   const tone = s => s === 'hot' ? 'red' : s === 'warm' ? 'amber' : 'gray';
   const intent = s => s === 'high' ? 'High' : s === 'med' ? 'Medium' : 'Low';
-  const hot = LEADS.filter(l => l.status === 'hot').length;
-  const warm = LEADS.filter(l => l.status === 'warm').length;
-  const totalPipe = LEADS.reduce((s, l) => s + l.value, 0);
+  const allLeads = leads || LEADS;
+  const now = new Date();
+  const todayKey = now.toISOString().slice(0, 10);
+  const inDateRange = (lead) => {
+    if (dateRange === 'all') return true;
+    const received = lead.receivedAt ? new Date(lead.receivedAt) : null;
+    if (!received) return false;
+    if (dateRange === 'today') return lead.receivedAt.slice(0, 10) === todayKey;
+    if (dateRange === 'week') return now.getTime() - received.getTime() <= 7 * 24 * 60 * 60 * 1000;
+    return true;
+  };
+  const filtered = allLeads
+    .filter(l => view === 'all' ? true : view === 'needs_followup' ? ['due_now', 'overdue', 'scheduled', 'upcoming'].includes(l.followUpStatus) : view === 'qr' ? l.channel === 'QR' || l.qrSource : view === 'stale' ? l.followUpStatus === 'stale' : l.status === view)
+    .filter(inDateRange)
+    .filter(l => {
+      if (!query.trim()) return true;
+      const q = query.toLowerCase();
+      return [l.name, l.company, l.title, l.email, l.phone, l.channel, l.sector, l.notes].filter(Boolean).some(v => String(v).toLowerCase().includes(q));
+    })
+    .sort((a, b) => {
+      if (sort === 'oldest') return leadReceivedTime(a) - leadReceivedTime(b);
+      if (sort === 'followup') return new Date(a.followUpDueAt || '2999-12-31').getTime() - new Date(b.followUpDueAt || '2999-12-31').getTime();
+      if (sort === 'priority') return ({ high: 3, medium: 2, low: 1 }[b.priority] || 0) - ({ high: 3, medium: 2, low: 1 }[a.priority] || 0);
+      if (sort === 'value') return (b.value || 0) - (a.value || 0);
+      if (sort === 'status') return String(a.status).localeCompare(String(b.status));
+      return leadReceivedTime(b) - leadReceivedTime(a);
+    });
+  const hot = allLeads.filter(l => l.status === 'hot').length;
+  const warm = allLeads.filter(l => l.status === 'warm').length;
+  const totalPipe = allLeads.reduce((s, l) => s + (l.value || 0), 0);
+  const urgent = allLeads.filter(l => l.urgency === 'Immediate').length;
 
   return (
     <>
       <div className="page-h">
-        <div><h1>Leads</h1><div className="sub">{LEADS.length} active · {hot} hot · estimated pipeline ${compactNum(totalPipe)}</div></div>
+        <div><h1>Leads</h1><div className="sub">{allLeads.length} active · {hot} hot · {urgent} immediate · estimated pipeline ${compactNum(totalPipe)}</div></div>
         <div className="page-actions">
           <button className="btn" type="button" onClick={() => window.openShare && window.openShare({ type: 'capture', id: 'capture', title: 'Public lead capture page', subtitle: 'capture.html · share this link or its QR code to invite leads' })}>
             <Icon name="upload" size={13}/> Share capture link
           </button>
           <div className="seg">
-            <button className="active" type="button">All</button>
-            <button type="button">Hot ({hot})</button>
-            <button type="button">Warm ({warm})</button>
-            <button type="button">Unqualified</button>
+            <button className={view === 'all' ? 'active' : ''} type="button" onClick={() => setView('all')}>All</button>
+            <button className={view === 'hot' ? 'active' : ''} type="button" onClick={() => setView('hot')}>Hot ({hot})</button>
+            <button className={view === 'warm' ? 'active' : ''} type="button" onClick={() => setView('warm')}>Warm ({warm})</button>
+            <button className={view === 'needs_followup' ? 'active' : ''} type="button" onClick={() => setView('needs_followup')}>Needs follow-up</button>
           </div>
-          <button className="btn" type="button"><Icon name="filter" size={13}/></button>
+          <button className="btn" type="button" onClick={() => setView('qr')}><Icon name="filter" size={13}/> QR</button>
           <button className="btn" type="button"><Icon name="upload" size={13}/> Import CSV</button>
           <button className="btn primary" type="button" onClick={() => setQuickCreate && setQuickCreate('lead')}><Icon name="plus" size={13}/> New lead</button>
         </div>
@@ -4847,15 +5123,26 @@ function LeadsList({ onOpen, setQuickCreate }) {
       </div>
 
       <div className="filterbar">
-        <button className="chip applied" type="button">Score ≥ 60 <Icon name="x" size={10} className="x"/></button>
-        <button className="chip" type="button"><Icon name="plus" size={10}/> Channel</button>
-        <button className="chip" type="button"><Icon name="plus" size={10}/> Sector</button>
-        <button className="chip" type="button"><Icon name="plus" size={10}/> Owner</button>
-        <span style={{marginLeft:'auto',fontSize:11,color:'var(--text-3)'}} className="mono">Ranked by score · descending</span>
+        <input className="chip" style={{minWidth:220}} placeholder="Search leads, company, email..." value={query} onChange={(e) => setQuery(e.target.value)}/>
+        <select className="chip" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort leads">
+          <option value="recent">Most recent</option>
+          <option value="oldest">Oldest</option>
+          <option value="followup">Follow-up due</option>
+          <option value="priority">Priority</option>
+          <option value="status">Status</option>
+          <option value="value">Deal value</option>
+        </select>
+        <select className="chip" value={dateRange} onChange={(e) => setDateRange(e.target.value)} aria-label="Filter by received date">
+          <option value="all">All dates</option>
+          <option value="today">Received today</option>
+          <option value="week">Last 7 days</option>
+        </select>
+        <button className={'chip ' + (view === 'stale' ? 'applied' : '')} type="button" onClick={() => setView(view === 'stale' ? 'all' : 'stale')}>Stale leads</button>
+        <span style={{marginLeft:'auto',fontSize:11,color:'var(--text-3)'}} className="mono">{filtered.length} shown · sorted by {sort}</span>
       </div>
 
       <div style={{flex:1,overflowY:'auto'}}>
-        {LEADS.slice().sort((a, b) => b.score - a.score).map(l => (
+        {filtered.map(l => (
           <div key={l.id} className="lead-card" onClick={() => onOpen(l)}>
             <ScoreRing score={l.score}/>
             <div style={{display:'flex',gap:14,flex:1,minWidth:0,alignItems:'center'}}>
@@ -4870,9 +5157,10 @@ function LeadsList({ onOpen, setQuickCreate }) {
               <div style={{flex:1,display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
                 <Pill tone={tone(l.status)}>{l.status.toUpperCase()}</Pill>
                 <Pill tone={l.intent === 'high' ? 'violet' : l.intent === 'med' ? 'blue' : 'gray'} noDot>{intent(l.intent)} intent</Pill>
+                <Pill tone={l.urgency === 'Immediate' ? 'red' : l.urgency === 'Same Day' ? 'amber' : 'gray'} noDot>{l.urgency || 'Normal'}</Pill>
                 <span className="tag">{l.channel}</span>
               </div>
-              <div className="text-xs muted mono" style={{minWidth:80,textAlign:'right'}}>{l.last}</div>
+              <div className="text-xs muted mono" style={{minWidth:130,textAlign:'right'}}>In {formatDateTime(l.receivedAt)}<br/>Next {formatDateTime(l.followUpDueAt)}</div>
               <div className="mono" style={{minWidth:90,textAlign:'right',fontWeight:500}}>${compactNum(l.value)}</div>
             </div>
             <div style={{display:'flex',gap:4}}>
@@ -4938,6 +5226,7 @@ function LeadDetail({ lead, onBack }) {
           <span className="mono text-xs muted">{lead.id}</span>
           <Pill tone={lead.status === 'hot' ? 'red' : lead.status === 'warm' ? 'amber' : 'gray'}>{lead.status.toUpperCase()}</Pill>
           <Pill tone={lead.intent === 'high' ? 'violet' : lead.intent === 'med' ? 'blue' : 'gray'} noDot>{lead.intent.toUpperCase()} INTENT</Pill>
+          <Pill tone={lead.urgency === 'Immediate' ? 'red' : lead.urgency === 'Same Day' ? 'amber' : 'gray'} noDot>{lead.urgency || 'Normal'} URGENCY</Pill>
           <span className="tag">{lead.channel}</span>
         </div>
 
@@ -4962,6 +5251,8 @@ function LeadDetail({ lead, onBack }) {
             <div style={{fontSize:12.5,color:'var(--text-2)',lineHeight:1.5}}>
               <div>Est. value <b className="mono">${compactNum(lead.value)}</b></div>
               <div>Last touch <span className="muted mono">{lead.last}</span></div>
+              <div>Received <span className="muted mono">{formatDateTime(lead.receivedAt)}</span></div>
+              <div>Follow-up <span className="muted mono">{formatDateTime(lead.followUpDueAt)}</span></div>
               <div>Owner <b>You</b></div>
             </div>
           </div>
@@ -5044,10 +5335,18 @@ function LeadOverview({ lead, touches, recs, onTab }) {
               <dt>Title</dt><dd>{lead.title}</dd>
               <dt>Company</dt><dd>{lead.company}</dd>
               <dt>Sector</dt><dd>{lead.sector}</dd>
+              <dt>Email</dt><dd className="mono text-xs">{lead.email || 'Not captured'}</dd>
+              <dt>Phone</dt><dd className="mono text-xs">{lead.phone || 'Not captured'}</dd>
+              <dt>Location</dt><dd>{[lead.city, lead.state].filter(Boolean).join(', ') || 'Not captured'}</dd>
+              <dt>LinkedIn</dt><dd className="mono text-xs">{lead.social?.linkedin || 'Not captured'}</dd>
+              <dt>Preferred contact</dt><dd>{lead.preferredContact || 'Not captured'}</dd>
               <dt>Source</dt><dd><span className="tag">{lead.channel}</span></dd>
               <dt>Status</dt><dd><Pill tone={lead.status === 'hot' ? 'red' : lead.status === 'warm' ? 'amber' : 'gray'}>{lead.status.toUpperCase()}</Pill></dd>
+              <dt>Urgency</dt><dd><Pill tone={lead.urgency === 'Immediate' ? 'red' : lead.urgency === 'Same Day' ? 'amber' : 'gray'} noDot>{lead.urgency || 'Normal'}</Pill></dd>
+              <dt>Follow-up due</dt><dd className="mono text-xs">{formatDateTime(lead.followUpDueAt)}</dd>
               <dt>Est. value</dt><dd className="mono">${compactNum(lead.value)}</dd>
               <dt>Last touch</dt><dd className="muted mono">{lead.last}</dd>
+              <dt>Need</dt><dd>{lead.needSummary || lead.notes || 'Not captured'}</dd>
             </dl>
           </div>
         </div>
@@ -5880,9 +6179,28 @@ function QuickCreateModal({ type, onClose, onCreated }) {
   const [form, setForm] = React.useState({
     title: '',
     email: '',
+    phone: '',
     company: '',
+    job_title: '',
+    website: '',
+    linkedin_url: '',
+    preferred_contact_method: 'Email',
+    best_time_to_contact: '',
+    industry: '',
+    business_type: '',
+    city: '',
+    state_region: '',
+    country: '',
+    business_state: '',
+    need_summary: '',
+    source: 'Manual',
+    qr_source: '',
+    referral_source: '',
+    urgency: 'Normal',
     value: '',
     priority: 'medium',
+    follow_up_due_at: '',
+    document_links: '',
     due_at: '',
     notes: '',
   });
@@ -5901,9 +6219,28 @@ function QuickCreateModal({ type, onClose, onCreated }) {
           type,
           title: form.title,
           email: form.email,
+          phone: form.phone,
           company: form.company,
+          job_title: form.job_title,
+          website: form.website,
+          linkedin_url: form.linkedin_url,
+          preferred_contact_method: form.preferred_contact_method,
+          best_time_to_contact: form.best_time_to_contact,
+          industry: form.industry,
+          business_type: form.business_type,
+          city: form.city,
+          state_region: form.state_region,
+          country: form.country,
+          business_state: form.business_state,
+          need_summary: form.need_summary,
+          source: form.source,
+          qr_source: form.qr_source,
+          referral_source: form.referral_source,
+          urgency: form.urgency,
           value: Number(form.value || 0),
           priority: form.priority,
+          follow_up_due_at: form.follow_up_due_at ? new Date(form.follow_up_due_at).toISOString() : null,
+          document_links: form.document_links.split('\n').map(x => x.trim()).filter(Boolean),
           due_at: form.due_at ? new Date(form.due_at).toISOString() : null,
           notes: form.notes,
         }),
@@ -5932,10 +6269,74 @@ function QuickCreateModal({ type, onClose, onCreated }) {
             <input type="text" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} required autoFocus/>
           </div>
           {type === 'lead' && (
-            <div className="row2">
-              <div className="field"><label>Email</label><input type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})}/></div>
-              <div className="field"><label>Company</label><input type="text" value={form.company} onChange={(e) => setForm({...form, company: e.target.value})}/></div>
-            </div>
+            <>
+              <div className="row2">
+                <div className="field"><label>Email</label><input type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})}/></div>
+                <div className="field"><label>Phone</label><input type="tel" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})}/></div>
+              </div>
+              <div className="row2">
+                <div className="field"><label>Company</label><input type="text" value={form.company} onChange={(e) => setForm({...form, company: e.target.value})}/></div>
+                <div className="field"><label>Title</label><input type="text" value={form.job_title} onChange={(e) => setForm({...form, job_title: e.target.value})}/></div>
+              </div>
+              <div className="row2">
+                <div className="field"><label>Website</label><input type="url" value={form.website} onChange={(e) => setForm({...form, website: e.target.value})}/></div>
+                <div className="field"><label>LinkedIn</label><input type="text" value={form.linkedin_url} onChange={(e) => setForm({...form, linkedin_url: e.target.value})}/></div>
+              </div>
+              <div className="row2">
+                <div className="field">
+                  <label>Preferred contact</label>
+                  <select value={form.preferred_contact_method} onChange={(e) => setForm({...form, preferred_contact_method: e.target.value})}>
+                    <option>Email</option>
+                    <option>Phone</option>
+                    <option>Text</option>
+                    <option>LinkedIn</option>
+                  </select>
+                </div>
+                <div className="field"><label>Best time to contact</label><input type="text" value={form.best_time_to_contact} onChange={(e) => setForm({...form, best_time_to_contact: e.target.value})} placeholder="Morning, afternoon, specific window"/></div>
+              </div>
+              <div className="row2">
+                <div className="field"><label>Industry</label><input type="text" value={form.industry} onChange={(e) => setForm({...form, industry: e.target.value})}/></div>
+                <div className="field"><label>Business type</label><input type="text" value={form.business_type} onChange={(e) => setForm({...form, business_type: e.target.value})}/></div>
+              </div>
+              <div className="row2">
+                <div className="field"><label>City</label><input type="text" value={form.city} onChange={(e) => setForm({...form, city: e.target.value})}/></div>
+                <div className="field"><label>State</label><input type="text" value={form.state_region} onChange={(e) => setForm({...form, state_region: e.target.value})}/></div>
+              </div>
+              <div className="row2">
+                <div className="field"><label>Country</label><input type="text" value={form.country} onChange={(e) => setForm({...form, country: e.target.value})}/></div>
+                <div className="field"><label>Business state</label><input type="text" value={form.business_state} onChange={(e) => setForm({...form, business_state: e.target.value})} placeholder="New inquiry, urgent, active buyer..."/></div>
+              </div>
+              <div className="row2">
+                <div className="field">
+                  <label>Urgency</label>
+                  <select value={form.urgency} onChange={(e) => setForm({...form, urgency: e.target.value})}>
+                    <option>Immediate</option>
+                    <option>Same Day</option>
+                    <option>Scheduled</option>
+                    <option>Normal</option>
+                    <option>Low</option>
+                  </select>
+                </div>
+                <div className="field"><label>Follow-up due</label><input type="datetime-local" value={form.follow_up_due_at} onChange={(e) => setForm({...form, follow_up_due_at: e.target.value})}/></div>
+              </div>
+              <div className="row2">
+                <div className="field"><label>Source</label><input type="text" value={form.source} onChange={(e) => setForm({...form, source: e.target.value})}/></div>
+                <div className="field"><label>QR source</label><input type="text" value={form.qr_source} onChange={(e) => setForm({...form, qr_source: e.target.value})}/></div>
+              </div>
+              <div className="row2">
+                <div className="field"><label>Estimated value</label><input type="number" min="0" value={form.value} onChange={(e) => setForm({...form, value: e.target.value})}/></div>
+                <div className="field">
+                  <label>Priority</label>
+                  <select value={form.priority} onChange={(e) => setForm({...form, priority: e.target.value})}>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+              </div>
+              <div className="field"><label>Need</label><textarea rows={2} value={form.need_summary} onChange={(e) => setForm({...form, need_summary: e.target.value})}/></div>
+              <div className="field"><label>Document links</label><textarea rows={2} value={form.document_links} onChange={(e) => setForm({...form, document_links: e.target.value})} placeholder="One link per line"/></div>
+            </>
           )}
           {type === 'deal' && (
             <div className="row2">
@@ -6337,18 +6738,36 @@ function App() {
 
   const [route, setRoute] = React.useState('home');
   const [deals, setDeals] = React.useState(DEALS);
+  const [leads, setLeads] = React.useState(LEADS);
+  const [selectedLead, setSelectedLead] = React.useState(null);
   const [openDeal, setOpenDeal] = React.useState(null);
   const [cmdkOpen, setCmdkOpen] = React.useState(false);
   const [focusDealId, setFocusDealId] = React.useState(null);
   const [shareSubject, setShareSubject] = React.useState(null);
   const [handoffDeal, setHandoffDeal] = React.useState(null);
   const [quickCreate, setQuickCreate] = React.useState(null);
+  const [meetingInbox, setMeetingInbox] = React.useState([]);
+  const navigate = React.useCallback((next) => {
+    if (next === 'leads') setSelectedLead(null);
+    setRoute(next);
+  }, []);
 
   React.useEffect(() => {
     fetch('/api/suite/state')
       .then(r => r.json())
       .then(data => {
         window.ADGA_RUNTIME_STATE = data;
+      })
+      .catch(() => {});
+  }, []);
+
+  React.useEffect(() => {
+    fetch('/api/leads')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data.leads) && data.leads.length) {
+          setLeads(data.leads.map(normalizeStoredLead));
+        }
       })
       .catch(() => {});
   }, []);
@@ -6378,8 +6797,8 @@ function App() {
   const handleWorkflow = (action) => {
     if (!action) return;
     if (action.type === 'open-deal') { setOpenDeal(action.deal); }
-    else if (action.type === 'story') { setFocusDealId(action.dealId); setRoute('story'); }
-    else if (action.type === 'route') { setRoute(action.route); }
+    else if (action.type === 'story') { setFocusDealId(action.dealId); navigate('story'); }
+    else if (action.type === 'route') { navigate(action.route); }
   };
 
   // Keyboard
@@ -6398,27 +6817,42 @@ function App() {
     <div className="app">
       <Sidebar
         route={route}
-        setRoute={setRoute}
+        setRoute={navigate}
         collapsed={tweaks.sidebarCollapsed}
       />
       <div className="main">
-        <Topbar crumb={crumb} setCmdk={setCmdkOpen} tweaks={tweaks} setTweak={setTweak} setRoute={setRoute} setQuickCreate={setQuickCreate}/>
+        <Topbar crumb={crumb} setCmdk={setCmdkOpen} tweaks={tweaks} setTweak={setTweak} setRoute={navigate} setQuickCreate={setQuickCreate}/>
         <div className="workspace">
-          {route === 'home'      && <HomePage deals={deals} openDeal={setOpenDeal} setRoute={setRoute}/>}
+          {route === 'home'      && <HomePage deals={deals} openDeal={setOpenDeal} setRoute={navigate}/>}
           {route === 'pending'   && <PendingPage deals={deals} openDeal={setOpenDeal}/>}
-          {route === 'inbox'     && <InboxPage openDeal={setOpenDeal} deals={deals}/>}
+          {route === 'inbox'     && <InboxPage openDeal={setOpenDeal} deals={deals} meetingInbox={meetingInbox}/>}
           {route === 'tasks'     && <TasksPage openDeal={setOpenDeal} deals={deals} setQuickCreate={setQuickCreate}/>}
-          {route === 'calendar'  && <CalendarPage openDeal={setOpenDeal} deals={deals}/>}
-          {route === 'teams'     && <TeamsPage deals={deals} openDeal={setOpenDeal} setRoute={setRoute}/>}
-          {route === 'leads'     && <LeadsPage openDeal={setOpenDeal} setQuickCreate={setQuickCreate}/>}
+          {route === 'calendar'  && <CalendarPage openDeal={setOpenDeal} deals={deals} onMeetingCreated={(event, deliveries) => {
+            setMeetingInbox(prev => [{
+              id: 'cal-inbox-' + event.id,
+              from: 'Calendar',
+              subj: 'Meeting scheduled · ' + event.title,
+              preview: `${(event.attendees || []).length} attendees · ${deliveries.filter(d => d.status === 'sent').length} invites sent · ${event.meeting_url || 'meeting link pending'}`,
+              time: 'now',
+              deal: event.deal_id || 'Calendar',
+              unread: true,
+              tag: 'Calendar',
+            }, ...prev]);
+          }}/>}
+          {route === 'teams'     && <TeamsPage deals={deals} openDeal={setOpenDeal} setRoute={navigate}/>}
+          {route === 'leads'     && <LeadsPage openDeal={setOpenDeal} setQuickCreate={setQuickCreate} leads={leads} selectedLead={selectedLead} setSelectedLead={setSelectedLead}/>}
           {route === 'pipeline'  && <PipelinePage view={tweaks.pipelineView} setView={v => setTweak('pipelineView', v)} deals={deals} setDeals={setDeals} openDeal={setOpenDeal} setQuickCreate={setQuickCreate}/>}
           {route === 'story'     && <StoryPage deals={deals} openDeal={setOpenDeal} focusDealId={focusDealId}/>}
           {route === 'crm'       && <CRMPage openDeal={setOpenDeal} deals={deals}/>}
           {route === 'documents' && <DocumentsPage deals={deals} openDeal={setOpenDeal}/>}
           {route === 'knowledge' && <KnowledgePage/>}
           {route === 'intelligence' && <IntelligencePage deals={deals}/>}
+          {route === 'voice-notes' && <VoiceNotesPage/>}
+          {route === 'messaging' && <MessagingPage/>}
           {route === 'reports'   && <ReportsPage/>}
           {route === 'admin'     && <AdminPage/>}
+          {route === 'affiliates' && <AffiliateCenterPage/>}
+          {route === 'invoicing'  && <InvoicingCenterPage/>}
           {route === 'billing'   && <BillingPage/>}
           {route === 'settings'  && <SettingsPage tweaks={tweaks} setTweak={setTweak}/>}
         </div>
@@ -6435,7 +6869,7 @@ function App() {
 {/* scrim removed */}
 
       {openDeal && <DealDrawer deal={openDeal} onClose={() => setOpenDeal(null)}/>}
-      {cmdkOpen && <CommandBar deals={deals} setRoute={setRoute} openDeal={setOpenDeal} close={() => setCmdkOpen(false)}/>}
+      {cmdkOpen && <CommandBar deals={deals} setRoute={navigate} openDeal={setOpenDeal} close={() => setCmdkOpen(false)}/>}
       {shareSubject && <ShareModal subject={shareSubject} onClose={() => setShareSubject(null)}/>}
       {handoffDeal && <HandoffModal deal={handoffDeal} onClose={() => setHandoffDeal(null)} onConfirm={(payload) => { console.log('Handoff:', payload); }}/>}
       <QuickCreateModal
@@ -6461,6 +6895,12 @@ function App() {
               source: 'Manual',
             }, ...prev]);
           }
+          if (type === 'lead') {
+            const createdLead = normalizeCreatedLead(record);
+            setLeads(prev => [createdLead, ...prev]);
+            setSelectedLead(createdLead);
+            navigate('leads');
+          }
         }}
       />
       {editMode && <ADGATweaks tweaks={tweaks} setTweak={setTweak}/>}
@@ -6472,8 +6912,8 @@ const ROUTE_LABELS = {
   home: 'Home', pending: 'Pending', inbox: 'Inbox', tasks: 'Tasks', calendar: 'Calendar', teams: 'Teams',
   leads: 'Leads', pipeline: 'Pipeline', story: 'Story', crm: 'Contacts',
   documents: 'Documents', knowledge: 'Knowledge Hub',
-  intelligence: 'Intelligence', reports: 'Reports',
-  admin: 'Admin', billing: 'Billing', settings: 'Settings',
+  intelligence: 'Intelligence', 'voice-notes': 'Voice Notes', messaging: 'Messaging', reports: 'Reports',
+  admin: 'Admin', affiliates: 'Affiliate Center', invoicing: 'Invoicing', billing: 'Billing', settings: 'Settings',
 };
 
 function Topbar({ crumb, setCmdk, tweaks, setTweak, setRoute, setQuickCreate }) {

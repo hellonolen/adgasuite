@@ -226,13 +226,47 @@ export default function MarketingPage() {
         {/* ===== CTA ===== */}
         <section className="cta" id="contact">
           <h2>
-            Begin your<br />
-            <em>first issue.</em>
+            Bring every<br />
+            <em>lead into view.</em>
           </h2>
           <div className="right">
             <p>
-              Subscriptions are handled through the product. AI agents prepare setup, review access requests, and keep the workspace moving.
+              Send a contact request into ADGA with the details your team needs to act quickly, route the lead, and schedule the next follow-up.
             </p>
+            <form action="/api/leads/intake" method="post" style={{display: 'grid', gap: 10, margin: '18px 0'}}>
+              <input type="hidden" name="source" value="Footer contact form" />
+              <input type="hidden" name="qr_source" value="footer-contact-qr" />
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10}}>
+                <input name="full_name" placeholder="Full name" required />
+                <input name="email" type="email" placeholder="Email" required />
+                <input name="phone" placeholder="Phone" />
+                <input name="company" placeholder="Company" required />
+                <input name="job_title" placeholder="Title" />
+                <input name="website" placeholder="Business website" />
+                <input name="linkedin_url" placeholder="LinkedIn or social profile" />
+                <input name="state_region" placeholder="State" />
+              </div>
+              <textarea name="need_summary" rows={3} placeholder="What should we know about this lead?" />
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10}}>
+                <select name="urgency" defaultValue="Normal">
+                  <option>Immediate</option>
+                  <option>Same Day</option>
+                  <option>Scheduled</option>
+                  <option>Normal</option>
+                  <option>Low</option>
+                </select>
+                <select name="preferred_contact_method" defaultValue="Email">
+                  <option>Email</option>
+                  <option>Phone</option>
+                  <option>Text</option>
+                  <option>LinkedIn</option>
+                </select>
+              </div>
+              <div style={{display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap'}}>
+                <div aria-label="Footer QR code" style={{width: 82, height: 82, border: '1px solid var(--line)', display: 'grid', placeItems: 'center', fontSize: 11, color: 'var(--ink-2)'}}>QR</div>
+                <button className="btn primary lg" type="submit">Send contact</button>
+              </div>
+            </form>
             <div className="ctas">
               <a href="/request-access?plan=teams" className="btn primary lg">Request access</a>
               <a href="/pricing" className="btn lg">See pricing</a>

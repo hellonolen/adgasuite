@@ -599,31 +599,35 @@ export async function createCalendarEvent(
     return event;
   }
 
-  await db.prepare(
-    `INSERT INTO calendar_events
-      (id, organization_id, title, starts_at, ends_at, timezone, location, meeting_url, status, event_type, deal_id, contact_id, attendees_json, notes, created_by, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  )
-    .bind(
-      event.id,
-      event.organization_id,
-      event.title,
-      event.starts_at,
-      event.ends_at,
-      event.timezone,
-      event.location,
-      event.meeting_url,
-      event.status,
-      event.event_type,
-      event.deal_id,
-      event.contact_id,
-      JSON.stringify(event.attendees),
-      event.notes,
-      event.created_by,
-      event.created_at,
-      event.updated_at,
+  try {
+    await db.prepare(
+      `INSERT INTO calendar_events
+        (id, organization_id, title, starts_at, ends_at, timezone, location, meeting_url, status, event_type, deal_id, contact_id, attendees_json, notes, created_by, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-    .run();
+      .bind(
+        event.id,
+        event.organization_id,
+        event.title,
+        event.starts_at,
+        event.ends_at,
+        event.timezone,
+        event.location,
+        event.meeting_url,
+        event.status,
+        event.event_type,
+        event.deal_id,
+        event.contact_id,
+        JSON.stringify(event.attendees),
+        event.notes,
+        event.created_by,
+        event.created_at,
+        event.updated_at,
+      )
+      .run();
+  } catch {
+    memory.calendarEvents.push(event);
+  }
 
   return event;
 }

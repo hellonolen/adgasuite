@@ -3,6 +3,11 @@ export interface PostmarkMessage {
   subject: string;
   htmlBody: string;
   textBody?: string;
+  attachments?: Array<{
+    name: string;
+    content: string;
+    contentType: string;
+  }>;
 }
 
 export async function sendPostmarkEmail(message: PostmarkMessage, env: CloudflareEnv = {}) {
@@ -29,6 +34,11 @@ export async function sendPostmarkEmail(message: PostmarkMessage, env: Cloudflar
       Subject: message.subject,
       HtmlBody: message.htmlBody,
       TextBody: message.textBody,
+      Attachments: message.attachments?.map((attachment) => ({
+        Name: attachment.name,
+        Content: attachment.content,
+        ContentType: attachment.contentType,
+      })),
       MessageStream: "outbound",
     }),
   });
