@@ -2,6 +2,13 @@ name = "adga-suite"
 main = ".open-next/worker.js"
 compatibility_date = "2026-05-20"
 compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+preview_urls = true
+
+routes = [
+  { pattern = "adga.ai", custom_domain = true },
+  { pattern = "www.adga.ai", custom_domain = true }
+]
 
 [vars]
 ADGA_AI_MODEL = "@cf/moonshotai/kimi-k2.6"
