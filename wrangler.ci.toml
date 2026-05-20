@@ -19,6 +19,10 @@ ADGA_ADMIN_EMAILS = "hellonolen@gmail.com,kamarokyle5@gmail.com"
 ADGA_LOCAL_ADMIN_BYPASS = "true"
 WHOP_REDIRECT_URL = "https://adga.ai/suite"
 
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
 [ai]
 binding = "AI"
 remote = true
