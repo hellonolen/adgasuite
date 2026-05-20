@@ -7,7 +7,9 @@ preview_urls = true
 
 routes = [
   { pattern = "adga.ai", custom_domain = true },
-  { pattern = "www.adga.ai", custom_domain = true }
+  { pattern = "www.adga.ai", custom_domain = true },
+  { pattern = "adga.ai/*", zone_name = "adga.ai" },
+  { pattern = "www.adga.ai/*", zone_name = "adga.ai" }
 ]
 
 [vars]
