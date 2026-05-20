@@ -6,6 +6,7 @@
     "dev": "next dev --port 3010",
     "build": "next build",
     "build:cf": "opennextjs-cloudflare build",
+    "build:cf:ci": "opennextjs-cloudflare build && node scripts/patch-open-next-worker.mjs",
     "deploy": "npm run build:cf && wrangler deploy",
     "preview": "npm run build:cf && wrangler dev",
     "typecheck": "tsc --noEmit"
@@ -26,4 +27,3 @@
     "wrangler": "^4.93.0"
   }
 }
-

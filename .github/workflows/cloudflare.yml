@@ -61,8 +61,12 @@ jobs:
 
       - name: Build
         if: env.CLOUDFLARE_API_TOKEN != ''
-        run: npm run build:cf
+        run: npm run build:cf:ci
+
+      - name: Upload static assets to R2
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: bash scripts/upload-r2-static-assets.sh adga-assets static
 
       - name: Deploy to Cloudflare
         if: env.CLOUDFLARE_API_TOKEN != ''
-        run: npx wrangler deploy .open-next/worker.js --assets .open-next/assets --no-bundle --x-autoconfig=false --keep-vars
+        run: npx wrangler deploy .open-next/worker.js --config wrangler.ci.toml --no-bundle --x-autoconfig=false --keep-vars
