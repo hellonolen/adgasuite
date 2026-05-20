@@ -35,9 +35,10 @@ The platform has two surfaces:
 - Cloudflare Worker AI binding for ADGA Suite agent intelligence.
 - Cloudflare D1 for structured product data.
 - Cloudflare R2 for files, uploads, exports, and media assets.
+- Cloudflare Assets for Next/OpenNext static frontend files.
 - Kimi 2.6 as the intended primary model through Cloudflare Worker runtime.
 - Cloudflare secrets for billing, email, webhook, and approved third-party service keys.
-- Cloudflare Pages/Workers cutover only after preview QA passes.
+- Cloudflare Workers/custom-domain cutover only after production verification passes.
 
 ## Production Integrations
 
@@ -95,15 +96,35 @@ Small UI actions do not emit events:
 
 ## Build Strategy
 
-1. Keep the existing ADGA folder intact while the Cloudflare-native build is defined.
+1. Keep this project isolated as the ADGA Suite source of truth.
 2. Create the Cloudflare data model from current Suite screens and production requirements.
 3. Recreate backend behavior directly on Cloudflare.
 4. Preserve or recreate the current premium light ADGA Suite UI.
 5. Connect modules to D1/R2 APIs.
 6. Add agent jobs and event processing after product records are stable.
-7. Deploy to Cloudflare preview.
-8. QA production workflows.
-9. Cut over `adga.ai`.
+7. Deploy through the OpenNext Cloudflare pipeline.
+8. Verify production workflows and public domain access.
+9. Keep `adga.ai` on this Cloudflare Worker/custom-domain path.
+
+## Production Deploy Contract
+
+The deploy is not just a successful Worker upload. A valid production deploy must:
+
+- build the Next app
+- build the OpenNext Cloudflare bundle
+- deploy `.open-next/worker.js`
+- bind `.open-next/assets` through Cloudflare Assets
+- keep `adga.ai` and `www.adga.ai` routed to the `adga-suite` Worker
+- verify DNS through Cloudflare and Google public resolvers
+- verify `https://adga.ai/`
+- verify `https://adga.ai/suite`
+- verify `https://adga.ai/api/health`
+- verify the production Next CSS/JS asset URLs
+
+The verification script is `scripts/verify-production.mjs`.
+The Cloudflare domain setup script is `scripts/cloudflare-production-setup.mjs`.
+
+Do not use Convex, legacy ADGA backend references, forced local DNS, cache-busted URLs, or R2 static-asset patches as production deployment proof.
 
 ## Production Gate
 
@@ -123,5 +144,5 @@ The build is not ready until:
 - R2 upload/download works
 - agent jobs are logged
 - audit log exists for sensitive changes
-- Cloudflare deploy succeeds
-- domain preview passes smoke tests
+- Cloudflare deploy succeeds through GitHub Actions
+- public production verification passes for `adga.ai`

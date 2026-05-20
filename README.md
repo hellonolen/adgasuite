@@ -44,7 +44,8 @@ ADGA Suite is subscription software for:
 Do not store file bodies, generated exports, recordings, transcripts, images, or large agent artifacts in D1.
 
 - D1 stores metadata, indexes, workflow state, audit records, and R2 keys.
-- R2 stores the actual bytes and large artifacts.
+- R2 stores product file bytes and large artifacts.
+- Cloudflare Assets serves the Next/OpenNext frontend static files from `.open-next/assets`.
 - Every R2 object used by the product should have a `storage_objects` metadata row in D1.
 
 ## Owner Access
@@ -67,14 +68,36 @@ Build from the ADGA Suite product requirements and existing frontend look/feel. 
 
 ## Deployment
 
-Manual deploy:
+Production deploys are owned by GitHub Actions in `.github/workflows/cloudflare.yml`.
+
+Pushes to `main` run:
+
+1. Typecheck and Next build.
+2. OpenNext Cloudflare build.
+3. Cloudflare Worker deploy with Cloudflare Assets bound to `.open-next/assets`.
+4. Cloudflare production domain verification/setup for `adga.ai` and `www.adga.ai`.
+5. Public production verification for DNS, `/`, `/suite`, `/api/health`, and Next CSS/JS assets.
+
+Required GitHub repository secrets:
 
 ```sh
-npm run build:cf
-npx wrangler deploy
+CLOUDFLARE_API_TOKEN
+CLOUDFLARE_ACCOUNT_ID
 ```
 
-GitHub Actions are configured in `.github/workflows/cloudflare.yml`:
+Local production checks:
 
-- Pull requests run typecheck and Cloudflare build.
-- Pushes to `main` deploy to Cloudflare when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set as repository secrets.
+```sh
+npm run typecheck
+npm run build:cf:ci
+npm run verify:production
+```
+
+Manual deploys should use the same OpenNext worker/assets path as CI:
+
+```sh
+npm run build:cf:ci
+npx wrangler deploy worker.js --cwd .open-next --config ../wrangler.ci.toml --x-autoconfig=false --keep-vars
+```
+
+Do not ship production from a one-off cache-busted URL, forced local DNS mapping, or R2 static asset workaround.
