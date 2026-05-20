@@ -63,10 +63,14 @@ jobs:
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: npm run build:cf:ci
 
-      - name: Upload static assets to R2
-        if: env.CLOUDFLARE_API_TOKEN != ''
-        run: bash scripts/upload-r2-static-assets.sh adga-assets static
-
       - name: Deploy to Cloudflare
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: npx wrangler deploy worker.js --cwd .open-next --config ../wrangler.ci.toml --x-autoconfig=false --keep-vars
+
+      - name: Ensure Cloudflare production domain
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npm run cloudflare:production
+
+      - name: Verify public production URL
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npm run verify:production
