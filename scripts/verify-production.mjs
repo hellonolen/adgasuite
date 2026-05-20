@@ -38,8 +38,8 @@ async function assertDns(provider, url) {
 function assetUrls(html) {
   const urls = new Set();
   const patterns = [
-    /<link[^>]+href="([^"]+\/_next\/static\/[^"]+)"/g,
-    /<script[^>]+src="([^"]+\/_next\/static\/[^"]+)"/g,
+    /<link[^>]+href="([^"]*_next\/static\/[^"]+)"/g,
+    /<script[^>]+src="([^"]*_next\/static\/[^"]+)"/g,
   ];
 
   for (const pattern of patterns) {
