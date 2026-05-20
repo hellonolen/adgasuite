@@ -25,6 +25,19 @@ async function cf(path, init = {}) {
   return payload.result;
 }
 
+async function tryCf(path, init = {}) {
+  const response = await fetch(`${api}${path}`, {
+    ...init,
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+      ...(init.headers || {}),
+    },
+  });
+  const payload = await response.json();
+  return { response, payload };
+}
+
 async function getZone() {
   const zones = await cf(`/zones?name=${encodeURIComponent(zoneName)}`);
   const zone = zones[0];
@@ -50,11 +63,29 @@ async function upsertDnsRecord(zoneId, desired) {
     return;
   }
 
-  await cf(`/zones/${zoneId}/dns_records`, {
+  const created = await tryCf(`/zones/${zoneId}/dns_records`, {
     method: "POST",
     body,
   });
-  console.log(`Created DNS ${desired.type} ${desired.name}`);
+
+  if (created.response.ok && created.payload.success) {
+    console.log(`Created DNS ${desired.type} ${desired.name}`);
+    return;
+  }
+
+  const managedByWorker = created.payload?.errors?.some((error) => error.code === 81062);
+  if (managedByWorker) {
+    console.log(`DNS ${desired.name} is already managed by a Worker custom domain`);
+    return;
+  }
+
+  throw new Error(
+    `Cloudflare API failed creating DNS ${desired.name}: ${JSON.stringify(
+      created.payload.errors || created.payload,
+      null,
+      2,
+    )}`,
+  );
 }
 
 async function ensureWorkerRoute(zoneId, pattern) {
