@@ -65,4 +65,4 @@ jobs:
 
       - name: Deploy to Cloudflare
         if: env.CLOUDFLARE_API_TOKEN != ''
-        run: npx wrangler deploy
+        run: npx wrangler deploy .open-next/worker.js --assets .open-next/assets --no-bundle --x-autoconfig=false --keep-vars
