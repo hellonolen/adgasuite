@@ -1,0 +1,394 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap");
+@import "../components/adga/marketing.css";
+@import "../components/adga/styles.css";
+@import "../components/adga/styles-v4.css";
+
+html, body { margin: 0; min-height: 100%; }
+
+html {
+  height: auto !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+body {
+  height: auto !important;
+  min-height: 100vh;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+}
+
+.app {
+  height: 100vh;
+  overflow: hidden !important;
+}
+
+.suite-shell {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  background:
+    linear-gradient(120deg, rgba(32, 33, 36, 0.05), transparent 32%),
+    var(--adga-bg);
+  color: var(--adga-text);
+  font-family: var(--adga-font-sans);
+}
+
+.auth-brand {
+  position: fixed;
+  top: 28px;
+  left: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--adga-text);
+  text-decoration: none;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.auth-card {
+  width: min(100%, 520px);
+  padding: 36px;
+  background: var(--adga-surface);
+  border: 1px solid var(--adga-border);
+  border-radius: var(--adga-radius-lg);
+  box-shadow: 0 24px 70px rgba(20, 20, 24, 0.10);
+}
+
+.auth-card.wide {
+  width: min(100%, 940px);
+  display: grid;
+  grid-template-columns: 0.9fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.auth-kicker {
+  margin: 0 0 12px;
+  font-family: var(--adga-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--adga-text-3);
+}
+
+.auth-card h1 {
+  margin: 0;
+  font-size: clamp(40px, 6vw, 70px);
+  line-height: 0.92;
+  letter-spacing: 0;
+}
+
+.auth-card h2 {
+  margin: 0 0 10px;
+  font-size: 28px;
+  letter-spacing: 0;
+}
+
+.auth-copy {
+  margin: 18px 0 28px;
+  color: var(--adga-text-2);
+  line-height: 1.55;
+  max-width: 56ch;
+}
+
+.auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--adga-text-2);
+}
+
+.auth-form input,
+.auth-form textarea,
+.auth-form select {
+  width: 100%;
+  border: 1px solid var(--adga-border-strong);
+  border-radius: var(--adga-radius-md);
+  background: var(--adga-surface-2);
+  color: var(--adga-text);
+  padding: 12px 13px;
+  font: inherit;
+  outline: none;
+}
+
+.auth-form input:focus,
+.auth-form textarea:focus,
+.auth-form select:focus {
+  border-color: var(--adga-accent);
+  box-shadow: 0 0 0 3px var(--adga-accent-ring);
+}
+
+.auth-links,
+.auth-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 20px;
+  font-size: 13px;
+}
+
+.auth-links a {
+  color: var(--adga-text-2);
+}
+
+.auth-proof span {
+  padding: 8px 10px;
+  border: 1px solid var(--adga-border);
+  border-radius: var(--adga-radius-md);
+  background: var(--adga-surface-2);
+  font-size: 12px;
+}
+
+.auth-status,
+.auth-success p {
+  color: var(--adga-text-2);
+}
+
+@media (max-width: 780px) {
+  .auth-card.wide {
+    grid-template-columns: 1fr;
+  }
+  .auth-brand {
+    position: static;
+    justify-self: start;
+    margin-bottom: 18px;
+  }
+  .auth-page {
+    display: block;
+    padding: 22px;
+  }
+}
+
+/* ============================================================
+   ADGA Suite Theme Control Layer
+   ------------------------------------------------------------
+   This is the source of truth for fast visual direction changes.
+   Keep screen/layout CSS in component files; tune product presence here.
+   ============================================================ */
+
+:root {
+  /* Fonts */
+  --adga-font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --adga-font-display: "Instrument Serif", Georgia, serif;
+  --adga-font-product: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --adga-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Shared palette */
+  --adga-bg: #f7f6fa;
+  --adga-surface: #ffffff;
+  --adga-surface-2: #f3f2f7;
+  --adga-surface-3: #ececf1;
+  --adga-surface-hover: #efeff3;
+  --adga-text: #1a1a22;
+  --adga-text-2: #55555f;
+  --adga-text-3: #8a8a95;
+  --adga-border: #e3e2ea;
+  --adga-border-strong: #c5c4ce;
+  --adga-accent: #7c5cff;
+  --adga-accent-hover: #6647ff;
+  --adga-accent-soft: rgba(124, 92, 255, 0.10);
+  --adga-accent-ring: rgba(124, 92, 255, 0.28);
+  --adga-accent-fg: #ffffff;
+
+  /* Shape, density, and controls */
+  --adga-radius-xs: 2px;
+  --adga-radius-sm: 4px;
+  --adga-radius-md: 6px;
+  --adga-radius-lg: 10px;
+  --adga-row-h: 36px;
+  --adga-pad-x: 14px;
+  --adga-pad-y: 10px;
+  --adga-gap: 14px;
+  --adga-button-bg: transparent;
+  --adga-button-fg: var(--adga-text);
+  --adga-button-border: var(--adga-border-strong);
+  --adga-button-primary-bg: var(--adga-accent);
+  --adga-button-primary-fg: var(--adga-accent-fg);
+  --adga-button-primary-hover: var(--adga-accent-hover);
+
+  /* Legacy variable bridge used by imported ADGA CSS */
+  --bg: var(--adga-bg);
+  --paper: var(--adga-surface);
+  --paper-2: var(--adga-surface-2);
+  --surface: var(--adga-surface);
+  --surface-2: var(--adga-surface-2);
+  --surface-3: var(--adga-surface-3);
+  --surface-hover: var(--adga-surface-hover);
+  --ink: var(--adga-text);
+  --ink-2: var(--adga-text-2);
+  --ink-3: var(--adga-text-3);
+  --text: var(--adga-text);
+  --text-2: var(--adga-text-2);
+  --text-3: var(--adga-text-3);
+  --border: var(--adga-border);
+  --border-strong: var(--adga-border-strong);
+  --rule: var(--adga-border);
+  --rule-strong: var(--adga-border-strong);
+  --accent: var(--adga-accent);
+  --accent-hover: var(--adga-accent-hover);
+  --accent-deep: var(--adga-accent-hover);
+  --accent-soft: var(--adga-accent-soft);
+  --accent-ring: var(--adga-accent-ring);
+  --accent-fg: var(--adga-accent-fg);
+  --font-sans: var(--adga-font-sans);
+  --font-serif: var(--adga-font-display);
+  --font-mono: var(--adga-font-mono);
+  --row-h: var(--adga-row-h);
+  --pad-x: var(--adga-pad-x);
+  --pad-y: var(--adga-pad-y);
+  --gap: var(--adga-gap);
+  --radius: var(--adga-radius-md);
+  --radius-lg: var(--adga-radius-lg);
+}
+
+/* Font direction classes */
+.adga-font-editorial {
+  --adga-font-display: "Instrument Serif", Georgia, serif;
+  --font-serif: var(--adga-font-display);
+}
+
+.adga-font-product,
+.adga-font-system {
+  --adga-font-display: var(--adga-font-product);
+  --font-serif: var(--adga-font-product);
+}
+
+.adga-font-hybrid {
+  --adga-font-display: var(--adga-font-sans);
+  --font-serif: var(--adga-font-sans);
+}
+
+/* Palette direction classes */
+.adga-palette-violet {
+  --adga-bg: #f7f6fa;
+  --adga-surface: #ffffff;
+  --adga-surface-2: #f3f2f7;
+  --adga-surface-3: #ececf1;
+  --adga-text: #1a1a22;
+  --adga-text-2: #55555f;
+  --adga-text-3: #8a8a95;
+  --adga-border: #e3e2ea;
+  --adga-border-strong: #c5c4ce;
+  --adga-accent: #7c5cff;
+  --adga-accent-hover: #6647ff;
+}
+
+.adga-palette-graphite {
+  --adga-bg: #f6f6f3;
+  --adga-surface: #ffffff;
+  --adga-surface-2: #efefeb;
+  --adga-surface-3: #e7e7e1;
+  --adga-text: #191a1d;
+  --adga-text-2: #4f5157;
+  --adga-text-3: #7d8089;
+  --adga-border: #deded7;
+  --adga-border-strong: #c4c5bc;
+  --adga-accent: #202124;
+  --adga-accent-hover: #3b3d42;
+}
+
+.adga-palette-evergreen {
+  --adga-bg: #f5f7f3;
+  --adga-surface: #ffffff;
+  --adga-surface-2: #edf1eb;
+  --adga-surface-3: #e2e8df;
+  --adga-text: #18201b;
+  --adga-text-2: #4d5a51;
+  --adga-text-3: #7b867d;
+  --adga-border: #dce5d9;
+  --adga-border-strong: #bdcbbc;
+  --adga-accent: #24543a;
+  --adga-accent-hover: #1b402c;
+}
+
+.adga-palette-cobalt {
+  --adga-bg: #f5f7fb;
+  --adga-surface: #ffffff;
+  --adga-surface-2: #eef2f8;
+  --adga-surface-3: #e4eaf4;
+  --adga-text: #172033;
+  --adga-text-2: #4c5870;
+  --adga-text-3: #7e8798;
+  --adga-border: #dce3ef;
+  --adga-border-strong: #bbc7d9;
+  --adga-accent: #1e5aa8;
+  --adga-accent-hover: #174681;
+}
+
+/* Presence and density classes */
+.adga-presence-crisp {
+  --adga-radius-sm: 3px;
+  --adga-radius-md: 4px;
+  --adga-radius-lg: 7px;
+  --adga-row-h: 34px;
+  --adga-pad-x: 13px;
+  --adga-pad-y: 9px;
+}
+
+.adga-presence-soft {
+  --adga-radius-sm: 6px;
+  --adga-radius-md: 8px;
+  --adga-radius-lg: 12px;
+  --adga-row-h: 38px;
+  --adga-pad-x: 15px;
+  --adga-pad-y: 11px;
+}
+
+.adga-density-compact {
+  --adga-row-h: 32px;
+  --adga-pad-x: 12px;
+  --adga-pad-y: 8px;
+  --adga-gap: 10px;
+}
+
+.adga-density-spacious {
+  --adga-row-h: 44px;
+  --adga-pad-x: 18px;
+  --adga-pad-y: 14px;
+  --adga-gap: 18px;
+}
+
+/* Button direction classes */
+.adga-buttons-solid {
+  --adga-button-primary-bg: var(--adga-accent);
+  --adga-button-primary-fg: var(--adga-accent-fg);
+  --adga-button-primary-hover: var(--adga-accent-hover);
+}
+
+.adga-buttons-quiet {
+  --adga-button-primary-bg: var(--adga-text);
+  --adga-button-primary-fg: var(--adga-bg);
+  --adga-button-primary-hover: var(--adga-text-2);
+}
+
+.btn {
+  border-radius: var(--adga-radius-sm);
+  background: var(--adga-button-bg);
+  color: var(--adga-button-fg);
+  border-color: var(--adga-button-border);
+}
+
+.btn.primary {
+  background: var(--adga-button-primary-bg);
+  color: var(--adga-button-primary-fg);
+  border-color: var(--adga-button-primary-bg);
+}
+
+.btn.primary:hover {
+  background: var(--adga-button-primary-hover);
+  border-color: var(--adga-button-primary-hover);
+}

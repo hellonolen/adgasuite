@@ -1,0 +1,67 @@
+# Project Rules
+
+## Source Of Truth
+
+This folder is the source of truth for the new Cloudflare-native ADGA Suite build:
+
+`/Users/savantrock/Workspace/active/ADGAsuite`
+
+The legacy ADGA repo is reference only for current UI/UX and product behavior.
+
+## Naming
+
+Use:
+
+- ADGA
+- ADGA Suite
+- adga.ai
+
+Do not introduce alternate product names for the assistant/agent layer.
+
+## Platform Boundary
+
+Production platform:
+
+- Cloudflare
+- D1
+- R2
+- Workers/API routes
+- Cloudflare Worker AI binding
+- Cloudflare secrets
+
+Do not add legacy backend dependencies, URLs, scripts, providers, or environment variables.
+
+AI runtime rule:
+
+- Use the Cloudflare Worker runtime to power ADGA Suite agents.
+- Kimi 2.6 is the intended primary model.
+- Do not make Gemini, Claude, OpenAI, or another external model API the primary path.
+- External model APIs may only be added later as explicit fallback integrations if approved.
+
+## Production Standard
+
+This is not an MVP, demo, or investor mockup. Features must be real production workflows before they are marked done.
+
+## Admin Access
+
+- Platform owner/admin email: `hellonolen@gmail.com`.
+- Additional admin email: `kamarokyle5@gmail.com`.
+- Localhost must not lock the owner out of the project.
+- Local development may use an admin bypass for these emails.
+- Production must use real session security and audit logging.
+
+## Integrations
+
+- Email delivery: Postmark.
+- Payments and subscriptions: Whop.
+- AI runtime: Cloudflare Worker AI with Kimi 2.6.
+
+## UI Standard
+
+- Premium light SaaS interface.
+- Business-tool density.
+- Sidebar/tool layout for the ADGA workspace app.
+- Two-panel login pattern.
+- Clear tables, drawers, filters, forms, settings, and empty states.
+- No dark mode as the primary product surface.
+- No bloated cards or decorative placeholder sections.

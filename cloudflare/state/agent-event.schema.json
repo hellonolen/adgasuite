@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/schemas/agent-event.schema.json",
+  "title": "ADGA Suite Business Event",
+  "type": "object",
+  "required": ["id", "event_type", "actor_type", "created_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": ["string", "null"] },
+    "event_type": { "type": "string" },
+    "actor_type": {
+      "type": "string",
+      "enum": ["user", "agent", "system", "webhook", "cron"]
+    },
+    "actor_id": { "type": ["string", "null"] },
+    "resource_type": { "type": ["string", "null"] },
+    "resource_id": { "type": ["string", "null"] },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}
+

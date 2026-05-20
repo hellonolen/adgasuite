@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/schemas/workflow-state.schema.json",
+  "title": "ADGA Suite Workflow State",
+  "type": "object",
+  "required": ["id", "organization_id", "workflow_type", "status", "created_at", "updated_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "workflow_type": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "active", "paused", "completed", "failed", "archived"]
+    },
+    "resource_type": { "type": ["string", "null"] },
+    "resource_id": { "type": ["string", "null"] },
+    "state": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}
+

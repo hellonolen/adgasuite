@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/schemas/agent-job.schema.json",
+  "title": "ADGA Suite Agent Job",
+  "type": "object",
+  "required": ["id", "agent", "job_type", "status", "input", "created_at", "updated_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": ["string", "null"] },
+    "agent": {
+      "type": "string",
+      "enum": ["conductor", "sales", "intelligence", "documents", "operations"]
+    },
+    "job_type": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["queued", "running", "completed", "failed", "canceled"]
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "output": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "error": { "type": ["string", "null"] },
+    "run_after": { "type": ["string", "null"], "format": "date-time" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}
+
