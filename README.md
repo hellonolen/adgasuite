@@ -26,6 +26,7 @@ ADGA Suite is subscription software for:
 - Cloudflare Worker AI with Kimi 2.6
 - Postmark for transactional email
 - Whop for payments/subscriptions
+- Self-hosted open-source SMS gateway adapter for SMS
 
 ## Current Backend Contract
 
@@ -36,6 +37,7 @@ ADGA Suite is subscription software for:
 - `/api/documents/upload` stores uploaded files in R2.
 - `/api/storage/objects` lists D1 metadata pointers for R2 objects.
 - `/api/email/send` sends Postmark email when secrets are configured.
+- `/api/messages/sms` sends SMS through a self-hosted open-source gateway when configured.
 - `/api/billing/checkout` creates a Whop checkout configuration when Whop secrets are configured.
 - `/api/webhooks/whop` records Whop subscription/payment events after signature verification.
 
@@ -47,6 +49,22 @@ Do not store file bodies, generated exports, recordings, transcripts, images, or
 - R2 stores product file bytes and large artifacts.
 - Cloudflare Assets serves the Next/OpenNext frontend static files from `.open-next/assets`.
 - Every R2 object used by the product should have a `storage_objects` metadata row in D1.
+
+## SMS
+
+Postmark is email only. ADGA uses Postmark for transactional email, meeting invites, receipts, and invoice messages.
+
+SMS is handled separately through a self-hosted open-source gateway adapter. The intended setup is an Android/SIM gateway such as TextBee, httpSMS, Vendel-style gateways, or another compatible HTTP gateway.
+
+Configure:
+
+```txt
+SMS_GATEWAY_URL
+SMS_GATEWAY_API_KEY
+SMS_GATEWAY_PROVIDER=self_hosted_android_gateway
+```
+
+SMS is a platform utility for leadership and workspace users. It is not tied to Twilio, Telnyx, or a paid carrier API.
 
 ## Owner Access
 

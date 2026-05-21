@@ -3975,7 +3975,14 @@ function VoiceNotesPage() {
 
 function MessagingPage() {
   const [result, setResult] = React.useState(null);
+  const [messages, setMessages] = React.useState([]);
   const [sending, setSending] = React.useState(false);
+  React.useEffect(() => {
+    fetch('/api/messages/sms')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data.messages)) setMessages(data.messages); })
+      .catch(() => {});
+  }, []);
   const submit = async (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -3986,7 +3993,9 @@ function MessagingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to: form.get('to'), message: form.get('message') }),
       });
-      setResult(await response.json());
+      const data = await response.json();
+      setResult(data);
+      if (data.sms) setMessages(prev => [data.sms, ...prev]);
     } finally {
       setSending(false);
     }
@@ -3994,7 +4003,7 @@ function MessagingPage() {
   return (
     <>
       <div className="page-h">
-        <div><h1>Messaging</h1><div className="sub">SMS adapter for open-source/self-hosted gateways. Postmark remains email only.</div></div>
+        <div><h1>Messaging</h1><div className="sub">SMS for leadership and workspace users through a self-hosted open-source gateway. Postmark remains email only.</div></div>
       </div>
       <div style={{padding:'0 32px 28px',display:'grid',gridTemplateColumns:'420px minmax(0,1fr)',gap:14,overflow:'auto',flex:1}}>
         <div className="card">
@@ -4008,9 +4017,27 @@ function MessagingPage() {
         <div className="card">
           <div className="card-h"><div className="ttl">Gateway status</div></div>
           <div className="card-b">
-            <p className="text-sm muted">Configure an open-source gateway endpoint with <span className="mono">SMS_GATEWAY_URL</span> and <span className="mono">SMS_GATEWAY_API_KEY</span>. The product code stays the same if we choose TextBee, httpSMS, Vendel, or another self-hosted gateway.</p>
+            <p className="text-sm muted">Selected direction: self-hosted Android/SIM gateway. Configure <span className="mono">SMS_GATEWAY_URL</span> and <span className="mono">SMS_GATEWAY_API_KEY</span>. This works with TextBee/httpSMS/Vendel-style open-source gateways without changing ADGA product code.</p>
             {result?.sms && <dl className="kv"><dt>Status</dt><dd><Pill tone={result.sms.status === 'sent' ? 'green' : 'amber'}>{result.sms.status}</Pill></dd><dt>Provider</dt><dd>{result.sms.provider}</dd><dt>Response</dt><dd>{result.sms.provider_response}</dd></dl>}
           </div>
+        </div>
+        <div className="card" style={{gridColumn:'1 / -1'}}>
+          <div className="card-h"><div className="ttl">SMS history</div><span className="text-xs muted">Stored in D1 as metadata and linked to records when provided.</span></div>
+          <table className="tbl">
+            <thead><tr><th>To</th><th>Status</th><th>Provider</th><th>Message</th><th>Created</th></tr></thead>
+            <tbody>
+              {messages.length === 0 && <tr><td colSpan={5} className="muted">No SMS messages yet.</td></tr>}
+              {messages.map(m => (
+                <tr key={m.id}>
+                  <td className="mono">{m.to_number}</td>
+                  <td><Pill tone={m.status === 'sent' ? 'green' : m.status === 'failed' ? 'red' : 'amber'}>{m.status}</Pill></td>
+                  <td>{m.provider}</td>
+                  <td>{m.body}</td>
+                  <td className="mono text-xs">{formatDateTime(m.created_at)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </>

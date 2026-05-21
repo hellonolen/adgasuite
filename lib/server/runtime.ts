@@ -70,3 +70,9 @@ export function requireAdmin(context: RuntimeContext) {
     throw new Response("Forbidden", { status: 403 });
   }
 }
+
+export function requireUser(context: RuntimeContext) {
+  if (!context.user.email) {
+    throw new Response("Unauthorized", { status: 401 });
+  }
+}

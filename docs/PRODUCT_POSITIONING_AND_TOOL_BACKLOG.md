@@ -309,9 +309,11 @@ Documents and links:
 - Do not use Telnyx.
 - Postmark remains the email provider; it should not be treated as an SMS provider.
 - SMS should use a provider-neutral adapter so ADGA can connect to an open-source/self-hosted SMS gateway.
-- Candidate open-source SMS gateway directions include Android/SIM gateway projects such as TextBee/httpSMS/Vendel-style gateways or an SMPP gateway such as Kannel/Jasmin/Kamex if the deployment needs carrier-grade routing.
+- The selected default direction is a self-hosted Android/SIM gateway, compatible with TextBee/httpSMS/Vendel-style HTTP APIs.
+- SMS should be available for leadership use and for normal platform users.
 - SMS metadata should be stored in D1.
 - SMS should support connection to leads, contacts, deals, meetings, and follow-up workflows.
+- ADGA should not charge users separately for SMS. The gateway should be treated as an available platform utility once configured.
 
 ## Implementation Notes For The Next Build Pass
 

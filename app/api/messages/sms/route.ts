@@ -1,17 +1,35 @@
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
-import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
+import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
+
+export async function GET(request: Request) {
+  const context = getRuntimeContext(request);
+  requireUser(context);
+
+  if (!context.env.DB) return json({ ok: true, messages: [] });
+
+  try {
+    const result = await context.env.DB.prepare(
+      "SELECT * FROM sms_messages WHERE organization_id = ? ORDER BY created_at DESC LIMIT 100",
+    )
+      .bind("org_adga_primary")
+      .all();
+    return json({ ok: true, messages: result.results || [] });
+  } catch {
+    return json({ ok: true, messages: [] });
+  }
+}
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
-  requireAdmin(context);
+  requireUser(context);
   const body = await readJson<{ to?: string; message?: string; resource_type?: string; resource_id?: string }>(request);
 
   if (!body.to || !body.message) return errorJson("to and message are required.");
 
   const timestamp = nowIso();
-  const provider = context.env.SMS_GATEWAY_PROVIDER || "open_source_gateway";
+  const provider = context.env.SMS_GATEWAY_PROVIDER || "self_hosted_android_gateway";
   const gatewayUrl = context.env.SMS_GATEWAY_URL || process.env.SMS_GATEWAY_URL;
   const gatewayKey = context.env.SMS_GATEWAY_API_KEY || process.env.SMS_GATEWAY_API_KEY;
   let status = "skipped";
@@ -25,6 +43,7 @@ export async function POST(request: Request) {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${gatewayKey}`,
+          "x-api-key": gatewayKey,
         },
         body: JSON.stringify({
           to: body.to,
