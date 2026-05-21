@@ -801,6 +801,124 @@ body {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 32%, transparent);
 }
 
+.suite-shell .home-focus-stack {
+  align-content: start;
+}
+
+.suite-shell .deal-focus-card {
+  height: max-content !important;
+  min-height: max-content !important;
+  overflow: visible;
+}
+
+.suite-shell .deal-focus-header {
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.suite-shell .deal-period-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.suite-shell .deal-period-tabs button {
+  min-width: 58px;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.suite-shell .deal-period-tabs button.active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  box-shadow: 0 4px 12px -8px var(--accent);
+}
+
+.suite-shell .deal-focus-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--border);
+}
+
+.suite-shell .deal-focus-summary > div {
+  min-width: 0;
+  padding: 14px 16px;
+  background: var(--surface);
+}
+
+.suite-shell .deal-focus-summary span {
+  display: block;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.suite-shell .deal-focus-summary small {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.suite-shell .deal-focus-table {
+  overflow-x: auto;
+}
+
+.suite-shell .deal-focus-table .tbl {
+  min-width: 860px;
+}
+
+.suite-shell .contact-link-cell {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.suite-shell .contact-link-cell b,
+.suite-shell .contact-link-cell small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suite-shell .contact-link-cell small {
+  margin-top: 2px;
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.suite-shell .deal-team-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.suite-shell .home-follow-grid {
+  align-items: start;
+}
+
 .suite-shell .voice {
   position: relative !important;
   inset: auto !important;
@@ -870,6 +988,28 @@ body {
 
   .suite-shell .home-content-grid,
   .suite-shell .billing-main-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .suite-shell .deal-focus-header {
+    display: grid !important;
+    grid-template-columns: 1fr;
+  }
+
+  .suite-shell .deal-period-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .suite-shell .deal-period-tabs button {
+    flex: 1 0 auto;
+  }
+
+  .suite-shell .deal-focus-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .suite-shell .home-follow-grid {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 

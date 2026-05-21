@@ -4816,10 +4816,36 @@ function SettingsIntegrations() {
 /* HomePage v2 — workspace home (no marketing/editorial framing) */
 
 function HomePage({ deals, openDeal, setRoute }) {
+  const [period, setPeriod] = React.useState('quarter');
   const active = deals.filter(d => d.stage !== 'won' && d.stage !== 'lost');
   const totalValue = active.reduce((s,d) => s + d.value, 0);
   const weighted = active.reduce((s,d) => s + d.value * d.prob / 100, 0);
-  const closing = active.filter(d => d.stage === 'closing' || d.stage === 'negotiation');
+  const focusStages = new Set(['closing', 'negotiation', 'proposal']);
+  const periodTabs = [
+    { id: 'day', label: 'Day', days: 1 },
+    { id: 'week', label: 'Week', days: 7 },
+    { id: 'month', label: 'Month', days: 31 },
+    { id: 'quarter', label: 'Quarter', days: 92 },
+    { id: 'year', label: 'Year', days: 365 },
+  ];
+  const selectedPeriod = periodTabs.find(t => t.id === period) || periodTabs[3];
+  const today = new Date('2026-05-20T00:00:00');
+  const horizon = new Date(today);
+  horizon.setDate(today.getDate() + selectedPeriod.days);
+  const focusedDeals = active
+    .filter(d => {
+      const close = new Date(d.close + 'T00:00:00');
+      return close >= today && close <= horizon && (focusStages.has(d.stage) || d.priority === 'high');
+    })
+    .sort((a, b) => new Date(a.close) - new Date(b.close))
+    .slice(0, period === 'day' ? 5 : 9);
+  const periodValue = focusedDeals.reduce((s, d) => s + d.value, 0);
+  const periodWeighted = focusedDeals.reduce((s, d) => s + d.value * d.prob / 100, 0);
+  const highUrgency = focusedDeals.filter(d => d.stage === 'closing' || d.priority === 'high').length;
+  const displayedDeals = focusedDeals.length ? focusedDeals : active
+    .filter(d => focusStages.has(d.stage) || d.priority === 'high')
+    .sort((a, b) => new Date(a.close) - new Date(b.close))
+    .slice(0, 5);
 
   return (
     <>
@@ -4841,24 +4867,58 @@ function HomePage({ deals, openDeal, setRoute }) {
         <KPI label="Avg. days in stage" value="14.2"                         delta={<><Icon name="arrow-dn" size={11}/> -2.1d</>} deltaTone="up"/>
       </div>
 
-      <div className="home-content-grid" style={{display:'grid',gridTemplateColumns:'minmax(0, 1.6fr) minmax(0, 1fr)',gap:14,padding:'0 32px 28px',flex:1,overflow:'auto'}}>
-        <div className="card">
-          <div className="card-h">
-            <div className="ttl">Closing this quarter <span className="sub">{closing.length} deals</span></div>
-            <button className="btn ghost sm" type="button" onClick={() => setRoute('pipeline')}>Open pipeline →</button>
+      <div className="home-content-grid home-focus-stack" style={{display:'grid',gridTemplateColumns:'minmax(0, 1fr)',gap:14,padding:'0 32px 28px',flex:1,overflow:'auto'}}>
+        <div className="card deal-focus-card">
+          <div className="card-h deal-focus-header">
+            <div>
+              <div className="ttl">Closing focus <span className="sub">{selectedPeriod.label.toLowerCase()} view</span></div>
+              <div className="sub">Late-stage deals, negotiations, and relationship owners tied back to contact records.</div>
+            </div>
+            <div className="deal-period-tabs" role="tablist" aria-label="Closing period">
+              {periodTabs.map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={period === tab.id}
+                  className={period === tab.id ? 'active' : ''}
+                  onClick={() => setPeriod(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
-          <div style={{padding:0}}>
+          <div className="deal-focus-summary">
+            <div><span>{displayedDeals.length}</span><small>visible deals</small></div>
+            <div><span>{fmtCurrency(periodValue || displayedDeals.reduce((s,d)=>s+d.value,0), 'USD')}</span><small>gross value</small></div>
+            <div><span>{fmtCurrency(periodWeighted || displayedDeals.reduce((s,d)=>s+d.value*d.prob/100,0), 'USD')}</span><small>weighted</small></div>
+            <div><span>{highUrgency || displayedDeals.filter(d => d.priority === 'high').length}</span><small>priority records</small></div>
+          </div>
+          <div className="deal-focus-table">
             <table className="tbl">
-              <thead><tr><th>Deal</th><th>Stage</th><th>Owner</th><th className="num">Value</th><th>Close</th></tr></thead>
+              <thead><tr><th>Deal</th><th>Contact record</th><th>Stage</th><th>Team</th><th className="num">Value</th><th>Close</th></tr></thead>
               <tbody>
-                {closing.slice(0, 7).map(d => {
+                {displayedDeals.map(d => {
                   const o = personOf(d.owner);
                   const s = stageOf(d.stage);
+                  const co = companyOf(d.company);
+                  const team = (d.team || []).map(personOf).filter(Boolean);
                   return (
                     <tr key={d.id} onClick={() => openDeal(d)} style={{cursor:'pointer'}}>
-                      <td><b>{d.name.split(' — ')[0]}</b><div className="mono text-xs muted">{d.id}</div></td>
-                      <td><Pill tone={d.stage === 'closing' ? 'amber' : 'amber'}>{s.name}</Pill></td>
-                      <td><span style={{display:'inline-flex',alignItems:'center',gap:6}}><Avatar person={o}/> {o.name.split(' ')[0]}</span></td>
+                      <td>
+                        <b>{d.name.split(' — ')[0]}</b>
+                        <div className="mono text-xs muted">{d.id} · {d.type}</div>
+                      </td>
+                      <td>
+                        <div className="contact-link-cell">
+                          <span className="avatar">{co?.logo || 'CO'}</span>
+                          <span><b>{co?.name || 'Unassigned'}</b><small>{co?.sector || 'Company'} · {co?.hq || 'Contact record'}</small></span>
+                          <button className="btn ghost sm" type="button" onClick={(e) => { e.stopPropagation(); setRoute('crm'); }}>Contact record</button>
+                        </div>
+                      </td>
+                      <td><Pill tone={d.stage === 'closing' ? 'amber' : d.stage === 'negotiation' ? 'amber' : 'blue'}>{s.name}</Pill></td>
+                      <td><span className="deal-team-cell"><Avatar person={o}/> <span>{o.name.split(' ')[0]}</span><AvatarStack ids={team.slice(1).map(p => p.id)} max={3}/></span></td>
                       <td className="num">{fmtCurrency(d.value, d.currency)}</td>
                       <td className="mono">{d.close}</td>
                     </tr>
@@ -4869,7 +4929,7 @@ function HomePage({ deals, openDeal, setRoute }) {
           </div>
         </div>
 
-        <div style={{display:'flex',flexDirection:'column',gap:14,minWidth:0}}>
+        <div className="home-follow-grid" style={{display:'grid',gridTemplateColumns:'minmax(0, 1fr) minmax(0, 1fr)',gap:14,minWidth:0}}>
           <div className="card">
             <div className="card-h"><div className="ttl">Tasks due today</div><span className="text-xs muted">5</span></div>
             <div className="card-b" style={{padding:0}}>
