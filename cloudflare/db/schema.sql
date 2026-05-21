@@ -293,6 +293,19 @@ CREATE TABLE IF NOT EXISTS sessions (
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS magic_tokens (
+  token_hash TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
+  plan TEXT,
+  redirect_path TEXT NOT NULL DEFAULT '/suite',
+  expires_at TEXT NOT NULL,
+  used_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_magic_tokens_email ON magic_tokens(email);
+CREATE INDEX IF NOT EXISTS idx_magic_tokens_expires ON magic_tokens(expires_at);
+
 CREATE TABLE IF NOT EXISTS leads (
   id TEXT PRIMARY KEY,
   organization_id TEXT NOT NULL,

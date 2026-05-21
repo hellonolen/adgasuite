@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Deal operator visual</title>
+  <desc id="desc">A calm operator dashboard visual with tasks, meetings, and deal context.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#eee9f8"/></linearGradient>
+    <linearGradient id="p" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#5b21b6"/></linearGradient>
+    <filter id="s"><feDropShadow dx="0" dy="24" stdDeviation="22" flood-color="#201836" flood-opacity=".13"/></filter>
+  </defs>
+  <rect width="900" height="1200" fill="url(#bg)"/>
+  <g filter="url(#s)">
+    <rect x="116" y="116" width="668" height="968" rx="42" fill="#fff"/>
+    <circle cx="450" cy="300" r="112" fill="#f4f0fb"/>
+    <circle cx="450" cy="282" r="54" fill="url(#p)"/>
+    <path d="M324 408c42-52 210-52 252 0" fill="none" stroke="#5b21b6" stroke-width="42" stroke-linecap="round" opacity=".32"/>
+    <rect x="182" y="538" width="536" height="94" rx="24" fill="#f8f6fc" stroke="#e6dff1"/>
+    <rect x="220" y="570" width="178" height="14" rx="7" fill="#17151f"/>
+    <rect x="220" y="598" width="300" height="10" rx="5" fill="#8c8599"/>
+    <rect x="182" y="668" width="536" height="94" rx="24" fill="#f8f6fc" stroke="#e6dff1"/>
+    <rect x="220" y="700" width="222" height="14" rx="7" fill="#17151f"/>
+    <rect x="220" y="728" width="268" height="10" rx="5" fill="#8c8599"/>
+    <rect x="182" y="798" width="536" height="94" rx="24" fill="#f8f6fc" stroke="#e6dff1"/>
+    <rect x="220" y="830" width="154" height="14" rx="7" fill="#17151f"/>
+    <rect x="220" y="858" width="334" height="10" rx="5" fill="#8c8599"/>
+  </g>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" role="img" aria-labelledby="title desc">
+  <title id="title">Deal execution visual</title>
+  <desc id="desc">A deal execution workspace with files, terms, approvals, and invoices moving toward close.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#f2eff8"/></linearGradient>
+    <linearGradient id="p" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#5b21b6"/></linearGradient>
+    <filter id="s"><feDropShadow dx="0" dy="24" stdDeviation="20" flood-color="#201836" flood-opacity=".13"/></filter>
+  </defs>
+  <rect width="900" height="900" fill="url(#bg)"/>
+  <g filter="url(#s)">
+    <rect x="118" y="132" width="664" height="636" rx="34" fill="#fff"/>
+    <rect x="168" y="190" width="212" height="18" rx="9" fill="#17151f"/>
+    <rect x="168" y="228" width="378" height="12" rx="6" fill="#8c8599"/>
+    <rect x="168" y="314" width="144" height="260" rx="22" fill="#f8f6fc" stroke="#e6dff1"/>
+    <rect x="352" y="282" width="144" height="292" rx="22" fill="#f8f6fc" stroke="#e6dff1"/>
+    <rect x="536" y="340" width="144" height="234" rx="22" fill="#f8f6fc" stroke="#e6dff1"/>
+    <path d="M240 616h368" stroke="#ded7ea" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="240" cy="616" r="18" fill="url(#p)"/>
+    <circle cx="424" cy="616" r="18" fill="url(#p)" opacity=".82"/>
+    <circle cx="608" cy="616" r="18" fill="url(#p)" opacity=".64"/>
+    <rect x="192" y="350" width="92" height="12" rx="6" fill="#17151f"/>
+    <rect x="192" y="384" width="68" height="10" rx="5" fill="#8c8599"/>
+    <rect x="376" y="320" width="86" height="12" rx="6" fill="#17151f"/>
+    <rect x="376" y="354" width="74" height="10" rx="5" fill="#8c8599"/>
+    <rect x="560" y="378" width="78" height="12" rx="6" fill="#17151f"/>
+    <rect x="560" y="412" width="88" height="10" rx="5" fill="#8c8599"/>
+    <rect x="168" y="682" width="512" height="38" rx="19" fill="url(#p)"/>
+  </g>
+</svg>

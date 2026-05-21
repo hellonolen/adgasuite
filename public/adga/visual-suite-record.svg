@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">ADGA suite record visual</title>
+  <desc id="desc">A suite screen visual showing a connected record with pipeline, documents, contacts, and AI notes.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbfafc"/><stop offset=".58" stop-color="#f1ecf8"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+    <linearGradient id="p" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#4c1d95"/></linearGradient>
+    <filter id="s"><feDropShadow dx="0" dy="24" stdDeviation="22" flood-color="#201836" flood-opacity=".14"/></filter>
+  </defs>
+  <rect width="1200" height="900" fill="url(#bg)"/>
+  <g filter="url(#s)">
+    <rect x="92" y="84" width="1016" height="732" rx="34" fill="#fff"/>
+    <rect x="92" y="84" width="206" height="732" rx="34" fill="#f7f5fb"/>
+    <rect x="138" y="138" width="96" height="18" rx="9" fill="#5b21b6"/>
+    <rect x="136" y="226" width="112" height="12" rx="6" fill="#17151f"/>
+    <rect x="136" y="278" width="126" height="12" rx="6" fill="#8f889b"/>
+    <rect x="136" y="330" width="102" height="12" rx="6" fill="#8f889b"/>
+    <rect x="136" y="382" width="134" height="12" rx="6" fill="#8f889b"/>
+    <rect x="342" y="128" width="430" height="58" rx="18" fill="#f6f3fb" stroke="#e6dff1"/>
+    <rect x="822" y="128" width="166" height="58" rx="18" fill="url(#p)"/>
+    <rect x="342" y="250" width="322" height="178" rx="24" fill="#f8f6fc" stroke="#e6dff1"/>
+    <rect x="704" y="250" width="322" height="178" rx="24" fill="#f8f6fc" stroke="#e6dff1"/>
+    <rect x="342" y="476" width="684" height="232" rx="24" fill="#faf9fc" stroke="#e6dff1"/>
+    <rect x="386" y="294" width="142" height="14" rx="7" fill="#17151f"/>
+    <rect x="386" y="330" width="220" height="10" rx="5" fill="#8f889b"/>
+    <rect x="748" y="294" width="176" height="14" rx="7" fill="#17151f"/>
+    <rect x="748" y="330" width="224" height="10" rx="5" fill="#8f889b"/>
+    <path d="M386 624h552" stroke="#ded7ea" stroke-width="3"/>
+    <path d="M386 624c88-98 174-42 236-20 82 30 160 14 316-74" fill="none" stroke="#5b21b6" stroke-width="18" stroke-linecap="round"/>
+  </g>
+</svg>

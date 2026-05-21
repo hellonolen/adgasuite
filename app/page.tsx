@@ -33,8 +33,8 @@ export default function MarketingPage() {
                 Existing teams · <a href="/login">open ADGA</a>
               </div>
             </div>
-            <div className="hero-photo">
-              <div className="ph-title">Live execution record</div>
+            <div className="hero-photo visual-card">
+              <img src="/adga/visual-deal-desk.svg" alt="ADGA live execution record with deal, contact, file, and timeline context" />
               <div className="ph-meta">LEAD · CONTACT · DEAL</div>
             </div>
           </div>
@@ -66,8 +66,8 @@ export default function MarketingPage() {
           <h2 className="title">What ADGA keeps moving.</h2>
           <div className="three">
             <div className="three-card">
-              <div className="photo">
-                <div className="ph-title">Capture</div>
+              <div className="photo visual-card">
+                <img src="/adga/visual-capture.svg" alt="Lead capture workspace with form, QR, import, and routing signals" />
                 <div className="ph-meta">FORM · QR · IMPORT</div>
               </div>
               <span className="ed-label">Lead intake</span>
@@ -75,8 +75,8 @@ export default function MarketingPage() {
               <div className="body">Inbound forms, QR links, manual entries, imported lists, urgency, source, date, owner, and next action.</div>
             </div>
             <div className="three-card">
-              <div className="photo">
-                <div className="ph-title">Follow-up</div>
+              <div className="photo visual-card">
+                <img src="/adga/visual-followup.svg" alt="Follow-up timeline with email, calls, meetings, and voice notes" />
                 <div className="ph-meta">EMAIL · SMS · VOICE</div>
               </div>
               <span className="ed-label">Contact work</span>
@@ -84,8 +84,8 @@ export default function MarketingPage() {
               <div className="body">Calls, messages, voice notes, meeting requests, documents, reminders, and follow-up sequences stay tied to the person.</div>
             </div>
             <div className="three-card">
-              <div className="photo">
-                <div className="ph-title">Deal execution</div>
+              <div className="photo visual-card">
+                <img src="/adga/visual-execution.svg" alt="Deal execution board with files, terms, approvals, and invoices" />
                 <div className="ph-meta">FILES · TERMS · INVOICE</div>
               </div>
               <span className="ed-label">Execution path</span>
@@ -117,10 +117,8 @@ export default function MarketingPage() {
               <div style={{marginTop: 24}}><a href="/product" className="btn primary">See the full platform</a></div>
             </div>
             <div className="preview">
-              <div className="frame">
-                <div style={{flex: 1, display: 'grid', placeItems: 'center', flexDirection: 'column', textAlign: 'center', padding: '8% 12%'}}>
-                  <div className="ph-title" style={{fontSize: 28}}>Lead, contact, deal, and follow-up in view.</div>
-                </div>
+              <div className="frame visual-card">
+                <img src="/adga/visual-suite-record.svg" alt="ADGA suite view showing pipeline, documents, contacts, and AI notes in one record" />
                 <div className="ph-meta">SCREEN · ADGA · 09:14</div>
               </div>
             </div>
@@ -130,8 +128,8 @@ export default function MarketingPage() {
         <section className="section">
           <span className="ed-label">Built for deal owners</span>
           <div className="quote" style={{marginTop: 24}}>
-            <div className="photo">
-              <div className="ph-title">Operator view</div>
+            <div className="photo visual-card">
+              <img src="/adga/visual-operator.svg" alt="Operator view with meetings, tasks, and deal context" />
               <div className="ph-meta">OWNER · TEAM · CLIENT</div>
             </div>
             <div className="text">

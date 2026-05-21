@@ -7681,8 +7681,17 @@ const SUITE_ROUTE_IDS = [
   'admin', 'affiliates', 'invoicing', 'billing', 'settings',
 ];
 
+const SUITE_ROUTE_ALIASES = {
+  contacts: 'crm',
+  contact: 'crm',
+  companies: 'crm',
+  files: 'documents',
+  docs: 'documents',
+};
+
 function normalizeSuiteRoute(value) {
-  return SUITE_ROUTE_IDS.includes(value) ? value : null;
+  const route = SUITE_ROUTE_ALIASES[value] || value;
+  return SUITE_ROUTE_IDS.includes(route) ? route : null;
 }
 
 function getInitialSuiteRoute() {

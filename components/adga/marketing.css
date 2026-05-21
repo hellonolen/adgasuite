@@ -226,6 +226,22 @@ em, i { font-style: normal; }
   -webkit-backdrop-filter: blur(18px) saturate(145%);
   backdrop-filter: blur(18px) saturate(145%);
 }
+.visual-card {
+  padding: 0;
+  isolation: isolate;
+}
+.visual-card img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+.visual-card .ph-meta {
+  z-index: 2;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
 .photo .ph-title {
   font-family: var(--font-serif);
   font-style: normal;
@@ -470,6 +486,7 @@ em, i { font-style: normal; }
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .product .preview .frame::before {
   content: '';

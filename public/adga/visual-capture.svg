@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" role="img" aria-labelledby="title desc">
+  <title id="title">Lead capture visual</title>
+  <desc id="desc">A refined lead capture board with QR, form, import, and routing signals.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#eee8f8"/></linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#5b21b6"/></linearGradient>
+    <filter id="s"><feDropShadow dx="0" dy="22" stdDeviation="20" flood-color="#201836" flood-opacity=".12"/></filter>
+  </defs>
+  <rect width="900" height="900" fill="url(#bg)"/>
+  <g filter="url(#s)">
+    <rect x="128" y="134" width="644" height="632" rx="34" fill="#fff"/>
+    <rect x="176" y="190" width="230" height="18" rx="9" fill="#17151f"/>
+    <rect x="176" y="226" width="348" height="12" rx="6" fill="#8c859a"/>
+    <rect x="176" y="300" width="248" height="248" rx="26" fill="#f7f4fb" stroke="#e5def1"/>
+    <path d="M222 346h72v72h-72zM330 346h48v48h-48zM222 454h48v48h-48zM318 442h60v60h-60z" fill="#5b21b6"/>
+    <rect x="472" y="304" width="210" height="34" rx="17" fill="#ede7f8"/>
+    <rect x="472" y="370" width="248" height="12" rx="6" fill="#17151f"/>
+    <rect x="472" y="402" width="174" height="12" rx="6" fill="#a39bad"/>
+    <rect x="472" y="472" width="184" height="42" rx="16" fill="url(#accent)"/>
+    <rect x="176" y="610" width="548" height="2" fill="#e7e1ef"/>
+    <rect x="176" y="650" width="138" height="12" rx="6" fill="#17151f"/>
+    <rect x="346" y="650" width="104" height="12" rx="6" fill="#8c859a"/>
+    <rect x="504" y="650" width="154" height="12" rx="6" fill="#8c859a"/>
+  </g>
+</svg>
