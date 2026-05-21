@@ -7415,7 +7415,7 @@ function App() {
     if (typeof window === 'undefined') return TWEAK_DEFAULTS;
     return {
       ...TWEAK_DEFAULTS,
-      sidebarCollapsed: window.innerWidth <= 640 ? true : TWEAK_DEFAULTS.sidebarCollapsed,
+      sidebarCollapsed: window.innerWidth <= 820 ? true : TWEAK_DEFAULTS.sidebarCollapsed,
       voiceCollapsed: window.innerWidth <= 1100 ? true : TWEAK_DEFAULTS.voiceCollapsed,
     };
   });
@@ -7450,7 +7450,7 @@ function App() {
     const syncRails = () => {
       setTweaks(prev => ({
         ...prev,
-        sidebarCollapsed: window.innerWidth <= 640 ? true : prev.sidebarCollapsed,
+        sidebarCollapsed: window.innerWidth <= 820 ? true : prev.sidebarCollapsed,
         voiceCollapsed: window.innerWidth <= 1100 ? true : prev.voiceCollapsed,
       }));
     };

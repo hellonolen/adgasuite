@@ -103,6 +103,31 @@ em, i { font-style: normal; }
   background: var(--accent);
 }
 .nav-cta { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+.nav-toggle {
+  display: none;
+  width: 38px;
+  height: 38px;
+  margin-left: auto;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  place-items: center;
+}
+.nav-toggle span {
+  display: block;
+  width: 16px;
+  height: 1.5px;
+  background: currentColor;
+  border-radius: 999px;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+.nav-toggle span + span { margin-top: 4px; }
+.nav-open .nav-toggle span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
+.nav-open .nav-toggle span:nth-child(2) { opacity: 0; }
+.nav-open .nav-toggle span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
 .nav-mono {
   font-family: var(--font-mono);
   font-size: 10.5px;
@@ -1058,11 +1083,36 @@ em, i { font-style: normal; }
 /* Mobile */
 @media (max-width: 700px) {
   .wrap { padding: 0 20px; }
-  .nav { flex-wrap: wrap; gap: 14px; }
+  .nav { flex-wrap: wrap; gap: 12px; padding: 14px 0; }
   .brand { font-size: 22px; }
-  .nav-links { order: 3; width: 100%; gap: 18px; padding-top: 10px; border-top: 1px solid var(--rule); justify-content: space-between; }
-  .nav-cta { margin-left: auto; gap: 8px; }
-  .nav-cta .btn { padding: 7px 12px; font-size: 12px; }
+  .nav-toggle { display: grid; }
+  .nav-links,
+  .nav-cta {
+    display: none;
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+  }
+  .nav-open .nav-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .nav-open .nav-links a {
+    padding: 10px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--paper);
+  }
+  .nav-open .nav-cta {
+    display: flex;
+    gap: 8px;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .nav-cta .btn { justify-content: center; padding: 9px 12px; font-size: 12px; }
   .section { padding: 48px 0; }
   .hero { padding: 32px 0 48px; }
   .hero .meta { gap: 10px; flex-wrap: wrap; font-size: 9.5px; }
@@ -1118,7 +1168,7 @@ em, i { font-style: normal; }
 /* Very small */
 @media (max-width: 420px) {
   .wrap { padding: 0 16px; }
-  .nav-links { gap: 12px; font-size: 11.5px; }
+  .nav-open .nav-links { gap: 8px; font-size: 11.5px; }
   .nav-cta .btn:not(.primary) { display: none; }
   .hero h1 { font-size: clamp(28px, 8vw, 36px); }
   .foot-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }

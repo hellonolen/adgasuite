@@ -9,22 +9,35 @@ interface MarketingLayoutProps {
 }
 
 export function MarketingLayout({ children }: MarketingLayoutProps) {
+  const [menuOpen, setMenuOpen] = React.useState(false);
+
   return (
     <div className="marketing-root adga-presence-crisp">
-      <nav className="nav wrap">
+      <nav className={'nav wrap ' + (menuOpen ? 'nav-open' : '')}>
         <a href="/" className="brand">
           ADGA
         </a>
+        <button
+          className="nav-toggle"
+          type="button"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(open => !open)}
+        >
+          <span/>
+          <span/>
+          <span/>
+        </button>
         <div className="nav-links">
-          <a href="/product">Product</a>
-          <a href="/pricing">Pricing</a>
-          <a href="/security">Security</a>
-          <a href="/stories">Stories</a>
+          <a href="/product" onClick={() => setMenuOpen(false)}>Product</a>
+          <a href="/pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
+          <a href="/security" onClick={() => setMenuOpen(false)}>Security</a>
+          <a href="/stories" onClick={() => setMenuOpen(false)}>Stories</a>
         </div>
         <div className="nav-cta">
           <span className="nav-mono">Deal flow platform</span>
-          <a href="/login" className="btn">Sign in</a>
-          <a href="/request-access?plan=teams" className="btn primary">Request access</a>
+          <a href="/login" className="btn" onClick={() => setMenuOpen(false)}>Sign in</a>
+          <a href="/request-access?plan=teams" className="btn primary" onClick={() => setMenuOpen(false)}>Request access</a>
         </div>
       </nav>
 
