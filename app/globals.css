@@ -385,6 +385,21 @@ body::before {
   color: var(--accent-fg) !important;
 }
 
+.suite-shell .vh-item.active {
+  background: rgba(91, 33, 182, 0.10) !important;
+  color: var(--text) !important;
+  border-left-color: transparent !important;
+}
+
+.suite-shell .vh-item.active .ttl,
+.suite-shell .vh-item.active .when {
+  color: var(--text) !important;
+}
+
+.suite-shell .vh-item.active .when {
+  opacity: 0.68;
+}
+
 @media (min-width: 821px) and (max-width: 1440px) {
   .suite-shell .voice {
     box-shadow: -12px 0 30px rgba(32, 24, 54, 0.07) !important;
