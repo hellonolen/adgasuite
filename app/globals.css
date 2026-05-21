@@ -717,6 +717,33 @@ body {
   padding-inline: clamp(20px, 2.5vw, 32px) !important;
 }
 
+.suite-shell .home-content-grid,
+.suite-shell .billing-content,
+.suite-shell .billing-main-grid,
+.suite-shell .price-grid {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.suite-shell .price-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.suite-shell .price-card {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 16px;
+}
+
+.suite-shell .price-card.current {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 32%, transparent);
+}
+
 .suite-shell .voice {
   position: relative !important;
   inset: auto !important;
@@ -755,6 +782,42 @@ body {
 @media (max-width: 1100px) {
   .suite-shell .app {
     grid-template-columns: 176px minmax(0, 1fr) !important;
+  }
+
+  .suite-shell .page-h {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    align-items: start !important;
+    gap: 14px !important;
+    padding: 22px 24px 14px !important;
+  }
+
+  .suite-shell .page-actions {
+    justify-content: flex-start !important;
+  }
+
+  .suite-shell .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    padding-inline: 24px !important;
+    gap: 12px !important;
+  }
+
+  .suite-shell .home-content-grid,
+  .suite-shell .billing-content {
+    flex: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  .suite-shell .home-content-grid,
+  .suite-shell .billing-main-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .suite-shell .price-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .suite-shell .voice {
@@ -854,6 +917,20 @@ body {
     padding-right: 16px !important;
   }
 
+  .suite-shell .billing-content {
+    flex: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 16px 28px !important;
+  }
+
+  .suite-shell .billing-main-grid,
+  .suite-shell .price-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
   .suite-shell .page-h {
     display: grid !important;
     grid-template-columns: 1fr;
@@ -895,6 +972,13 @@ body {
   .suite-shell .card {
     min-width: 0 !important;
     width: auto !important;
+  }
+
+  .suite-shell input,
+  .suite-shell select,
+  .suite-shell textarea,
+  .suite-shell button {
+    max-width: 100%;
   }
 
   .suite-shell .card:has(.tbl) {

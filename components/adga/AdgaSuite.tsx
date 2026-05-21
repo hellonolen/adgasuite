@@ -4080,7 +4080,7 @@ function BillingPage() {
           <button className="btn" type="button"><Icon name="download" size={13}/> Download invoices</button>
         </div>
       </div>
-      <div style={{padding:'0 32px 28px',display:'flex',flexDirection:'column',gap:14,overflow:'auto',flex:1}}>
+      <div className="billing-content" style={{padding:'0 32px 28px',display:'flex',flexDirection:'column',gap:14,overflow:'auto',flex:1}}>
         <div className="kpis" style={{padding:0,gridTemplateColumns:'repeat(auto-fit, minmax(160px, 1fr))'}}>
           <KPI label="Current plan" value="Teams" delta="$249 / seat / mo"/>
           <KPI label="Seats used" value="8 / 25" delta="17 available"/>
@@ -4088,7 +4088,7 @@ function BillingPage() {
           <KPI label="Next invoice" value="Jun 01" delta="$1,992"/>
         </div>
 
-        <div style={{display:'grid',gridTemplateColumns:'minmax(0, 1.5fr) minmax(0, 1fr)',gap:14}}>
+        <div className="billing-main-grid" style={{display:'grid',gridTemplateColumns:'minmax(0, 1.5fr) minmax(0, 1fr)',gap:14}}>
           <div className="card">
             <div className="card-h"><div className="ttl">Plans</div></div>
             <div className="card-b">
@@ -4730,6 +4730,8 @@ function SettingsWorkspace() {
 }
 
 function SettingsBranding() {
+  const portalAccents = ['#5b21b6', '#4c1d95', '#7c3aed', '#1e5aa8', '#475569', '#202124'];
+
   return (
     <div style={{paddingTop:14,maxWidth:600}}>
       <h3 style={{margin:'0 0 14px',fontSize:17,fontWeight:600}}>Branding</h3>
@@ -4745,8 +4747,8 @@ function SettingsBranding() {
         <label>Counterparty portal accent</label>
         <div className="text-xs muted">Used on the public VDR portal and signed-document footers.</div>
         <div style={{display:'flex',gap:8,marginTop:6}}>
-          {['#202124','#3b3d42','#475569','#1e5aa8','#7a3e1d','#0a0a0b'].map(c => (
-            <div key={c} style={{width:28,height:28,borderRadius:'50%',background:c,border:'2px solid var(--surface)',boxShadow:'0 0 0 1px var(--border-strong)',cursor:'pointer'}}/>
+          {portalAccents.map(c => (
+            <div key={c} title={c} aria-label={'Portal accent ' + c} style={{width:28,height:28,borderRadius:'50%',background:c,border:'2px solid var(--surface)',boxShadow:'0 0 0 1px var(--border-strong)',cursor:'pointer'}}/>
           ))}
         </div>
       </div>
@@ -7336,7 +7338,7 @@ function HandoffModal({ deal, onClose, onConfirm }) {
 /* Main App — routing, theme, tweaks integration */
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "accent": "#202124",
+  "accent": "#5b21b6",
   "theme": "light",
   "density": "spacious",
   "pipelineView": "kanban",
@@ -7346,11 +7348,20 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 const ACCENT_OPTIONS = [
-  { name: 'Ink',      color: '#202124' },
-  { name: 'Graphite', color: '#3b3d42' },
-  { name: 'Slate',    color: '#475569' },
+  { name: 'Violet',   color: '#5b21b6' },
+  { name: 'Royal',    color: '#4c1d95' },
+  { name: 'Amethyst', color: '#7c3aed' },
   { name: 'Cobalt',   color: '#1e5aa8' },
+  { name: 'Ink',      color: '#202124' },
 ];
+
+const ACCENT_HOVER = {
+  '#5b21b6': '#4c1d95',
+  '#4c1d95': '#3b0764',
+  '#7c3aed': '#6d28d9',
+  '#1e5aa8': '#174987',
+  '#202124': '#111827',
+};
 
 function getAccentFg(hex) {
   // Use light text on dark accents, dark text on light accents
@@ -7363,15 +7374,16 @@ function getAccentFg(hex) {
 
 function applyTweaks(t) {
   const root = document.documentElement;
+  const accent = ACCENT_OPTIONS.some(a => a.color === t.accent) ? t.accent : TWEAK_DEFAULTS.accent;
+  const hover = ACCENT_HOVER[accent] || accent;
   root.setAttribute('data-theme', t.theme);
   root.setAttribute('data-density', t.density);
-  root.style.setProperty('--accent', t.accent);
-  root.style.setProperty('--adga-accent', t.accent);
-  // hover = slightly lighter version
-  root.style.setProperty('--accent-hover', t.accent);
-  root.style.setProperty('--adga-accent-hover', t.accent);
-  root.style.setProperty('--accent-fg', getAccentFg(t.accent));
-  root.style.setProperty('--adga-accent-fg', getAccentFg(t.accent));
+  root.style.setProperty('--accent', accent);
+  root.style.setProperty('--adga-accent', accent);
+  root.style.setProperty('--accent-hover', hover);
+  root.style.setProperty('--adga-accent-hover', hover);
+  root.style.setProperty('--accent-fg', getAccentFg(accent));
+  root.style.setProperty('--adga-accent-fg', getAccentFg(accent));
 }
 
 const SUITE_ROUTE_IDS = [
@@ -7404,7 +7416,7 @@ function App() {
     if (typeof window === 'undefined') return TWEAK_DEFAULTS;
     return {
       ...TWEAK_DEFAULTS,
-      sidebarCollapsed: window.innerWidth <= 820 ? true : TWEAK_DEFAULTS.sidebarCollapsed,
+      sidebarCollapsed: window.innerWidth <= 640 ? true : TWEAK_DEFAULTS.sidebarCollapsed,
       voiceCollapsed: window.innerWidth <= 1100 ? true : TWEAK_DEFAULTS.voiceCollapsed,
     };
   });
@@ -7439,7 +7451,7 @@ function App() {
     const syncRails = () => {
       setTweaks(prev => ({
         ...prev,
-        sidebarCollapsed: window.innerWidth <= 820 ? true : prev.sidebarCollapsed,
+        sidebarCollapsed: window.innerWidth <= 640 ? true : prev.sidebarCollapsed,
         voiceCollapsed: window.innerWidth <= 1100 ? true : prev.voiceCollapsed,
       }));
     };
