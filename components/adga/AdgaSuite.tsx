@@ -1124,7 +1124,7 @@ const AGENTS = [
     name: 'Margaret',
     role: 'Pipeline',
     scope: 'Advances stages, watches SLAs, flags slippage',
-    color: '#7c5cff',
+    color: '#202124',
     initials: 'M',
     status: 'working',
     statusText: 'Watching 17 active deals · 3 advances pending your review',
@@ -4568,7 +4568,7 @@ function SettingsBranding() {
         <label>Counterparty portal accent</label>
         <div className="text-xs muted">Used on the public VDR portal and signed-document footers.</div>
         <div style={{display:'flex',gap:8,marginTop:6}}>
-          {['#7c5cff','#10b981','#f59e0b','#3b82f6','#ec4899','#0a0a0b'].map(c => (
+          {['#202124','#3b3d42','#475569','#1e5aa8','#7a3e1d','#0a0a0b'].map(c => (
             <div key={c} style={{width:28,height:28,borderRadius:'50%',background:c,border:'2px solid var(--surface)',boxShadow:'0 0 0 1px var(--border-strong)',cursor:'pointer'}}/>
           ))}
         </div>
@@ -7155,9 +7155,9 @@ function HandoffModal({ deal, onClose, onConfirm }) {
 /* Main App — routing, theme, tweaks integration */
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "accent": "#7c5cff",
+  "accent": "#202124",
   "theme": "light",
-  "density": "compact",
+  "density": "spacious",
   "pipelineView": "kanban",
   "sidebarCollapsed": false,
   "voiceCollapsed": false,
@@ -7165,10 +7165,10 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 const ACCENT_OPTIONS = [
-  { name: 'Iris',     color: '#7c5cff' },
-  { name: 'Indigo',   color: '#5b3bff' },
-  { name: 'Plum',     color: '#9b4dca' },
-  { name: 'Lavender', color: '#a78bfa' },
+  { name: 'Ink',      color: '#202124' },
+  { name: 'Graphite', color: '#3b3d42' },
+  { name: 'Slate',    color: '#475569' },
+  { name: 'Cobalt',   color: '#1e5aa8' },
 ];
 
 function getAccentFg(hex) {
@@ -7185,9 +7185,12 @@ function applyTweaks(t) {
   root.setAttribute('data-theme', t.theme);
   root.setAttribute('data-density', t.density);
   root.style.setProperty('--accent', t.accent);
+  root.style.setProperty('--adga-accent', t.accent);
   // hover = slightly lighter version
   root.style.setProperty('--accent-hover', t.accent);
+  root.style.setProperty('--adga-accent-hover', t.accent);
   root.style.setProperty('--accent-fg', getAccentFg(t.accent));
+  root.style.setProperty('--adga-accent-fg', getAccentFg(t.accent));
 }
 
 function App() {

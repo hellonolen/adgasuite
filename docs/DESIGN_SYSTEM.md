@@ -13,16 +13,16 @@ ADGA Suite should feel like a premium operating system for deal work: controlled
 
 ## 2. Color Palette And Roles
 
-- Command Canvas `#F6F7F8` — main page background.
+- Command Canvas `#F6F6F3` — main page background.
 - Pure Surface `#FFFFFF` — cards, drawers, forms, table panels.
-- Raised Surface `#F1F3F4` — secondary panels, filters, input fill.
-- Charcoal Ink `#171A1F` — primary text, never pure black.
-- Steel Text `#5A626E` — secondary text and descriptions.
-- Muted Graphite `#8A929D` — metadata, timestamps, disabled text.
-- Structural Border `#DDE1E6` — default border.
-- Strong Border `#B8C0CA` — active borders and table rules.
-- ADGA Signal `#0F766E` — the only accent color for primary actions, active states, focus rings, and selected navigation.
-- Signal Soft `rgba(15, 118, 110, 0.10)` — subtle active background.
+- Raised Surface `#EFEFEB` — secondary panels, filters, input fill.
+- Charcoal Ink `#191A1D` — primary text, never pure black.
+- Steel Text `#4F5157` — secondary text and descriptions.
+- Muted Graphite `#7D8089` — metadata, timestamps, disabled text.
+- Structural Border `#DEDED7` — default border.
+- Strong Border `#C4C5BC` — active borders and table rules.
+- ADGA Ink `#202124` — primary actions, active states, focus rings, and selected navigation.
+- Ink Soft `rgba(32, 33, 36, 0.08)` — subtle active background.
 
 No purple-first palette. No neon glow. No beige editorial palette. No pure black.
 

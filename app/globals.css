@@ -445,10 +445,10 @@ body {
   --adga-text-3: #8a929d;
   --adga-border: #dde1e6;
   --adga-border-strong: #b8c0ca;
-  --adga-accent: #0f766e;
-  --adga-accent-hover: #0b5f58;
-  --adga-accent-soft: rgba(15, 118, 110, 0.10);
-  --adga-accent-ring: rgba(15, 118, 110, 0.22);
+  --adga-accent: #202124;
+  --adga-accent-hover: #3b3d42;
+  --adga-accent-soft: rgba(32, 33, 36, 0.08);
+  --adga-accent-ring: rgba(32, 33, 36, 0.18);
   --adga-accent-fg: #ffffff;
 
   /* Shape, density, and controls */
@@ -530,8 +530,8 @@ body {
   --adga-text-3: #8a929d;
   --adga-border: #dde1e6;
   --adga-border-strong: #b8c0ca;
-  --adga-accent: #0f766e;
-  --adga-accent-hover: #0b5f58;
+  --adga-accent: #202124;
+  --adga-accent-hover: #3b3d42;
 }
 
 .adga-palette-graphite {
@@ -546,20 +546,6 @@ body {
   --adga-border-strong: #c4c5bc;
   --adga-accent: #202124;
   --adga-accent-hover: #3b3d42;
-}
-
-.adga-palette-evergreen {
-  --adga-bg: #f5f7f3;
-  --adga-surface: #ffffff;
-  --adga-surface-2: #edf1eb;
-  --adga-surface-3: #e2e8df;
-  --adga-text: #18201b;
-  --adga-text-2: #4d5a51;
-  --adga-text-3: #7b867d;
-  --adga-border: #dce5d9;
-  --adga-border-strong: #bdcbbc;
-  --adga-accent: #24543a;
-  --adga-accent-hover: #1b402c;
 }
 
 .adga-palette-cobalt {

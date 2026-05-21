@@ -1,17 +1,17 @@
 /* Marketing page styles — full-bleed editorial, no app chrome */
 
 :root {
-  --bg: #f7f6fa;
+  --bg: #f6f6f3;
   --paper: #ffffff;
-  --paper-2: #f0eff5;
-  --ink: #1a1a22;
-  --ink-2: #55555f;
-  --ink-3: #8c8c97;
-  --rule: #e3e2ea;
-  --rule-strong: #c5c4ce;
-  --accent: #7c5cff;
-  --accent-deep: #5b3bff;
-  --accent-soft: rgba(124, 92, 255, 0.10);
+  --paper-2: #efefeb;
+  --ink: #191a1d;
+  --ink-2: #4f5157;
+  --ink-3: #7d8089;
+  --rule: #deded7;
+  --rule-strong: #c4c5bc;
+  --accent: #202124;
+  --accent-deep: #3b3d42;
+  --accent-soft: rgba(32, 33, 36, 0.08);
   --accent-fg: #ffffff;
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Instrument Serif", Georgia, serif;

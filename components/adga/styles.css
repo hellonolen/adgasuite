@@ -4,8 +4,8 @@
 
 :root {
   /* Accent (overridden by Tweaks) */
-  --accent: #8b7cf6;
-  --accent-hover: #9d8fff;
+  --accent: #202124;
+  --accent-hover: #3b3d42;
   --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
   --accent-ring: color-mix(in srgb, var(--accent) 35%, transparent);
   --accent-fg: #0a0a0b;
@@ -30,13 +30,13 @@
   --fs-3xl: 28px;
 
   /* Status colors (constant across themes) */
-  --status-green: #4ade80;
-  --status-amber: #fbbf24;
-  --status-red: #f87171;
-  --status-blue: #60a5fa;
-  --status-violet: #a78bfa;
-  --status-cyan: #67e8f9;
-  --status-pink: #f0abfc;
+  --status-green: #647067;
+  --status-amber: #b56b18;
+  --status-red: #b33a2f;
+  --status-blue: #41698f;
+  --status-violet: #5f6170;
+  --status-cyan: #4e737a;
+  --status-pink: #7b596d;
 }
 
 [data-theme="dark"] {

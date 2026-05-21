@@ -2,28 +2,35 @@
    Loaded last to neutralize older editorial CSS until those files are retired. */
 
 :root {
-  --adga-bg: #f6f7f8;
+  --adga-bg: #f6f6f3;
   --adga-surface: #ffffff;
-  --adga-surface-2: #f1f3f4;
-  --adga-surface-3: #e8ecef;
-  --adga-surface-hover: #eef2f3;
-  --adga-text: #171a1f;
-  --adga-text-2: #5a626e;
-  --adga-text-3: #8a929d;
-  --adga-border: #dde1e6;
-  --adga-border-strong: #b8c0ca;
-  --adga-accent: #0f766e;
-  --adga-accent-hover: #0b5f58;
-  --adga-accent-soft: rgba(15, 118, 110, 0.10);
-  --adga-accent-ring: rgba(15, 118, 110, 0.22);
+  --adga-surface-2: #efefeb;
+  --adga-surface-3: #e7e7e1;
+  --adga-surface-hover: #ededE7;
+  --adga-text: #191a1d;
+  --adga-text-2: #4f5157;
+  --adga-text-3: #7d8089;
+  --adga-border: #deded7;
+  --adga-border-strong: #c4c5bc;
+  --adga-accent: #202124;
+  --adga-accent-hover: #3b3d42;
+  --adga-accent-soft: rgba(32, 33, 36, 0.08);
+  --adga-accent-ring: rgba(32, 33, 36, 0.18);
   --adga-accent-fg: #ffffff;
+  --status-green: #647067;
+  --status-amber: #b56b18;
+  --status-red: #b33a2f;
+  --status-blue: #41698f;
+  --status-violet: #5f6170;
+  --status-cyan: #4e737a;
+  --status-pink: #7b596d;
   --adga-font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --adga-font-display: var(--adga-font-sans);
   --adga-font-product: var(--adga-font-sans);
   --adga-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --adga-radius-sm: 4px;
-  --adga-radius-md: 7px;
-  --adga-radius-lg: 10px;
+  --adga-radius-md: 8px;
+  --adga-radius-lg: 12px;
 
   --bg: var(--adga-bg);
   --paper: var(--adga-surface);
@@ -65,6 +72,10 @@ body,
   background: var(--adga-bg);
 }
 
+body {
+  background: var(--adga-bg) !important;
+}
+
 h1, h2, h3, h4,
 .hero h1,
 .page-hero h1,
@@ -86,6 +97,21 @@ h1, h2, h3, h4,
   font-family: var(--adga-font-sans) !important;
   font-style: normal !important;
   letter-spacing: 0 !important;
+}
+
+.hero h1,
+.page-hero h1 {
+  max-width: 12ch;
+  font-size: clamp(46px, 7vw, 92px) !important;
+  line-height: 0.96 !important;
+  font-weight: 680 !important;
+}
+
+.story-h h1,
+.page-h h1 {
+  font-size: clamp(34px, 4.5vw, 58px) !important;
+  line-height: 1.02 !important;
+  font-weight: 650 !important;
 }
 
 em,
@@ -122,6 +148,13 @@ textarea,
   box-shadow: none !important;
 }
 
+.btn.primary,
+.partner-submit,
+.story-tool.add {
+  background: var(--adga-text) !important;
+  border-color: var(--adga-text) !important;
+}
+
 .btn,
 .chip,
 .card,
@@ -143,14 +176,91 @@ textarea,
   background: var(--adga-accent) !important;
 }
 
+.wrap {
+  width: min(1240px, calc(100% - 48px));
+}
+
+.section,
+.spread,
+.story-spread,
+.faq,
+.cta {
+  padding-top: clamp(72px, 8vw, 128px) !important;
+  padding-bottom: clamp(72px, 8vw, 128px) !important;
+}
+
+.hero,
+.page-hero {
+  padding-top: clamp(72px, 9vw, 132px) !important;
+  padding-bottom: clamp(72px, 9vw, 132px) !important;
+}
+
+.hero-grid,
+.product,
+.spread,
+.story-spread,
+.quote {
+  gap: clamp(36px, 5vw, 84px) !important;
+}
+
+.three,
+.pricing,
+.feature-grid {
+  gap: clamp(18px, 2.6vw, 34px) !important;
+}
+
+.story {
+  padding: clamp(36px, 4vw, 64px) clamp(34px, 4.4vw, 64px) clamp(64px, 7vw, 100px) !important;
+}
+
+.story-h {
+  gap: clamp(30px, 5vw, 72px) !important;
+  margin-bottom: 22px;
+}
+
+.story-h .summary {
+  max-width: 68ch;
+  line-height: 1.65 !important;
+}
+
 .story-selector-bar {
   display: grid;
   grid-template-columns: minmax(260px, 1.2fr) minmax(190px, 0.85fr) minmax(190px, 0.85fr) minmax(220px, 1fr);
-  gap: 10px;
-  padding: 16px 0 18px;
-  border-top: 1px solid var(--adga-border);
-  border-bottom: 1px solid var(--adga-border);
-  margin-top: 24px;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--adga-border);
+  border-radius: var(--adga-radius-lg);
+  background: color-mix(in srgb, var(--adga-surface) 82%, transparent);
+  margin-top: 30px;
+}
+
+.page,
+.suite-main {
+  background: var(--adga-bg);
+}
+
+.topbar,
+.sidebar {
+  background: var(--adga-surface) !important;
+}
+
+.sb-item.active {
+  background: var(--adga-accent-soft) !important;
+  color: var(--adga-text) !important;
+  border-color: var(--adga-border-strong) !important;
+}
+
+.kpi-grid,
+.kpis {
+  margin-top: clamp(22px, 3vw, 38px) !important;
+  margin-bottom: clamp(28px, 4vw, 52px) !important;
+}
+
+.lead-list,
+.deal-list,
+.story-list,
+.table-wrap {
+  margin-top: clamp(18px, 2.6vw, 34px) !important;
 }
 
 .story-control {
@@ -179,6 +289,48 @@ textarea,
   padding: 0 11px;
   font-size: 13px;
   outline: none;
+}
+
+.story-tools {
+  margin-top: 30px !important;
+  gap: 10px !important;
+}
+
+.story-tool {
+  min-height: 38px;
+}
+
+.touch-card {
+  padding: clamp(18px, 2vw, 26px) !important;
+}
+
+.card,
+.touch-card,
+.partner-panel,
+.partner-form {
+  background: var(--adga-surface);
+}
+
+.kpis {
+  gap: 16px !important;
+}
+
+.kpi {
+  padding: 18px 20px !important;
+}
+
+.page-h {
+  padding-top: 34px !important;
+  padding-bottom: 24px !important;
+}
+
+.partner-page {
+  background: var(--adga-bg);
+}
+
+.partner-hero,
+.partner-form-wrap {
+  gap: clamp(40px, 5vw, 82px) !important;
 }
 
 .story-control-field:focus {
