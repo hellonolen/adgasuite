@@ -126,6 +126,41 @@
   .suite-shell .tbl-wrap {
     max-width: 100% !important;
   }
+
+  .suite-shell .page-h {
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 14px !important;
+  }
+
+  .suite-shell .page-h > div:first-child {
+    min-width: 0 !important;
+  }
+
+  .suite-shell .page-h h1 {
+    max-width: 100% !important;
+    text-wrap: balance;
+  }
+
+  .suite-shell .page-h .sub {
+    max-width: 100% !important;
+    line-height: 1.45 !important;
+    text-wrap: pretty;
+  }
+
+  .suite-shell .page-actions {
+    justify-self: start !important;
+    justify-content: flex-start !important;
+    max-width: 100% !important;
+  }
+
+  .suite-shell .page-actions .btn,
+  .suite-shell .page-actions button {
+    width: auto !important;
+    max-width: 100% !important;
+    flex: 0 1 auto !important;
+    white-space: normal !important;
+  }
 }
 
 @media (min-width: 821px) and (max-width: 940px) {
@@ -195,11 +230,44 @@
     display: flex !important;
     justify-content: flex-start !important;
     align-items: center !important;
+    gap: 10px !important;
+    max-width: 100% !important;
   }
 
   .suite-shell .page-actions > * {
     width: auto !important;
     flex: 0 0 auto !important;
+  }
+
+  .suite-shell .page-h {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 14px !important;
+  }
+
+  .suite-shell .page-h > div:first-child {
+    min-width: 0 !important;
+  }
+
+  .suite-shell .page-h h1 {
+    max-width: 100% !important;
+    line-height: 1.05 !important;
+    text-wrap: balance;
+  }
+
+  .suite-shell .page-h .sub {
+    max-width: 100% !important;
+    line-height: 1.4 !important;
+    text-wrap: pretty;
+  }
+
+  .suite-shell .page-actions .btn,
+  .suite-shell .page-actions button {
+    width: auto !important;
+    max-width: 100% !important;
+    flex: 0 1 auto !important;
+    white-space: normal !important;
   }
 
   .suite-shell .suite-subtabs {
