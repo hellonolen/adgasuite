@@ -45,9 +45,9 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
 
       <footer className="foot wrap">
         <div className="foot-brand-area">
-          <div className="brand" style={{fontSize: 22}}>
+          <a href="/" className="brand" style={{fontSize: 22}}>
             ADGA
-          </div>
+          </a>
           <p style={{marginTop: 10, fontSize: '12.5px', color: 'var(--adga-text-2)', maxWidth: '36ch'}}>
             ADGA is the AI deal flow suite for lead capture, client work, follow-up, documents, meetings, invoices, and deal execution.
           </p>

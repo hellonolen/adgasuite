@@ -675,8 +675,30 @@ body {
   padding: 14px 14px 8px !important;
 }
 
+.suite-shell .sb-brand-link {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.suite-shell .sb-brand-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
 .suite-shell .sb-wordmark-logo {
   font-size: 17px !important;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .suite-shell .sb-workspace {

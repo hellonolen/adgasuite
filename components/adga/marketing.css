@@ -84,6 +84,11 @@ em, i { font-style: normal; }
   letter-spacing: -0.02em;
   flex-shrink: 0;
   color: var(--ink);
+  min-width: 0;
+  max-width: min(42vw, 180px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .brand .mark {
   width: 28px; height: 28px;

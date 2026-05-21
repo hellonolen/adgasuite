@@ -1026,7 +1026,14 @@ function Sidebar({ route, setRoute, collapsed, setCollapsed }) {
   return (
     <aside className={'sidebar ' + (collapsed ? 'collapsed' : 'open')}>
       <div className="sb-brand">
-        <span className="sb-wordmark sb-wordmark-logo">ADGA</span>
+        <button
+          className="sb-brand-link"
+          type="button"
+          onClick={() => { setRoute('home'); if (window.matchMedia('(max-width: 820px)').matches) setCollapsed(true); }}
+          aria-label="Go to suite home"
+        >
+          <span className="sb-wordmark sb-wordmark-logo">ADGA</span>
+        </button>
       </div>
 
       <div className="sb-workspace" style={{position:'relative'}}>
@@ -2469,7 +2476,7 @@ function DealOverview({ deal, co, owner }) {
           <div className="card" style={{padding:'12px 14px'}}>
             <div style={{fontSize:10.5,color:'var(--text-3)',textTransform:'uppercase',letterSpacing:'.04em'}}>Target close</div>
             <div className="mono" style={{fontSize:22,fontWeight:500,marginTop:4}}>{deal.close}</div>
-            <div className="text-xs muted" style={{marginTop:2}}>{Math.max(0, Math.round((new Date(deal.close) - new Date('2026-05-20')) / 86400000))} days out</div>
+            <div className="text-xs muted" style={{marginTop:2}}>{Math.max(0, Math.round((new Date(deal.close) - new Date(new Date().setHours(0, 0, 0, 0))) / 86400000))} days out</div>
           </div>
         </div>
 
@@ -4817,6 +4824,11 @@ function SettingsIntegrations() {
 
 function HomePage({ deals, openDeal, setRoute }) {
   const [period, setPeriod] = React.useState('quarter');
+  const today = React.useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
   const active = deals.filter(d => d.stage !== 'won' && d.stage !== 'lost');
   const totalValue = active.reduce((s,d) => s + d.value, 0);
   const weighted = active.reduce((s,d) => s + d.value * d.prob / 100, 0);
@@ -4829,9 +4841,22 @@ function HomePage({ deals, openDeal, setRoute }) {
     { id: 'year', label: 'Year', days: 365 },
   ];
   const selectedPeriod = periodTabs.find(t => t.id === period) || periodTabs[3];
-  const today = new Date('2026-05-20T00:00:00');
   const horizon = new Date(today);
   horizon.setDate(today.getDate() + selectedPeriod.days);
+  const displayDate = today.toLocaleDateString(undefined, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  const displayMonth = today.toLocaleDateString(undefined, { month: 'short' });
+  const tasksDueToday = TASKS.filter(t => t.due === 'today').length;
+  const todayHorizon = new Date(today);
+  todayHorizon.setDate(today.getDate() + 1);
+  const advancingToday = active.filter(d => {
+    const close = new Date(d.close + 'T00:00:00');
+    return close >= today && close <= todayHorizon && (focusStages.has(d.stage) || d.priority === 'high');
+  }).length;
   const focusedDeals = active
     .filter(d => {
       const close = new Date(d.close + 'T00:00:00');
@@ -4852,10 +4877,10 @@ function HomePage({ deals, openDeal, setRoute }) {
       <div className="page-h">
         <div>
           <h1>Good morning, <em>Maren</em>.</h1>
-          <div className="sub">Tuesday, 20 May 2026 · 3 deals advancing today · 5 tasks due</div>
+          <div className="sub">{displayDate} · {advancingToday} deals advancing today · {tasksDueToday} tasks due</div>
         </div>
         <div className="page-actions">
-          <button className="btn" type="button"><Icon name="cal" size={13}/> May</button>
+          <button className="btn" type="button"><Icon name="cal" size={13}/> {displayMonth}</button>
           <button className="btn primary" type="button"><Icon name="plus" size={13}/> New deal</button>
         </div>
       </div>
