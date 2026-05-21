@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
 };
 
 export default function config(phase: string): NextConfig {
-  if (phase === PHASE_DEVELOPMENT_SERVER && !process.env.CI) {
+  if (phase === PHASE_DEVELOPMENT_SERVER && process.env.ADGA_CLOUDFLARE_DEV_PROXY === "1") {
     initOpenNextCloudflareForDev();
   }
 

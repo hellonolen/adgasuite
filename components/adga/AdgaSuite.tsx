@@ -7643,7 +7643,7 @@ function App() {
     return {
       ...TWEAK_DEFAULTS,
       sidebarCollapsed: window.innerWidth <= 820 ? true : TWEAK_DEFAULTS.sidebarCollapsed,
-      voiceCollapsed: window.innerWidth <= 760 ? true : TWEAK_DEFAULTS.voiceCollapsed,
+      voiceCollapsed: window.innerWidth <= 820 ? true : TWEAK_DEFAULTS.voiceCollapsed,
     };
   });
   const setTweak = (k, v) => {
@@ -7678,7 +7678,7 @@ function App() {
       setTweaks(prev => ({
         ...prev,
         sidebarCollapsed: window.innerWidth <= 820 ? true : prev.sidebarCollapsed,
-        voiceCollapsed: window.innerWidth <= 760 ? true : prev.voiceCollapsed,
+        voiceCollapsed: window.innerWidth <= 820 ? true : prev.voiceCollapsed,
       }));
     };
     syncRails();
