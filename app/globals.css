@@ -1000,15 +1000,72 @@ body {
   inset: auto !important;
   z-index: 20 !important;
   display: flex !important;
+  flex-direction: column !important;
   width: 320px !important;
   min-width: 0 !important;
   height: 100vh !important;
+  overflow: hidden !important;
   transform: none !important;
   background: color-mix(in srgb, var(--surface) 78%, transparent) !important;
   -webkit-backdrop-filter: blur(24px) saturate(155%) !important;
   backdrop-filter: blur(24px) saturate(155%) !important;
   border-left: 1px solid rgba(91, 33, 182, 0.13) !important;
   box-shadow: -18px 0 48px rgba(29, 21, 52, 0.08), inset 1px 0 0 rgba(255, 255, 255, 0.62) !important;
+}
+
+.suite-shell .voice-h {
+  flex: 0 0 auto !important;
+  order: 0;
+}
+
+.suite-shell .voice-history {
+  flex: 0 0 auto !important;
+  order: 1;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.suite-shell .voice-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  order: 2;
+  overflow-y: auto !important;
+  padding: 12px 14px !important;
+}
+
+.suite-shell .voice-live {
+  flex: 0 0 auto !important;
+  order: 3;
+}
+
+.suite-shell .voice-suggests {
+  flex: 0 0 auto !important;
+  order: 4;
+  max-height: 92px;
+  overflow-y: auto;
+}
+
+.suite-shell .voice-command {
+  flex: 0 0 auto !important;
+  order: 5;
+  padding: 10px 12px 12px !important;
+  border-top: 1px solid rgba(91, 33, 182, 0.13) !important;
+  border-bottom: 0 !important;
+  background: color-mix(in srgb, var(--surface) 88%, transparent) !important;
+  box-shadow: 0 -16px 34px rgba(29, 21, 52, 0.08) !important;
+}
+
+.suite-shell .voice-command-kicker {
+  margin-bottom: 6px !important;
+}
+
+.suite-shell .voice-command .composer-textarea {
+  min-height: 68px !important;
+  max-height: 118px !important;
+}
+
+.suite-shell .voice-command .composer-box {
+  background: rgba(255, 255, 255, 0.68) !important;
 }
 
 .suite-shell .voice.collapsed {
