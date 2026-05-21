@@ -1871,7 +1871,7 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
 
       <div className="voice-command">
         <div className="voice-command-kicker">
-          <span>AI command</span>
+          <span>Message ADGA</span>
           <span>{routeAgentLabel(routeAgentKey(draft))} agent</span>
         </div>
         <div className="composer-box command-first">
@@ -1901,7 +1901,7 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
           <textarea
             ref={taRef}
             className="composer-textarea"
-            placeholder="Tell ADGA what to do across leads, deals, meetings, invoices, documents, or follow-up."
+            placeholder="Ask ADGA to summarize, draft, search, or update records."
             value={draft}
             onChange={e => setDraft(e.target.value)}
             onKeyDown={onKey}
