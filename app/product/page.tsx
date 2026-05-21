@@ -34,10 +34,10 @@ export default function ProductPage() {
           </div>
           <div>
             <p className="lede">
-              Six surfaces, one ledger. Open any lead, any contact, any account — and read the full record, beginning to end.
+              Six connected surfaces. Open any lead, contact, client, or deal and see the full record from first touch to close.
             </p>
             <div className="actions">
-              <a href="/login" className="btn primary lg">Open the ledger</a>
+              <a href="/login" className="btn primary lg">Open ADGA</a>
               <a href="/pricing" className="btn lg">See pricing</a>
             </div>
           </div>
@@ -47,7 +47,7 @@ export default function ProductPage() {
           <div className="copy">
             <span className="ed-label">Surface · 01 · Leads</span>
             <h3>The room <em>before</em> the room.</h3>
-            <p>Inbound, outbound, and referred prospects entered into one ledger — scored, routed, and converted to a contact the moment they advance.</p>
+            <p>Inbound, outbound, and referred prospects are scored, routed, and converted to a contact the moment they advance.</p>
             <ul>
               <li><span className="n">i.</span><span>Lead score with intent &amp; channel signals</span></li>
               <li><span className="n">ii.</span><span>Automated routing rules by sector, geography, value</span></li>
@@ -141,7 +141,7 @@ export default function ProductPage() {
           <div className="copy">
             <span className="ed-label">Surface · 06 · ADGA</span>
             <h3>The voice on the <em>desk.</em></h3>
-            <p>Ask. Speak. Attach. ADGA is the conversational interface to the entire ledger — pulling records onto the screen, drafting outreach, scheduling, listening to your room.</p>
+            <p>Ask. Speak. Attach. ADGA is the conversational interface to the entire workspace — pulling records onto the screen, drafting outreach, scheduling, and capturing voice notes.</p>
             <ul>
               <li><span className="n">i.</span><span>Type or speak — voice with live transcription</span></li>
               <li><span className="n">ii.</span><span>Open any record from a prompt ("open Meridian story")</span></li>
@@ -158,7 +158,7 @@ export default function ProductPage() {
         <section className="cta" id="contact">
           <h2>
             Open the<br />
-            <em>ledger.</em>
+            <em>suite.</em>
           </h2>
           <div className="right">
             <p>
@@ -177,10 +177,10 @@ export default function ProductPage() {
               <span className="mark" style={{width: 24, height: 24, fontSize: 13}}>A</span>
               ADGA
             </a>
-            <p style={{marginTop: 10, fontSize: '12.5px', color: 'var(--ink-2)', maxWidth: '36ch'}}>A ledger for the closers. Composed in New York, Singapore, and Rotterdam.</p>
+            <p style={{marginTop: 10, fontSize: '12.5px', color: 'var(--ink-2)', maxWidth: '36ch'}}>ADGA is the AI deal flow suite for lead capture, client work, follow-up, documents, meetings, invoices, and deal execution.</p>
           </div>
           <div className="foot-cols">
-            <div className="foot-col"><h4>Product</h4><ul><li><a href="/product">The ledger</a></li><li><a href="/pricing">Pricing</a></li><li><a href="/security">Security</a></li><li><a href="/login">Sign in</a></li></ul></div>
+            <div className="foot-col"><h4>Product</h4><ul><li><a href="/product">Product</a></li><li><a href="/pricing">Pricing</a></li><li><a href="/security">Security</a></li><li><a href="/login">Sign in</a></li></ul></div>
             <div className="foot-col"><h4>Reading</h4><ul><li><a href="/stories">Stories</a></li><li><a href="#">Field notes</a></li><li><a href="#">Changelog</a></li></ul></div>
             <div className="foot-col"><h4>House</h4><ul><li><a href="#">About</a></li><li><a href="#">Careers</a></li><li><a href="#contact">Contact</a></li></ul></div>
             <div className="foot-col"><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li><li><a href="#">DPA</a></li></ul></div>
@@ -189,7 +189,7 @@ export default function ProductPage() {
         <div className="foot-end">
           <span>© 2026 ADGA · All rights reserved</span>
           <span>—— FIN ——</span>
-          <span>composed in cream</span>
+          <span>Cloudflare-native platform</span>
         </div>
       </div>
     </main>

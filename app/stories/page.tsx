@@ -46,8 +46,8 @@ export default function StoriesPage() {
         <section className="story-spread">
           <div>
             <span className="label"><span className="dot" />Story · 01 · Mid-market M&amp;A</span>
-            <h3>Concorde Group — <em>fourteen deals,</em> one ledger.</h3>
-            <p>A cross-border M&amp;A house running twenty principals across three offices. Migrated from a patchwork of Salesforce, DocSend, and Asana — onto ADGA's single ledger. The result: every deal, every room, every signature in one place.</p>
+            <h3>Concorde Group — <em>fourteen deals,</em> one operating system.</h3>
+            <p>A cross-border M&amp;A house running twenty principals across three offices. Migrated from a patchwork of Salesforce, DocSend, and Asana into ADGA. The result: every lead, client, deal, document, meeting, and signature in one place.</p>
             <div className="stats">
               <div className="stat"><div className="v">$2.4<em>B</em></div><div className="l">Pipeline value</div></div>
               <div className="stat"><div className="v"><em>3</em>×</div><div className="l">Closing velocity</div></div>
@@ -153,10 +153,10 @@ export default function StoriesPage() {
               <span className="mark" style={{width: 24, height: 24, fontSize: 13}}>A</span>
               ADGA
             </a>
-            <p style={{marginTop: 10, fontSize: '12.5px', color: 'var(--ink-2)', maxWidth: '36ch'}}>A ledger for the closers. Composed in New York, Singapore, and Rotterdam.</p>
+            <p style={{marginTop: 10, fontSize: '12.5px', color: 'var(--ink-2)', maxWidth: '36ch'}}>ADGA is the AI deal flow suite for lead capture, client work, follow-up, documents, meetings, invoices, and deal execution.</p>
           </div>
           <div className="foot-cols">
-            <div className="foot-col"><h4>Product</h4><ul><li><a href="/product">The ledger</a></li><li><a href="/pricing">Pricing</a></li><li><a href="/security">Security</a></li><li><a href="/login">Sign in</a></li></ul></div>
+            <div className="foot-col"><h4>Product</h4><ul><li><a href="/product">Product</a></li><li><a href="/pricing">Pricing</a></li><li><a href="/security">Security</a></li><li><a href="/login">Sign in</a></li></ul></div>
             <div className="foot-col"><h4>Reading</h4><ul><li><a href="/stories">Stories</a></li><li><a href="#">Field notes</a></li><li><a href="#">Changelog</a></li></ul></div>
             <div className="foot-col"><h4>House</h4><ul><li><a href="#">About</a></li><li><a href="#">Careers</a></li><li><a href="#contact">Contact</a></li></ul></div>
             <div className="foot-col"><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li><li><a href="#">DPA</a></li></ul></div>
@@ -165,7 +165,7 @@ export default function StoriesPage() {
         <div className="foot-end">
           <span>© 2026 ADGA · All rights reserved</span>
           <span>—— FIN ——</span>
-          <span>composed in cream</span>
+          <span>Cloudflare-native platform</span>
         </div>
       </div>
     </main>

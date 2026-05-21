@@ -30,7 +30,7 @@ export default function PricingPage() {
             </div>
             <h1>
               Three tiers,<br />
-              <em>one ledger.</em>
+              <em>one suite.</em>
             </h1>
           </div>
           <div>
@@ -220,7 +220,7 @@ export default function PricingPage() {
         <section className="cta" id="contact">
           <h2>
             Begin your<br />
-            <em>first issue.</em>
+            <em>first workspace.</em>
           </h2>
           <div className="right">
             <p>
@@ -240,14 +240,14 @@ export default function PricingPage() {
               ADGA
             </a>
             <p style={{marginTop: 10, fontSize: '12.5px', color: 'var(--ink-2)', maxWidth: '36ch'}}>
-              A ledger for the closers. Composed in New York, Singapore, and Rotterdam.
+              ADGA is the AI deal flow suite for lead capture, client work, follow-up, documents, meetings, invoices, and deal execution.
             </p>
           </div>
           <div className="foot-cols">
             <div className="foot-col">
               <h4>Product</h4>
               <ul>
-                <li><a href="/product">The ledger</a></li>
+                <li><a href="/product">Product</a></li>
                 <li><a href="/pricing">Pricing</a></li>
                 <li><a href="/security">Security</a></li>
                 <li><a href="/login">Sign in</a></li>
@@ -282,7 +282,7 @@ export default function PricingPage() {
         <div className="foot-end">
           <span>© 2026 ADGA · All rights reserved</span>
           <span>—— FIN ——</span>
-          <span>composed in cream</span>
+          <span>Cloudflare-native platform</span>
         </div>
       </div>
     </main>
