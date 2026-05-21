@@ -32,6 +32,17 @@ body {
   overflow-x: hidden;
 }
 
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(91, 33, 182, 0.08), rgba(30, 90, 168, 0.045) 42%, rgba(255, 255, 255, 0) 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(246, 246, 243, 0));
+  z-index: 0;
+}
+
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 em, i { font-style: normal; }
@@ -58,6 +69,12 @@ em, i { font-style: normal; }
   padding: 18px 0;
   border-bottom: 1px solid var(--rule);
   gap: 32px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--bg) 76%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
 }
 .brand {
   display: flex; align-items: center; gap: 10px;
@@ -194,10 +211,15 @@ em, i { font-style: normal; }
     radial-gradient(70% 60% at 20% 80%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%),
     var(--paper);
   border: 1px solid var(--rule);
-  box-shadow: 0 30px 60px -25px rgba(20,20,30,0.18), 0 8px 24px -8px rgba(20,20,30,0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.72),
+    0 30px 60px -25px rgba(20,20,30,0.18),
+    0 8px 24px -8px rgba(20,20,30,0.08);
   overflow: hidden;
   display: grid; place-items: center;
   border-radius: 16px;
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  backdrop-filter: blur(18px) saturate(145%);
 }
 .photo .ph-title {
   font-family: var(--font-serif);

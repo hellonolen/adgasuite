@@ -7476,7 +7476,7 @@ function App() {
     return {
       ...TWEAK_DEFAULTS,
       sidebarCollapsed: window.innerWidth <= 820 ? true : TWEAK_DEFAULTS.sidebarCollapsed,
-      voiceCollapsed: window.innerWidth <= 1100 ? true : TWEAK_DEFAULTS.voiceCollapsed,
+      voiceCollapsed: window.innerWidth <= 760 ? true : TWEAK_DEFAULTS.voiceCollapsed,
     };
   });
   const setTweak = (k, v) => {
@@ -7511,7 +7511,7 @@ function App() {
       setTweaks(prev => ({
         ...prev,
         sidebarCollapsed: window.innerWidth <= 820 ? true : prev.sidebarCollapsed,
-        voiceCollapsed: window.innerWidth <= 1100 ? true : prev.voiceCollapsed,
+        voiceCollapsed: window.innerWidth <= 760 ? true : prev.voiceCollapsed,
       }));
     };
     syncRails();
@@ -7618,7 +7618,7 @@ function App() {
   const crumb = ROUTE_LABELS[route] || 'Home';
 
   return (
-    <div className="app">
+    <div className={'app ' + (!tweaks.sidebarCollapsed ? 'sidebar-open ' : 'sidebar-closed ') + (!tweaks.voiceCollapsed ? 'voice-open' : 'voice-closed')}>
       <Sidebar
         route={route}
         setRoute={navigate}
@@ -7757,7 +7757,7 @@ function Topbar({ crumb, setCmdk, tweaks, setTweak, setRoute, setQuickCreate }) 
         </button>
         <button className="btn icon ghost" type="button" title="Notifications"><Icon name="bell" size={15}/></button>
         {tweaks.voiceCollapsed && (
-          <button className="btn" type="button" onClick={() => setTweak('voiceCollapsed', false)} title="Open ADGA">
+          <button className="btn adga-open-btn" type="button" onClick={() => setTweak('voiceCollapsed', false)} title="Open ADGA">
             <Icon name="sparkles" size={13}/> ADGA
           </button>
         )}
