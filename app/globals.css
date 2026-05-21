@@ -995,6 +995,210 @@ body {
   align-items: start;
 }
 
+.suite-shell .doc-center-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(220px, 0.85fr);
+  gap: 12px;
+  padding: 0 clamp(20px, 2.5vw, 32px) 14px;
+  min-width: 0;
+}
+
+.suite-shell .doc-search-panel,
+.suite-shell .doc-upload-panel,
+.suite-shell .doc-library-summary,
+.suite-shell .doc-detail-panel {
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  border: 1px solid rgba(91, 33, 182, 0.11);
+  border-radius: 10px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.68) inset, 0 18px 48px rgba(29, 21, 52, 0.06);
+}
+
+.suite-shell .doc-search-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.45fr);
+  gap: 10px;
+  padding: 12px;
+}
+
+.suite-shell .doc-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0 11px;
+}
+
+.suite-shell .doc-search input,
+.suite-shell .doc-search-panel select,
+.suite-shell .doc-upload-panel select {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.suite-shell .doc-search-panel select,
+.suite-shell .doc-upload-panel select {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0 10px;
+}
+
+.suite-shell .doc-library-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-column: 1 / -1;
+  overflow: hidden;
+}
+
+.suite-shell .doc-library-summary > div {
+  padding: 13px 15px;
+  border-right: 1px solid rgba(91, 33, 182, 0.10);
+}
+
+.suite-shell .doc-library-summary > div:last-child {
+  border-right: 0;
+}
+
+.suite-shell .doc-library-summary span {
+  display: block;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.suite-shell .doc-library-summary small {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-3);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.suite-shell .doc-upload-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.65fr) auto;
+  gap: 10px;
+  align-items: center;
+  grid-column: 1 / -1;
+  padding: 12px;
+}
+
+.suite-shell .doc-upload-panel b,
+.suite-shell .doc-upload-panel span {
+  display: block;
+}
+
+.suite-shell .doc-upload-panel span {
+  margin-top: 3px;
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.suite-shell .doc-library-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+  gap: 14px;
+  padding: 0 clamp(20px, 2.5vw, 32px) 28px;
+  min-width: 0;
+}
+
+.suite-shell .doc-library-main {
+  min-width: 0;
+}
+
+.suite-shell .doc-library-layout .docs-grid,
+.suite-shell .doc-library-layout .tbl-wrap {
+  padding: 0 !important;
+}
+
+.suite-shell .doc-card.selected {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 32%, transparent), 0 18px 48px rgba(29, 21, 52, 0.08);
+}
+
+.suite-shell .doc-record {
+  margin-top: 4px;
+  color: var(--text-3);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suite-shell .doc-detail-panel {
+  position: sticky;
+  top: 14px;
+  align-self: start;
+  padding: 16px;
+  min-width: 0;
+}
+
+.suite-shell .doc-detail-panel h3 {
+  margin: 12px 0 14px;
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+.suite-shell .doc-preview {
+  min-height: 150px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background:
+    linear-gradient(145deg, rgba(91, 33, 182, 0.11), transparent 48%),
+    rgba(255, 255, 255, 0.62);
+  padding: 14px;
+}
+
+.suite-shell .doc-preview .ext {
+  display: inline-flex;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.suite-shell .doc-preview .lines {
+  display: grid;
+  gap: 7px;
+  margin-top: 22px;
+}
+
+.suite-shell .doc-preview .lines i {
+  display: block;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(91, 33, 182, 0.13);
+}
+
+.suite-shell .doc-preview .lines i:nth-child(even) {
+  width: 72%;
+}
+
+.suite-shell .doc-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.suite-shell .filterbar .chip span {
+  margin-left: 6px;
+  color: var(--text-3);
+}
+
 .suite-shell .voice {
   position: relative !important;
   inset: auto !important;
@@ -1129,6 +1333,15 @@ body {
   .suite-shell .home-content-grid,
   .suite-shell .billing-main-grid {
     grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .suite-shell .doc-center-shell,
+  .suite-shell .doc-library-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .suite-shell .doc-detail-panel {
+    position: static;
   }
 
   .suite-shell .deal-focus-header {
@@ -1276,6 +1489,21 @@ body {
     display: grid !important;
     grid-template-columns: 1fr !important;
     gap: 14px !important;
+  }
+
+  .suite-shell .doc-center-shell,
+  .suite-shell .doc-library-layout {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .suite-shell .doc-search-panel,
+  .suite-shell .doc-upload-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .suite-shell .doc-library-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .suite-shell .page-h {

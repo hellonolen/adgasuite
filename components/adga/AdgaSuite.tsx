@@ -3300,9 +3300,50 @@ function CRMRelationships() {
 function DocumentsPage({ deals, openDeal }) {
   const [view, setView] = React.useState('grid');
   const [folder, setFolder] = React.useState('all');
+  const [query, setQuery] = React.useState('');
+  const [recordFilter, setRecordFilter] = React.useState('all');
+  const [uploadDealId, setUploadDealId] = React.useState(deals[0]?.id || '');
+  const [selectedDoc, setSelectedDoc] = React.useState(null);
   const [uploads, setUploads] = React.useState([]);
   const [uploading, setUploading] = React.useState(false);
   const fileInputRef = React.useRef(null);
+
+  const contactsByCompany = {
+    c1: 'Ingrid Veen · CFO',
+    c2: 'Dalia North · General Counsel',
+    c3: 'K. Senthil · Managing Partner',
+    c4: 'Aurore Chastain · Head of Corp Dev',
+    c7: 'Magnus Bell · CFO',
+    c8: 'Marcos Quinteros · GM, Defense Programs',
+    c12: 'Tane Whitaker · VP Engineering',
+    c13: 'Nora Vale · COO',
+    c15: 'Mira Bramble · Founder',
+  };
+  const folderFor = (doc) => {
+    const name = doc.name.toLowerCase();
+    if (name.includes('loi') || name.includes('nda') || name.includes('agreement') || name.includes('term sheet')) return 'legal';
+    if (name.includes('model') || name.includes('cap table') || name.includes('cim')) return 'financial';
+    if (name.includes('deck') || name.includes('summary')) return 'commercial';
+    if (name.includes('ip')) return 'diligence';
+    return 'general';
+  };
+  const hydrateDoc = (doc, index) => {
+    const deal = deals.find(x => x.id === doc.deal) || deals[index % Math.max(deals.length, 1)];
+    const company = deal ? companyOf(deal.company) : null;
+    const owner = personOf(doc.owner) || PEOPLE[0];
+    const docFolder = doc.folder || folderFor(doc);
+    return {
+      ...doc,
+      deal,
+      dealId: deal?.id || doc.deal || 'Unassigned',
+      company,
+      owner,
+      folder: docFolder,
+      contact: company ? (contactsByCompany[company.id] || `${company.name} contact`) : 'Unassigned contact',
+      storage: doc.storage || { visibility: 'workspace', bucket: 'documents' },
+      status: doc.signed ? 'Signed' : docFolder === 'legal' ? 'Needs review' : 'Stored',
+    };
+  };
 
   const uploadFiles = async (files) => {
     const selected = Array.from(files || []);
@@ -3313,6 +3354,13 @@ function DocumentsPage({ deals, openDeal }) {
       for (const file of selected) {
         const form = new FormData();
         form.append('file', file);
+        form.append('deal_id', uploadDealId);
+        const uploadDeal = deals.find(d => d.id === uploadDealId);
+        if (uploadDeal) {
+          const company = companyOf(uploadDeal.company);
+          form.append('company_id', uploadDeal.company);
+          form.append('company_name', company?.name || '');
+        }
         const response = await fetch('/api/documents/upload', { method: 'POST', body: form });
         if (response.ok) {
           const data = await response.json();
@@ -3323,7 +3371,8 @@ function DocumentsPage({ deals, openDeal }) {
             size: file.size > 1024 * 1024 ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(file.size / 1024))} KB`,
             updated: 'Just now',
             owner: 'p1',
-            deal: data.document?.id || 'Upload',
+            deal: uploadDealId || data.document?.id || 'Upload',
+            folder: folder === 'all' ? 'general' : folder,
             signed: false,
             storage: data.storage_object,
           });
@@ -3336,18 +3385,42 @@ function DocumentsPage({ deals, openDeal }) {
     }
   };
 
-  const rows = [].concat(uploads, DOCUMENTS, DOCUMENTS, DOCUMENTS);
+  const rows = [].concat(uploads, DOCUMENTS).map(hydrateDoc);
+  const totalSizeMb = rows.reduce((sum, doc) => {
+    const raw = String(doc.size || '');
+    const n = parseFloat(raw);
+    if (!Number.isFinite(n)) return sum;
+    return sum + (raw.toLowerCase().includes('kb') ? n / 1024 : n);
+  }, 0);
+  const folderCounts = rows.reduce((acc, doc) => ({ ...acc, [doc.folder]: (acc[doc.folder] || 0) + 1 }), {});
+  const filteredRows = rows.filter(doc => {
+    const q = query.trim().toLowerCase();
+    const matchesQuery = !q || [
+      doc.name,
+      doc.ext,
+      doc.dealId,
+      doc.deal?.name,
+      doc.company?.name,
+      doc.contact,
+      doc.owner?.name,
+      doc.folder,
+      doc.status,
+    ].filter(Boolean).some(value => String(value).toLowerCase().includes(q));
+    const matchesFolder = folder === 'all' || (folder === 'esign' ? doc.status === 'Signed' || doc.status === 'Needs review' : doc.folder === folder);
+    const matchesRecord = recordFilter === 'all' || doc.dealId === recordFilter || doc.company?.id === recordFilter;
+    return matchesQuery && matchesFolder && matchesRecord;
+  });
+  const selected = selectedDoc || filteredRows[0] || rows[0];
 
   return (
     <>
       <div className="page-h">
-        <div><h1>Documents</h1><div className="sub">{DOCUMENTS.length * 18} files across {deals.length} deal rooms · 4 awaiting signature</div></div>
+        <div><h1>Documents</h1><div className="sub">{rows.length} files across {deals.length} deal rooms · tied to accounts, contacts, and deal records</div></div>
         <div className="page-actions">
           <div className="seg">
             <button className={view==='grid'?'active':''} type="button" onClick={()=>setView('grid')}><Icon name="kanban" size={12}/> Grid</button>
             <button className={view==='list'?'active':''} type="button" onClick={()=>setView('list')}><Icon name="table" size={12}/> List</button>
           </div>
-          <button className="btn" type="button"><Icon name="filter" size={13}/></button>
           <input
             ref={fileInputRef}
             type="file"
@@ -3360,23 +3433,62 @@ function DocumentsPage({ deals, openDeal }) {
           </button>
         </div>
       </div>
-      <div className="filterbar">
-        <button className={'chip ' + (folder === 'all' ? 'applied' : '')} type="button" onClick={()=>setFolder('all')}>All files</button>
-        <button className={'chip ' + (folder === 'cim' ? 'applied' : '')} type="button" onClick={()=>setFolder('cim')}>CIMs & decks</button>
-        <button className={'chip ' + (folder === 'legal' ? 'applied' : '')} type="button" onClick={()=>setFolder('legal')}>Legal</button>
-        <button className={'chip ' + (folder === 'financial' ? 'applied' : '')} type="button" onClick={()=>setFolder('financial')}>Financial</button>
-        <button className={'chip ' + (folder === 'esign' ? 'applied' : '')} type="button" onClick={()=>setFolder('esign')}>Awaiting e-sign</button>
-        <span style={{marginLeft:'auto',fontSize:11,color:'var(--text-3)'}} className="mono">↳ Synced from Box, Google Drive, OneDrive</span>
+
+      <div className="doc-center-shell">
+        <div className="doc-search-panel">
+          <label className="doc-search">
+            <Icon name="search" size={14}/>
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search documents, accounts, contacts, deals, owners..." />
+          </label>
+          <select value={recordFilter} onChange={(e) => setRecordFilter(e.target.value)} aria-label="Filter by linked record">
+            <option value="all">All accounts and deals</option>
+            {COMPANIES.map(company => <option key={company.id} value={company.id}>{company.name}</option>)}
+            {deals.map(deal => <option key={deal.id} value={deal.id}>{deal.id} · {deal.name.split(' — ')[0]}</option>)}
+          </select>
+        </div>
+
+        <div className="doc-library-summary">
+          <div><span>{rows.length}</span><small>stored files</small></div>
+          <div><span>{COMPANIES.length}</span><small>linked accounts</small></div>
+          <div><span>{Object.values(folderCounts).filter(Boolean).length}</span><small>library folders</small></div>
+          <div><span>{totalSizeMb.toFixed(1)} MB</span><small>indexed storage</small></div>
+        </div>
+
+        <div className="doc-upload-panel">
+          <div>
+            <b>Upload to a record</b>
+            <span>Files are stored in the document library and attached to the selected deal, account, and contact context.</span>
+          </div>
+          <select value={uploadDealId} onChange={(e) => setUploadDealId(e.target.value)} aria-label="Attach upload to deal">
+            {deals.map(deal => {
+              const company = companyOf(deal.company);
+              return <option key={deal.id} value={deal.id}>{deal.id} · {company?.name || deal.name}</option>;
+            })}
+          </select>
+          <button className="btn" type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+            <Icon name="upload" size={13}/> Select files
+          </button>
+        </div>
       </div>
 
-      {view === 'grid' ? (
-        <div className="docs-grid">
-          {rows.slice(0, 20).map((d, i) => {
-            const p = personOf(d.owner);
+      <div className="filterbar">
+        <button className={'chip ' + (folder === 'all' ? 'applied' : '')} type="button" onClick={()=>setFolder('all')}>All files <span>{rows.length}</span></button>
+        <button className={'chip ' + (folder === 'commercial' ? 'applied' : '')} type="button" onClick={()=>setFolder('commercial')}>CIMs & decks <span>{folderCounts.commercial || 0}</span></button>
+        <button className={'chip ' + (folder === 'legal' ? 'applied' : '')} type="button" onClick={()=>setFolder('legal')}>Legal</button>
+        <button className={'chip ' + (folder === 'financial' ? 'applied' : '')} type="button" onClick={()=>setFolder('financial')}>Financial</button>
+        <button className={'chip ' + (folder === 'diligence' ? 'applied' : '')} type="button" onClick={()=>setFolder('diligence')}>Diligence</button>
+        <button className={'chip ' + (folder === 'esign' ? 'applied' : '')} type="button" onClick={()=>setFolder('esign')}>Awaiting e-sign</button>
+        <span style={{marginLeft:'auto',fontSize:11,color:'var(--text-3)'}} className="mono">{filteredRows.length} visible · R2 document bucket + metadata index</span>
+      </div>
+
+      <div className="doc-library-layout">
+        <div className="doc-library-main">
+          {view === 'grid' ? (
+            <div className="docs-grid">
+              {filteredRows.map((d, i) => {
             return (
-              <div key={d.id + '-' + i} className="doc-card" onClick={() => {
-                const deal = deals.find(x => x.id === d.deal);
-                if (deal) openDeal(deal);
+              <div key={d.id + '-' + i} className={'doc-card ' + (selected?.id === d.id ? 'selected' : '')} onClick={() => {
+                setSelectedDoc(d);
               }}>
                 <div className="doc-thumb">
                   <span className="ext">{d.ext.toUpperCase()}</span>
@@ -3384,47 +3496,75 @@ function DocumentsPage({ deals, openDeal }) {
                 </div>
                 <div className="doc-info">
                   <div className="doc-name">{d.name}</div>
+                  <div className="doc-record">{d.company?.name || 'Unassigned account'} · {d.contact}</div>
                   <div className="doc-meta">
-                    <Avatar person={p}/>
-                    <span>{p.name.split(' ')[0]}</span>
+                    <Avatar person={d.owner}/>
+                    <span>{d.owner.name.split(' ')[0]}</span>
                     <span style={{opacity:.5}}>·</span>
                     <span>{d.updated}</span>
                   </div>
                   <div style={{display:'flex',gap:6,marginTop:4}}>
-                    {d.signed ? <Pill tone="green">Signed</Pill> : <Pill tone="amber">Draft</Pill>}
-                    <span className="mono text-xs muted" style={{marginLeft:'auto'}}>{d.deal}</span>
+                    <Pill tone={d.status === 'Signed' ? 'green' : d.status === 'Needs review' ? 'amber' : 'blue'}>{d.status}</Pill>
+                    <span className="mono text-xs muted" style={{marginLeft:'auto'}}>{d.dealId}</span>
                   </div>
                 </div>
               </div>
             );
-          })}
-        </div>
-      ) : (
-        <div className="tbl-wrap">
-          <table className="tbl">
-            <thead>
-              <tr><th></th><th>Name</th><th>Deal</th><th>Owner</th><th>Type</th><th className="num">Size</th><th>Updated</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-              {rows.slice(0, 24).map((d, i) => {
-                const p = personOf(d.owner);
+              })}
+            </div>
+          ) : (
+            <div className="tbl-wrap doc-table-wrap">
+              <table className="tbl">
+                <thead>
+                  <tr><th></th><th>Name</th><th>Account / contact</th><th>Deal</th><th>Owner</th><th>Folder</th><th className="num">Size</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                  {filteredRows.map((d, i) => {
                 return (
-                  <tr key={d.id + i}>
+                  <tr key={d.id + i} onClick={() => setSelectedDoc(d)} style={{cursor:'pointer'}}>
                     <td><Icon name="file" size={15}/></td>
                     <td><b>{d.name}</b></td>
-                    <td className="mono">{d.deal}</td>
-                    <td><span style={{display:'inline-flex',alignItems:'center',gap:6}}><Avatar person={p}/> {p.name.split(' ')[0]}</span></td>
-                    <td><span className="tag">{d.ext.toUpperCase()}</span></td>
+                    <td><b>{d.company?.name || 'Unassigned'}</b><div className="text-xs muted">{d.contact}</div></td>
+                    <td className="mono">{d.dealId}</td>
+                    <td><span style={{display:'inline-flex',alignItems:'center',gap:6}}><Avatar person={d.owner}/> {d.owner.name.split(' ')[0]}</span></td>
+                    <td><span className="tag">{d.folder}</span></td>
                     <td className="num">{d.size}</td>
-                    <td className="muted">{d.updated}</td>
-                    <td>{d.signed ? <Pill tone="green">Signed</Pill> : <Pill tone="amber">Pending</Pill>}</td>
+                    <td><Pill tone={d.status === 'Signed' ? 'green' : d.status === 'Needs review' ? 'amber' : 'blue'}>{d.status}</Pill></td>
                   </tr>
                 );
-              })}
-            </tbody>
-          </table>
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-      )}
+
+        <aside className="doc-detail-panel">
+          {selected ? (
+            <>
+              <div className="doc-preview">
+                <span className="ext">{selected.ext.toUpperCase()}</span>
+                <div className="lines"><i/><i/><i/><i/><i/></div>
+              </div>
+              <h3>{selected.name}</h3>
+              <dl className="kv">
+                <dt>Stored in</dt><dd>Document Library / {selected.folder}</dd>
+                <dt>Account</dt><dd>{selected.company?.name || 'Unassigned'}</dd>
+                <dt>Contact</dt><dd>{selected.contact}</dd>
+                <dt>Deal</dt><dd className="mono">{selected.dealId}</dd>
+                <dt>Owner</dt><dd>{selected.owner.name}</dd>
+                <dt>Storage</dt><dd>{selected.storage?.bucket || 'documents'} · {selected.storage?.visibility || 'workspace'}</dd>
+              </dl>
+              <div className="doc-detail-actions">
+                <button className="btn primary" type="button" onClick={() => selected.deal && openDeal(selected.deal)}><Icon name="eye" size={13}/> Open record</button>
+                <button className="btn" type="button"><Icon name="download" size={13}/> Download</button>
+              </div>
+            </>
+          ) : (
+            <div className="text-sm muted">Select a document to see account, contact, deal, and storage details.</div>
+          )}
+        </aside>
+      </div>
     </>
   );
 }
