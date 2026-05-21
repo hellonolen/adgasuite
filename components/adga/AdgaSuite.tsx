@@ -1627,15 +1627,15 @@ function AgentHistory() {
 /* ADGA — conversational AI panel (right rail) */
 
 const SAMPLE_HISTORY = [
-  { id: 'c-201', title: 'Meridian Cold Chain — closing memo',  when: '09:14', active: true },
-  { id: 'c-200', title: 'Forecast slipping risks',              when: 'Yesterday' },
-  { id: 'c-199', title: 'Quorum JV term sheet review',          when: 'Yesterday' },
-  { id: 'c-198', title: 'Q2 weighted pipeline breakdown',       when: 'Mon' },
-  { id: 'c-197', title: 'Outreach draft — Northbound',          when: 'Mon' },
-  { id: 'c-196', title: 'DD §4.3 Heliograph',                   when: 'Fri' },
-  { id: 'c-195', title: 'Banker performance · TTM',             when: 'Apr 30' },
-  { id: 'c-194', title: 'Cap table reconciliation',             when: 'Apr 28' },
-  { id: 'c-193', title: 'Customer references for Halcyon',      when: 'Apr 22' },
+  { id: 'c-201', title: 'Meridian Cold Chain — closing memo',  date: 'May 21, 2026', time: '09:14 AM', scope: 'Closing', active: true },
+  { id: 'c-200', title: 'Forecast slipping risks',             date: 'May 20, 2026', time: '04:42 PM', scope: 'Risk' },
+  { id: 'c-199', title: 'Quorum JV term sheet review',         date: 'May 20, 2026', time: '11:18 AM', scope: 'Legal' },
+  { id: 'c-198', title: 'Q2 weighted pipeline breakdown',      date: 'May 18, 2026', time: '02:05 PM', scope: 'Forecast' },
+  { id: 'c-197', title: 'Outreach draft — Northbound',         date: 'May 18, 2026', time: '10:37 AM', scope: 'Outreach' },
+  { id: 'c-196', title: 'DD §4.3 Heliograph',                  date: 'May 15, 2026', time: '03:22 PM', scope: 'Diligence' },
+  { id: 'c-195', title: 'Banker performance · TTM',            date: 'Apr 30, 2026', time: '01:11 PM', scope: 'Report' },
+  { id: 'c-194', title: 'Cap table reconciliation',            date: 'Apr 28, 2026', time: '09:48 AM', scope: 'Finance' },
+  { id: 'c-193', title: 'Customer references for Halcyon',     date: 'Apr 22, 2026', time: '04:16 PM', scope: 'References' },
 ];
 
 const SUGGESTIONS = [
@@ -1694,6 +1694,43 @@ function parseWorkflow(text, deals) {
   return null;
 }
 
+function searchPlatform(query, deals = DEALS, leads = LEADS) {
+  const q = String(query || '').trim().toLowerCase();
+  if (q.length < 2) return [];
+  const entries = [];
+  const add = (type, label, detail, ref, haystack, action) => {
+    entries.push({
+      type,
+      label,
+      detail,
+      ref,
+      action,
+      haystack: [label, detail, ref, haystack].filter(Boolean).join(' ').toLowerCase(),
+    });
+  };
+
+  (deals || []).forEach(d => {
+    const company = companyOf(d.company);
+    const stage = stageOf(d.stage);
+    add('Deal', d.name, `${company?.name || 'Company'} · ${stage?.name || 'Stage'} · ${fmtCurrency(d.value, d.currency)}`, d.id, [d.type, d.source, d.priority, ...(d.tags || [])].join(' '), { type: 'open-deal', deal: d });
+  });
+  (leads || []).forEach(l => add('Lead', l.name, `${l.title || 'Contact'} · ${l.company || 'Company'} · ${l.urgency || 'Normal'}`, l.id, [l.email, l.phone, l.sector, l.channel, l.status].join(' '), { type: 'route', route: 'leads' }));
+  COMPANIES.forEach(c => add('Company', c.name, `${c.sector} · ${c.hq} · ${c.emp} employees`, c.id, c.logo, { type: 'route', route: 'crm' }));
+  PEOPLE.forEach(p => add('Contact', p.name, p.role, p.id, p.initials, { type: 'route', route: 'crm' }));
+  DOCUMENTS.forEach(d => add('Document', d.name, `${d.ext.toUpperCase()} · ${d.size} · ${d.updated}`, d.id, d.deal, { type: 'route', route: 'documents' }));
+  TASKS.forEach(t => add('Task', t.title, `${t.due} · ${t.priority}`, t.id, t.deal, { type: 'route', route: 'tasks' }));
+  KNOWLEDGE.forEach(k => add('Knowledge', k.title, `${k.tag} · updated ${k.updated}`, k.tag, k.desc, { type: 'route', route: 'knowledge' }));
+
+  return entries
+    .filter(e => e.haystack.includes(q))
+    .sort((a, b) => {
+      const as = a.label.toLowerCase().startsWith(q) ? 0 : 1;
+      const bs = b.label.toLowerCase().startsWith(q) ? 0 : 1;
+      return as - bs || a.type.localeCompare(b.type) || a.label.localeCompare(b.label);
+    })
+    .slice(0, 8);
+}
+
 function routeAgentKey(text) {
   const t = (text || '').toLowerCase();
   if (t.includes('invoice') || t.includes('payment') || t.includes('payout') || t.includes('bank') || t.includes('subscription')) return 'payments';
@@ -1717,7 +1754,7 @@ function routeAgentLabel(agent) {
   }[agent] || 'Conductor';
 }
 
-function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals }) {
+function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals, leads }) {
   const bodyRef = React.useRef(null);
   const taRef = React.useRef(null);
   const fileRef = React.useRef(null);
@@ -1727,6 +1764,18 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
   const [panelTab, setPanelTab] = React.useState('chat');
   const [activeChat, setActiveChat] = React.useState(SAMPLE_HISTORY[0].id);
   const [messages, setMessages] = React.useState(VOICE_TRANSCRIPT);
+  const [chatSearch, setChatSearch] = React.useState('');
+  const [historySearch, setHistorySearch] = React.useState('');
+
+  const chatResults = React.useMemo(
+    () => searchPlatform(chatSearch, deals || [], leads || []),
+    [chatSearch, deals, leads]
+  );
+  const historyResults = React.useMemo(() => {
+    const q = historySearch.trim().toLowerCase();
+    if (!q) return SAMPLE_HISTORY;
+    return SAMPLE_HISTORY.filter(c => [c.title, c.date, c.time, c.scope].join(' ').toLowerCase().includes(q));
+  }, [historySearch]);
 
   React.useEffect(() => {
     if (panelTab === 'chat' && bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
@@ -1750,6 +1799,7 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
 
     // Workflow-aware: parse intent and surface content
     const action = parseWorkflow(text, deals || []);
+    const platformMatches = searchPlatform(text, deals || [], leads || []);
     let agentReply;
     if (action?.type === 'open-deal') {
       agentReply = { who: 'agent', text: `Opening “${action.deal.name.split(' — ')[0]}.” Loading the file on your desk now.`, cite: action.deal.id };
@@ -1758,6 +1808,9 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
       agentReply = { who: 'agent', text: `Pulling the full story for ${d?.name.split(' — ')[0]}. Every touch, in order.`, cite: action.dealId };
     } else if (action?.type === 'route') {
       agentReply = { who: 'agent', text: `Bringing up ${action.route} for you.`, cite: 'workflow/route' };
+    } else if (platformMatches.length) {
+      const top = platformMatches.slice(0, 4).map(r => `${r.type}: ${r.label}`).join('; ');
+      agentReply = { who: 'agent', text: `I found ${platformMatches.length} matching platform records. Top matches: ${top}.`, cite: 'platform/search' };
     } else {
       agentReply = { who: 'agent', text: 'Working on that — pulling the relevant deals and surfacing context now.', cite: 'context/active-pipeline' };
     }
@@ -1773,6 +1826,7 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
           context: {
             workflow_action: action,
             attachment_count: attachments.length,
+            platform_search: platformMatches.slice(0, 6).map(({ type, label, detail, ref }) => ({ type, label, detail, ref })),
           },
         }),
       });
@@ -1879,14 +1933,40 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         </button>
       </div>
 
+      {panelTab === 'chat' && (
+        <div className="voice-search">
+          <Icon name="search" size={13}/>
+          <input
+            value={chatSearch}
+            onChange={e => setChatSearch(e.target.value)}
+            placeholder="Search deals, contacts, documents, tasks..."
+            aria-label="Search platform from ADGA"
+          />
+          {chatSearch && <button type="button" onClick={() => setChatSearch('')} aria-label="Clear search">Clear</button>}
+        </div>
+      )}
+
+      {panelTab === 'history' && (
+        <div className="voice-search">
+          <Icon name="search" size={13}/>
+          <input
+            value={historySearch}
+            onChange={e => setHistorySearch(e.target.value)}
+            placeholder="Search chat history..."
+            aria-label="Search chat history"
+          />
+          {historySearch && <button type="button" onClick={() => setHistorySearch('')} aria-label="Clear history search">Clear</button>}
+        </div>
+      )}
+
       <div className="voice-body" ref={bodyRef}>
         {panelTab === 'history' ? (
           <div className="voice-history-panel">
             <div className="vh-head">
-              <span>Recent conversations</span>
-              <button type="button">View all</button>
+              <span>{historyResults.length} conversations</span>
+              <button type="button" onClick={() => setHistorySearch('')}>Reset</button>
             </div>
-            {SAMPLE_HISTORY.map(c => (
+            {historyResults.map(c => (
               <button
                 key={c.id}
                 type="button"
@@ -1894,7 +1974,31 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
                 onClick={() => { setActiveChat(c.id); setPanelTab('chat'); }}
               >
                 <span className="ttl">{c.title}</span>
-                <span className="when">{c.when}</span>
+                <span className="scope">{c.scope}</span>
+                <span className="when">{c.date} · {c.time}</span>
+              </button>
+            ))}
+          </div>
+        ) : chatSearch.trim().length >= 2 ? (
+          <div className="voice-search-results">
+            <div className="vh-head">
+              <span>{chatResults.length ? `${chatResults.length} platform matches` : 'No platform matches'}</span>
+              <button type="button" onClick={() => { setDraft(chatSearch); setChatSearch(''); taRef.current?.focus(); }}>Ask ADGA</button>
+            </div>
+            {chatResults.map(r => (
+              <button
+                key={`${r.type}-${r.ref}-${r.label}`}
+                type="button"
+                className="vs-result"
+                onClick={() => {
+                  setDraft(r.type === 'Deal' ? `Open ${r.label}` : `Find ${r.label}`);
+                  if (r.action && onWorkflow) onWorkflow(r.action);
+                  setChatSearch('');
+                }}
+              >
+                <span className="type">{r.type}</span>
+                <span className="ttl">{r.label}</span>
+                <span className="detail">{r.detail}</span>
               </button>
             ))}
           </div>
@@ -2057,7 +2161,23 @@ const VoicePanel = ADGAPanel;
 
 /* Pipeline module — kanban, table, and timeline views + filter bar */
 
-function PipelineHeader({ view, setView, onAdd }) {
+function PipelineViewTabs({ view, setView }) {
+  return (
+    <div className="seg suite-view-tabs" role="tablist" aria-label="Pipeline view">
+      <button type="button" className={view==='kanban'?'active':''} onClick={()=>setView('kanban')}>
+        <Icon name="kanban" size={13}/> Kanban
+      </button>
+      <button type="button" className={view==='table'?'active':''} onClick={()=>setView('table')}>
+        <Icon name="table" size={13}/> Table
+      </button>
+      <button type="button" className={view==='timeline'?'active':''} onClick={()=>setView('timeline')}>
+        <Icon name="timeline" size={13}/> Timeline
+      </button>
+    </div>
+  );
+}
+
+function PipelineHeader({ section, setSection, onAdd }) {
   return (
     <>
       <div className="page-h">
@@ -2066,31 +2186,44 @@ function PipelineHeader({ view, setView, onAdd }) {
           <div className="sub">17 active deals · $832.4M total · $284.6M weighted</div>
         </div>
         <div className="page-actions">
-          <div className="seg" role="tablist">
-            <button type="button" className={view==='kanban'?'active':''} onClick={()=>setView('kanban')}>
-              <Icon name="kanban" size={13}/> Kanban
-            </button>
-            <button type="button" className={view==='table'?'active':''} onClick={()=>setView('table')}>
-              <Icon name="table" size={13}/> Table
-            </button>
-            <button type="button" className={view==='timeline'?'active':''} onClick={()=>setView('timeline')}>
-              <Icon name="timeline" size={13}/> Timeline
-            </button>
-          </div>
-          <button className="btn" type="button"><Icon name="upload" size={13}/> Import</button>
           <button className="btn primary" type="button" onClick={onAdd}><Icon name="plus" size={13}/> New deal</button>
         </div>
       </div>
-      <div className="filterbar">
+      <div className="suite-subtabs pipeline-subtabs" role="tablist" aria-label="Pipeline sections">
+        <button type="button" role="tab" aria-selected={section === 'pipeline'} className={section === 'pipeline' ? 'active' : ''} onClick={() => setSection('pipeline')}>
+          Pipeline
+        </button>
+        <button type="button" role="tab" aria-selected={section === 'controls'} className={section === 'controls' ? 'active' : ''} onClick={() => setSection('controls')}>
+          Controls
+        </button>
+      </div>
+    </>
+  );
+}
+
+function PipelineControls({ view, setView }) {
+  return (
+    <div className="pipeline-controls-panel">
+      <div className="pc-row">
+        <div>
+          <div className="ttl">Pipeline controls</div>
+          <div className="sub">Adjust view, filters, sorting, imports, and list hygiene without crowding the board.</div>
+        </div>
+        <button className="btn" type="button"><Icon name="upload" size={13}/> Import</button>
+      </div>
+      <div className="pc-row compact">
+        <PipelineViewTabs view={view} setView={setView}/>
+        <span className="mono muted">Sorted by close date · ascending</span>
+      </div>
+      <div className="filterbar pipeline-filterbar">
         <button className="chip applied" type="button">Owner: Me <Icon name="x" size={10} className="x"/></button>
         <button className="chip applied" type="button">Stage: All active <Icon name="x" size={10} className="x"/></button>
         <button className="chip" type="button"><Icon name="plus" size={10}/> Type</button>
         <button className="chip" type="button"><Icon name="plus" size={10}/> Sector</button>
         <button className="chip" type="button"><Icon name="plus" size={10}/> Close date</button>
         <button className="chip" type="button"><Icon name="plus" size={10}/> Value</button>
-        <span style={{marginLeft:'auto',fontSize:11,color:'var(--text-3)'}} className="mono">Sorted by close date · ascending</span>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -2278,12 +2411,19 @@ function PipelineTimeline({ deals, onOpen }) {
 }
 
 function PipelinePage({ view, setView, deals, setDeals, openDeal, setQuickCreate }) {
+  const [section, setSection] = React.useState('pipeline');
   const move = (id, newStage) => {
     setDeals(ds => ds.map(d => d.id === id ? {...d, stage: newStage} : d));
   };
   return (
     <>
-      <PipelineHeader view={view} setView={setView} onAdd={() => setQuickCreate && setQuickCreate('deal')}/>
+      <PipelineHeader section={section} setSection={setSection} onAdd={() => setQuickCreate && setQuickCreate('deal')}/>
+      {section === 'pipeline' && (
+        <div className="pipeline-viewbar">
+          <PipelineViewTabs view={view} setView={setView}/>
+        </div>
+      )}
+      {section === 'controls' && <PipelineControls view={view} setView={setView}/>}
       {view === 'kanban' && <Kanban deals={deals} onOpen={openDeal} onMove={move}/>}
       {view === 'table' && <PipelineTable deals={deals} onOpen={openDeal}/>}
       {view === 'timeline' && <PipelineTimeline deals={deals} onOpen={openDeal}/>}
@@ -7758,6 +7898,7 @@ function App() {
         setCollapsed={(c) => setTweak('voiceCollapsed', typeof c === 'function' ? c(tweaks.voiceCollapsed) : c)}
         onWorkflow={handleWorkflow}
         deals={deals}
+        leads={leads}
       />
       <button
         className={'mobile-scrim ' + ((!tweaks.sidebarCollapsed || !tweaks.voiceCollapsed) ? 'on' : '')}
