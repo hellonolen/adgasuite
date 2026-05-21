@@ -48,9 +48,48 @@ export default function MarketingPage() {
                 Existing teams · <a href="/login">open ADGA</a>
               </div>
             </div>
-            <div className="photo hero-photo">
-              <div className="ph-title">Lead routed</div>
-              <div className="ph-meta">CLIENT · FOLLOW-UP · DEAL ROOM</div>
+            <div className="hero-product-panel hero-photo">
+              <div className="hero-panel-top">
+                <span>Live lead</span>
+                <b>Immediate follow-up</b>
+              </div>
+              <div className="hero-lead-card">
+                <div>
+                  <span className="hero-score">92</span>
+                </div>
+                <div>
+                  <strong>Aurore Chastain</strong>
+                  <span>Sutter Maritime · Head of Corp Dev</span>
+                </div>
+                <em>Hot</em>
+              </div>
+              <div className="hero-workflow">
+                <div><span /> Capture</div>
+                <div><span /> Qualify</div>
+                <div><span /> Schedule</div>
+                <div><span /> Deal room</div>
+              </div>
+              <div className="hero-panel-grid">
+                <div>
+                  <small>Next action</small>
+                  <strong>Call within 5 minutes</strong>
+                </div>
+                <div>
+                  <small>Meeting</small>
+                  <strong>Invite queued</strong>
+                </div>
+                <div>
+                  <small>Files</small>
+                  <strong>2 documents attached</strong>
+                </div>
+                <div>
+                  <small>Owner</small>
+                  <strong>Maren Voss</strong>
+                </div>
+              </div>
+              <div className="hero-agent-note">
+                ADGA prepared the reply, logged the record, and opened the client follow-up path.
+              </div>
             </div>
           </div>
           {/* Marquee strip */}
