@@ -10,6 +10,436 @@ body::before {
   display: block !important;
 }
 
+/* ===== ADGA Suite refinement pass v2 ===== */
+.suite-shell {
+  --suite-border: rgba(25, 23, 36, 0.10);
+  --suite-border-strong: rgba(25, 23, 36, 0.16);
+  --suite-border-muted: rgba(25, 23, 36, 0.075);
+  --suite-panel-bg: rgba(255, 255, 255, 0.82);
+  --suite-panel-bg-solid: #ffffff;
+  --suite-card-shadow: 0 1px 0 rgba(255, 255, 255, 0.76) inset, 0 14px 36px rgba(32, 24, 54, 0.055);
+  --suite-card-shadow-hover: 0 1px 0 rgba(255, 255, 255, 0.82) inset, 0 18px 44px rgba(32, 24, 54, 0.075);
+}
+
+.suite-shell .sidebar,
+.suite-shell .topbar,
+.suite-shell .sb-ws-btn,
+.suite-shell .list-row,
+.suite-shell .lead-detail-h,
+.suite-shell .drawer-h,
+.suite-shell .doc-search,
+.suite-shell .doc-search-panel select,
+.suite-shell .doc-upload-panel select,
+.suite-shell .doc-thumb,
+.suite-shell .doc-preview {
+  border-color: var(--suite-border-muted) !important;
+}
+
+.suite-shell .card,
+.suite-shell .kpi,
+.suite-shell .kanban,
+.suite-shell .docs-grid,
+.suite-shell .kb-grid,
+.suite-shell .teams-grid,
+.suite-shell .pending-body,
+.suite-shell .pending-filters,
+.suite-shell .price-card,
+.suite-shell .deal-focus-card,
+.suite-shell .doc-search-panel,
+.suite-shell .doc-upload-panel,
+.suite-shell .doc-library-summary,
+.suite-shell .doc-detail-panel,
+.suite-shell .lead-card,
+.suite-shell .doc-card,
+.suite-shell .col,
+.suite-shell .deal-card,
+.suite-shell .touch-card,
+.suite-shell .lead-tl-card,
+.suite-shell .rec-card,
+.suite-shell .team-card,
+.suite-shell .handoff-modal,
+.suite-shell .ac-feed-card,
+.suite-shell .ac-promote-card,
+.suite-shell .ac-card {
+  border-color: var(--suite-border-muted) !important;
+  background: var(--suite-panel-bg) !important;
+  box-shadow: var(--suite-card-shadow) !important;
+}
+
+.suite-shell .card:hover,
+.suite-shell .lead-card:hover,
+.suite-shell .doc-card:hover,
+.suite-shell .team-card:hover,
+.suite-shell .deal-card:hover,
+.suite-shell .touch-card:hover,
+.suite-shell .rec-card:hover {
+  border-color: var(--suite-border) !important;
+  box-shadow: var(--suite-card-shadow-hover) !important;
+}
+
+.suite-shell .doc-card.selected,
+.suite-shell .price-card.current {
+  border-color: var(--suite-border) !important;
+  background: color-mix(in srgb, var(--surface) 92%, var(--accent) 8%) !important;
+  box-shadow: var(--suite-card-shadow-hover) !important;
+}
+
+.suite-shell .ac-card[data-urgency],
+.suite-shell .ac-feed-card.live,
+.suite-shell .ac-feed-card.pending {
+  border-left: 1px solid var(--suite-border-muted) !important;
+}
+
+.suite-shell .page-h {
+  padding-top: clamp(34px, 4vw, 52px) !important;
+  padding-bottom: 20px !important;
+  gap: 20px !important;
+}
+
+.suite-shell .page-h h1 {
+  letter-spacing: 0 !important;
+  text-wrap: balance;
+}
+
+.suite-shell .page-h .sub {
+  max-width: 820px;
+  line-height: 1.45;
+}
+
+.suite-shell .page-actions {
+  gap: 10px !important;
+}
+
+.suite-shell .filterbar {
+  margin: 0 var(--suite-gutter) 24px !important;
+  padding: 14px !important;
+  border: 1px solid var(--suite-border-muted);
+  border-radius: var(--suite-radius-panel);
+  background: rgba(255, 255, 255, 0.64);
+  box-shadow: 0 10px 24px rgba(32, 24, 54, 0.04);
+}
+
+.suite-shell .filterbar .chip,
+.suite-shell .filterbar input,
+.suite-shell .filterbar select,
+.suite-shell .field input,
+.suite-shell .field select,
+.suite-shell .field textarea {
+  min-height: 40px !important;
+  border-color: var(--suite-border-muted) !important;
+  border-radius: var(--suite-radius-control) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .field input:focus,
+.suite-shell .field select:focus,
+.suite-shell .field textarea:focus,
+.suite-shell .filterbar input:focus,
+.suite-shell .filterbar select:focus {
+  border-color: var(--suite-border-strong) !important;
+  box-shadow: 0 0 0 3px rgba(25, 23, 36, 0.055) !important;
+}
+
+.suite-shell .seg,
+.suite-shell .tabs,
+.suite-shell .deal-period-tabs {
+  border-color: var(--suite-border-muted) !important;
+  background: rgba(255, 255, 255, 0.74) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .seg button:not(.active),
+.suite-shell .tabs button:not(.active),
+.suite-shell .tab:not(.active),
+.suite-shell .deal-period-tabs button:not(.active) {
+  color: var(--text-2) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .tab.active,
+.suite-shell .tabs button.active,
+.suite-shell .seg button.active,
+.suite-shell .deal-period-tabs button.active {
+  box-shadow: 0 8px 18px rgba(91, 33, 182, 0.14) !important;
+}
+
+.suite-shell .tag,
+.suite-shell .pill,
+.suite-shell .chip,
+.suite-shell .ed-tag,
+.suite-shell .kb-tag {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .tag,
+.suite-shell .ed-tag,
+.suite-shell .kb-tag {
+  background: rgba(25, 23, 36, 0.055) !important;
+  color: var(--text-2) !important;
+  letter-spacing: 0.11em !important;
+}
+
+.suite-shell .pill {
+  background: rgba(25, 23, 36, 0.055) !important;
+  color: var(--text-2) !important;
+}
+
+.suite-shell .pill::before {
+  opacity: 0.7;
+}
+
+.suite-shell .deal-focus-summary {
+  gap: 0;
+  border-color: var(--suite-border-muted) !important;
+  background: transparent !important;
+}
+
+.suite-shell .deal-focus-summary > div {
+  border-right: 1px solid var(--suite-border-muted);
+}
+
+.suite-shell .deal-focus-summary > div:last-child {
+  border-right: 0;
+}
+
+.suite-shell .doc-library-summary > div {
+  border-right-color: var(--suite-border-muted) !important;
+}
+
+.suite-shell .doc-thumb,
+.suite-shell .doc-preview {
+  background:
+    linear-gradient(145deg, rgba(25, 23, 36, 0.045), rgba(255, 255, 255, 0.2) 52%),
+    rgba(255, 255, 255, 0.72) !important;
+}
+
+.suite-shell .doc-thumb .lines i,
+.suite-shell .doc-preview .lines i {
+  background: rgba(25, 23, 36, 0.09) !important;
+}
+
+.suite-shell .tbl-wrap {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .tbl {
+  border: 1px solid var(--suite-border-muted);
+  border-radius: var(--suite-radius-card);
+  border-collapse: separate;
+  border-spacing: 0;
+  background: rgba(255, 255, 255, 0.78);
+  overflow: hidden;
+}
+
+.suite-shell .tbl th,
+.suite-shell .tbl td {
+  height: 46px !important;
+  border-bottom-color: var(--suite-border-muted) !important;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.suite-shell .tbl th {
+  color: var(--text-3) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+}
+
+.suite-shell .tbl tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+.suite-shell .list-row {
+  min-height: 62px;
+  padding-block: 14px !important;
+  line-height: 1.38;
+}
+
+.suite-shell .lead-card {
+  gap: 18px !important;
+  padding: 18px 20px !important;
+}
+
+.suite-shell .lead-card > div,
+.suite-shell .lead-card b,
+.suite-shell .lead-card span,
+.suite-shell .lead-card .mono,
+.suite-shell .doc-card,
+.suite-shell .doc-card *,
+.suite-shell .card,
+.suite-shell .card *,
+.suite-shell .list-row,
+.suite-shell .list-row * {
+  min-width: 0;
+}
+
+.suite-shell .doc-name,
+.suite-shell .doc-record,
+.suite-shell .contact-link-cell b,
+.suite-shell .contact-link-cell small {
+  overflow-wrap: anywhere;
+}
+
+.suite-shell .score-ring,
+.suite-shell .score-ring svg {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+}
+
+.suite-shell .score-ring {
+  overflow: hidden;
+  border-radius: 50%;
+  flex: 0 0 42px;
+}
+
+.suite-shell .score-ring svg {
+  display: block;
+}
+
+.suite-shell .voice {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-left: 1px solid var(--suite-border-muted) !important;
+  box-shadow: -12px 0 30px rgba(32, 24, 54, 0.06) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(120%) !important;
+  backdrop-filter: blur(14px) saturate(120%) !important;
+}
+
+.suite-shell .voice-h,
+.suite-shell .ac-h,
+.suite-shell .voice-history,
+.suite-shell .ac-roster,
+.suite-shell .composer-bar,
+.suite-shell .voice-command {
+  border-color: var(--suite-border-muted) !important;
+}
+
+.suite-shell .ac-h-title {
+  font-size: 17px !important;
+  font-style: normal !important;
+  letter-spacing: 0 !important;
+}
+
+.suite-shell .ac-roster,
+.suite-shell .voice-history {
+  background: transparent !important;
+}
+
+.suite-shell .ac-agent,
+.suite-shell .vh-item {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .ac-agent:hover,
+.suite-shell .vh-item:hover {
+  background: rgba(25, 23, 36, 0.045) !important;
+}
+
+.suite-shell .voice-body {
+  padding: 14px !important;
+}
+
+.suite-shell .voice-msg .what,
+.suite-shell .ac-card-proposed,
+.suite-shell .ac-card-edit,
+.suite-shell .composer-box {
+  border-color: var(--suite-border-muted) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .voice-msg.user .what {
+  background: var(--accent) !important;
+  border-color: transparent !important;
+  color: var(--accent-fg) !important;
+}
+
+.suite-shell .voice-command {
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 -8px 24px rgba(32, 24, 54, 0.035) !important;
+}
+
+.suite-shell .composer-box {
+  background: rgba(255, 255, 255, 0.86) !important;
+}
+
+.suite-shell .composer-box:focus-within {
+  border-color: var(--suite-border-strong) !important;
+  box-shadow: 0 0 0 3px rgba(25, 23, 36, 0.055) !important;
+}
+
+.suite-shell .composer-tool {
+  border-color: var(--suite-border-muted) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .composer-send {
+  border-color: var(--accent) !important;
+  background: var(--accent) !important;
+  color: var(--accent-fg) !important;
+}
+
+@media (min-width: 821px) and (max-width: 1440px) {
+  .suite-shell .voice {
+    box-shadow: -12px 0 30px rgba(32, 24, 54, 0.07) !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .suite-shell .filterbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    margin-left: 16px !important;
+    margin-right: 16px !important;
+  }
+
+  .suite-shell .filterbar > *,
+  .suite-shell .page-actions > * {
+    max-width: 100%;
+  }
+
+  .suite-shell .page-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .suite-shell .page-actions .seg,
+  .suite-shell .page-actions .tabs,
+  .suite-shell .page-actions .deal-period-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .suite-shell .score-ring,
+  .suite-shell .score-ring svg {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+  }
+
+  .suite-shell .score-ring {
+    flex-basis: 40px;
+  }
+
+  .suite-shell .voice {
+    box-shadow: -10px 0 28px rgba(32, 24, 54, 0.14) !important;
+  }
+
+  .suite-shell .voice-command .composer-textarea {
+    min-height: 70px !important;
+    max-height: 112px !important;
+  }
+}
+
 body:has(.suite-shell)::before {
   display: none !important;
 }
@@ -2661,5 +3091,431 @@ body {
     inset: 0;
     z-index: 60;
     background: rgba(15, 15, 18, 0.42);
+  }
+}
+
+/* ===== ADGA Suite final refinement layer ===== */
+.suite-shell {
+  --suite-border: rgba(25, 23, 36, 0.10);
+  --suite-border-strong: rgba(25, 23, 36, 0.16);
+  --suite-border-muted: rgba(25, 23, 36, 0.075);
+  --suite-panel-bg: rgba(255, 255, 255, 0.82);
+  --suite-panel-bg-solid: #ffffff;
+  --suite-card-shadow: 0 1px 0 rgba(255, 255, 255, 0.76) inset, 0 14px 36px rgba(32, 24, 54, 0.055);
+  --suite-card-shadow-hover: 0 1px 0 rgba(255, 255, 255, 0.82) inset, 0 18px 44px rgba(32, 24, 54, 0.075);
+}
+
+.suite-shell .sidebar,
+.suite-shell .topbar,
+.suite-shell .sb-ws-btn,
+.suite-shell .list-row,
+.suite-shell .lead-detail-h,
+.suite-shell .drawer-h,
+.suite-shell .doc-search,
+.suite-shell .doc-search-panel select,
+.suite-shell .doc-upload-panel select,
+.suite-shell .doc-thumb,
+.suite-shell .doc-preview {
+  border-color: var(--suite-border-muted) !important;
+}
+
+.suite-shell .card,
+.suite-shell .kpi,
+.suite-shell .kanban,
+.suite-shell .docs-grid,
+.suite-shell .kb-grid,
+.suite-shell .teams-grid,
+.suite-shell .pending-body,
+.suite-shell .pending-filters,
+.suite-shell .price-card,
+.suite-shell .deal-focus-card,
+.suite-shell .doc-search-panel,
+.suite-shell .doc-upload-panel,
+.suite-shell .doc-library-summary,
+.suite-shell .doc-detail-panel,
+.suite-shell .lead-card,
+.suite-shell .doc-card,
+.suite-shell .col,
+.suite-shell .deal-card,
+.suite-shell .touch-card,
+.suite-shell .lead-tl-card,
+.suite-shell .rec-card,
+.suite-shell .team-card,
+.suite-shell .handoff-modal,
+.suite-shell .ac-feed-card,
+.suite-shell .ac-promote-card,
+.suite-shell .ac-card {
+  border-color: var(--suite-border-muted) !important;
+  background: var(--suite-panel-bg) !important;
+  box-shadow: var(--suite-card-shadow) !important;
+}
+
+.suite-shell .card:hover,
+.suite-shell .lead-card:hover,
+.suite-shell .doc-card:hover,
+.suite-shell .team-card:hover,
+.suite-shell .deal-card:hover,
+.suite-shell .touch-card:hover,
+.suite-shell .rec-card:hover {
+  border-color: var(--suite-border) !important;
+  box-shadow: var(--suite-card-shadow-hover) !important;
+}
+
+.suite-shell .doc-card.selected,
+.suite-shell .price-card.current {
+  border-color: var(--suite-border) !important;
+  background: color-mix(in srgb, var(--surface) 92%, var(--accent) 8%) !important;
+  box-shadow: var(--suite-card-shadow-hover) !important;
+}
+
+.suite-shell .ac-card[data-urgency],
+.suite-shell .ac-feed-card.live,
+.suite-shell .ac-feed-card.pending {
+  border-left: 1px solid var(--suite-border-muted) !important;
+}
+
+.suite-shell .page-h {
+  padding-top: clamp(34px, 4vw, 52px) !important;
+  padding-bottom: 20px !important;
+  gap: 20px !important;
+}
+
+.suite-shell .page-h h1 {
+  letter-spacing: 0 !important;
+  text-wrap: balance;
+}
+
+.suite-shell .page-h .sub {
+  max-width: 820px;
+  line-height: 1.45;
+}
+
+.suite-shell .page-actions {
+  gap: 10px !important;
+}
+
+.suite-shell .filterbar {
+  margin: 0 var(--suite-gutter) 24px !important;
+  padding: 14px !important;
+  border: 1px solid var(--suite-border-muted);
+  border-radius: var(--suite-radius-panel);
+  background: rgba(255, 255, 255, 0.64);
+  box-shadow: 0 10px 24px rgba(32, 24, 54, 0.04);
+}
+
+.suite-shell .filterbar .chip,
+.suite-shell .filterbar input,
+.suite-shell .filterbar select,
+.suite-shell .field input,
+.suite-shell .field select,
+.suite-shell .field textarea {
+  min-height: 40px !important;
+  border-color: var(--suite-border-muted) !important;
+  border-radius: var(--suite-radius-control) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .field input:focus,
+.suite-shell .field select:focus,
+.suite-shell .field textarea:focus,
+.suite-shell .filterbar input:focus,
+.suite-shell .filterbar select:focus,
+.suite-shell .composer-box:focus-within {
+  border-color: var(--suite-border-strong) !important;
+  box-shadow: 0 0 0 3px rgba(25, 23, 36, 0.055) !important;
+}
+
+.suite-shell .seg,
+.suite-shell .tabs,
+.suite-shell .deal-period-tabs {
+  border-color: var(--suite-border-muted) !important;
+  background: rgba(255, 255, 255, 0.74) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .seg button:not(.active),
+.suite-shell .tabs button:not(.active),
+.suite-shell .tab:not(.active),
+.suite-shell .deal-period-tabs button:not(.active) {
+  color: var(--text-2) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .tab.active,
+.suite-shell .tabs button.active,
+.suite-shell .seg button.active,
+.suite-shell .deal-period-tabs button.active {
+  box-shadow: 0 8px 18px rgba(91, 33, 182, 0.14) !important;
+}
+
+.suite-shell .tag,
+.suite-shell .pill,
+.suite-shell .chip,
+.suite-shell .ed-tag,
+.suite-shell .kb-tag {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .tag,
+.suite-shell .ed-tag,
+.suite-shell .kb-tag {
+  background: rgba(25, 23, 36, 0.055) !important;
+  color: var(--text-2) !important;
+  letter-spacing: 0.11em !important;
+}
+
+.suite-shell .pill {
+  background: rgba(25, 23, 36, 0.055) !important;
+  color: var(--text-2) !important;
+}
+
+.suite-shell .pill::before {
+  opacity: 0.7;
+}
+
+.suite-shell .deal-focus-summary {
+  gap: 0;
+  border-color: var(--suite-border-muted) !important;
+  background: transparent !important;
+}
+
+.suite-shell .deal-focus-summary > div {
+  border-right: 1px solid var(--suite-border-muted);
+}
+
+.suite-shell .deal-focus-summary > div:last-child {
+  border-right: 0;
+}
+
+.suite-shell .doc-library-summary > div {
+  border-right-color: var(--suite-border-muted) !important;
+}
+
+.suite-shell .doc-thumb,
+.suite-shell .doc-preview {
+  background:
+    linear-gradient(145deg, rgba(25, 23, 36, 0.045), rgba(255, 255, 255, 0.2) 52%),
+    rgba(255, 255, 255, 0.72) !important;
+}
+
+.suite-shell .doc-thumb .lines i,
+.suite-shell .doc-preview .lines i {
+  background: rgba(25, 23, 36, 0.09) !important;
+}
+
+.suite-shell .tbl-wrap {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .tbl {
+  border: 1px solid var(--suite-border-muted);
+  border-radius: var(--suite-radius-card);
+  border-collapse: separate;
+  border-spacing: 0;
+  background: rgba(255, 255, 255, 0.78);
+  overflow: hidden;
+}
+
+.suite-shell .tbl th,
+.suite-shell .tbl td {
+  height: 46px !important;
+  border-bottom-color: var(--suite-border-muted) !important;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.suite-shell .tbl th {
+  color: var(--text-3) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+}
+
+.suite-shell .tbl tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+.suite-shell .list-row {
+  min-height: 62px;
+  padding-block: 14px !important;
+  line-height: 1.38;
+}
+
+.suite-shell .lead-card {
+  gap: 18px !important;
+  padding: 18px 20px !important;
+}
+
+.suite-shell .lead-card > div,
+.suite-shell .lead-card b,
+.suite-shell .lead-card span,
+.suite-shell .lead-card .mono,
+.suite-shell .doc-card,
+.suite-shell .doc-card *,
+.suite-shell .card,
+.suite-shell .card *,
+.suite-shell .list-row,
+.suite-shell .list-row * {
+  min-width: 0;
+}
+
+.suite-shell .doc-name,
+.suite-shell .doc-record,
+.suite-shell .contact-link-cell b,
+.suite-shell .contact-link-cell small {
+  overflow-wrap: anywhere;
+}
+
+.suite-shell .score-ring,
+.suite-shell .score-ring svg {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+}
+
+.suite-shell .score-ring {
+  overflow: hidden;
+  border-radius: 50%;
+  flex: 0 0 42px;
+}
+
+.suite-shell .score-ring svg {
+  display: block;
+}
+
+.suite-shell .voice {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-left: 1px solid var(--suite-border-muted) !important;
+  box-shadow: -12px 0 30px rgba(32, 24, 54, 0.06) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(120%) !important;
+  backdrop-filter: blur(14px) saturate(120%) !important;
+}
+
+.suite-shell .voice-h,
+.suite-shell .ac-h,
+.suite-shell .voice-history,
+.suite-shell .ac-roster,
+.suite-shell .composer-bar,
+.suite-shell .voice-command {
+  border-color: var(--suite-border-muted) !important;
+}
+
+.suite-shell .ac-h-title {
+  font-size: 17px !important;
+  font-style: normal !important;
+  letter-spacing: 0 !important;
+}
+
+.suite-shell .ac-roster,
+.suite-shell .voice-history {
+  background: transparent !important;
+}
+
+.suite-shell .ac-agent,
+.suite-shell .vh-item {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .ac-agent:hover,
+.suite-shell .vh-item:hover {
+  background: rgba(25, 23, 36, 0.045) !important;
+}
+
+.suite-shell .voice-body {
+  padding: 14px !important;
+}
+
+.suite-shell .voice-msg .what,
+.suite-shell .ac-card-proposed,
+.suite-shell .ac-card-edit,
+.suite-shell .composer-box {
+  border-color: var(--suite-border-muted) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .voice-msg.user .what {
+  background: var(--accent) !important;
+  border-color: transparent !important;
+  color: var(--accent-fg) !important;
+}
+
+.suite-shell .voice-command {
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 -8px 24px rgba(32, 24, 54, 0.035) !important;
+}
+
+.suite-shell .composer-box {
+  background: rgba(255, 255, 255, 0.86) !important;
+}
+
+.suite-shell .composer-tool {
+  border-color: var(--suite-border-muted) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .composer-send {
+  border-color: var(--accent) !important;
+  background: var(--accent) !important;
+  color: var(--accent-fg) !important;
+}
+
+@media (min-width: 821px) and (max-width: 1440px) {
+  .suite-shell .voice {
+    box-shadow: -12px 0 30px rgba(32, 24, 54, 0.07) !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .suite-shell .filterbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    margin-left: 16px !important;
+    margin-right: 16px !important;
+  }
+
+  .suite-shell .filterbar > *,
+  .suite-shell .page-actions > * {
+    max-width: 100%;
+  }
+
+  .suite-shell .page-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .suite-shell .page-actions .seg,
+  .suite-shell .page-actions .tabs,
+  .suite-shell .page-actions .deal-period-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .suite-shell .score-ring,
+  .suite-shell .score-ring svg {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+  }
+
+  .suite-shell .score-ring {
+    flex-basis: 40px;
+  }
+
+  .suite-shell .voice {
+    box-shadow: -10px 0 28px rgba(32, 24, 54, 0.14) !important;
+  }
+
+  .suite-shell .voice-command .composer-textarea {
+    min-height: 70px !important;
+    max-height: 112px !important;
   }
 }
