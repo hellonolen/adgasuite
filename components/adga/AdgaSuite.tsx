@@ -5337,7 +5337,7 @@ function CalendarPage({ deals, openDeal, onMeetingCreated }) {
         </div>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'minmax(0,1.35fr) 360px',gap:14,padding:'0 32px 28px',overflow:'auto',flex:1}}>
+      <div className="suite-workspace-grid calendar-workspace-grid">
         <div className="card">
           <div className="card-h">
             <div><div className="ttl">{view === 'agenda' ? 'Agenda' : view === 'week' ? 'Week view' : 'Availability'}</div><div className="sub">Meetings, calls, deadlines, and agent-suggested follow-up.</div></div>
@@ -5369,7 +5369,7 @@ function CalendarPage({ deals, openDeal, onMeetingCreated }) {
           </div>
         </div>
 
-        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+        <div className="suite-workspace-stack">
           <div className="card">
             <div className="card-h"><div className="ttl">Schedule</div></div>
             <div className="card-b" style={{display:'flex',flexDirection:'column',gap:10}}>

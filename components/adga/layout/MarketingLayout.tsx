@@ -1,8 +1,6 @@
 "use client";
 
 import React from "react";
-import "../marketing.css";
-import "../design-system.css";
 
 interface MarketingLayoutProps {
   children: React.ReactNode;
