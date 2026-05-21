@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap");
 @import "../components/adga/marketing.css";
 @import "../components/adga/styles.css";
 @import "../components/adga/styles-v4.css";
@@ -433,9 +433,9 @@ body {
 
 :root {
   /* Fonts */
-  --adga-font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --adga-font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --adga-font-display: var(--adga-font-sans);
-  --adga-font-product: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --adga-font-product: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --adga-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Shared palette */
@@ -628,4 +628,292 @@ body {
 .btn.primary:hover {
   background: var(--adga-button-primary-hover);
   border-color: var(--adga-button-primary-hover);
+}
+
+/* ===== Suite shell layout contract =====
+   Keep this after imported ADGA styles so breakpoint behavior has one final
+   source of truth. */
+.suite-shell .app {
+  display: grid !important;
+  grid-template-columns: 184px minmax(0, 1fr) 320px !important;
+  grid-template-rows: 100vh !important;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+
+.suite-shell .sidebar {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 20 !important;
+  display: flex !important;
+  width: 184px !important;
+  min-width: 0 !important;
+  height: 100vh !important;
+  transform: none !important;
+  border-right: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .sidebar.collapsed {
+  display: none !important;
+}
+
+.suite-shell .main {
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+
+.suite-shell .topbar {
+  min-width: 0;
+  padding-inline: clamp(16px, 2vw, 24px) !important;
+}
+
+.suite-shell .topbar .menu-btn {
+  display: none !important;
+}
+
+.suite-shell .topbar-actions {
+  min-width: 0;
+}
+
+.suite-shell .topbar .search {
+  width: clamp(220px, 28vw, 340px);
+  min-width: 0 !important;
+}
+
+.suite-shell .workspace {
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding-bottom: 0 !important;
+}
+
+.suite-shell .workspace > * {
+  min-width: 0;
+}
+
+.suite-shell .page-h,
+.suite-shell .kpis,
+.suite-shell .tbl-wrap,
+.suite-shell .kanban,
+.suite-shell .docs-grid,
+.suite-shell .kb-grid,
+.suite-shell .teams-grid,
+.suite-shell .pending-filters,
+.suite-shell .pending-body {
+  max-width: 100%;
+}
+
+.suite-shell .page-h {
+  padding: 24px clamp(20px, 2.5vw, 32px) 18px !important;
+}
+
+.suite-shell .kpis {
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)) !important;
+  padding-inline: clamp(20px, 2.5vw, 32px) !important;
+}
+
+.suite-shell .voice {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 20 !important;
+  display: flex !important;
+  width: 320px !important;
+  min-width: 0 !important;
+  height: 100vh !important;
+  transform: none !important;
+  border-left: 1px solid var(--border) !important;
+  box-shadow: none !important;
+}
+
+.suite-shell .voice.collapsed {
+  display: none !important;
+}
+
+.suite-shell .mobile-scrim {
+  display: none !important;
+}
+
+@media (max-width: 1280px) {
+  .suite-shell .app {
+    grid-template-columns: 176px minmax(0, 1fr) 300px !important;
+  }
+
+  .suite-shell .sidebar {
+    width: 176px !important;
+  }
+
+  .suite-shell .voice {
+    width: 300px !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  .suite-shell .app {
+    grid-template-columns: 176px minmax(0, 1fr) !important;
+  }
+
+  .suite-shell .voice {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 70 !important;
+    width: min(360px, 92vw) !important;
+    box-shadow: var(--shadow-lg) !important;
+  }
+
+  .suite-shell .voice.collapsed {
+    display: none !important;
+  }
+
+  .suite-shell .topbar .adga-mobile-btn {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .suite-shell .app {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .suite-shell .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    z-index: 80 !important;
+    width: min(284px, 86vw) !important;
+    transform: translateX(0) !important;
+    box-shadow: var(--shadow-lg) !important;
+  }
+
+  .suite-shell .sidebar.collapsed {
+    display: flex !important;
+    width: min(284px, 86vw) !important;
+    transform: translateX(calc(-100% - 16px)) !important;
+    pointer-events: none;
+  }
+
+  .suite-shell .topbar {
+    height: 52px !important;
+    padding-inline: 12px !important;
+    gap: 8px !important;
+  }
+
+  .suite-shell .topbar .menu-btn {
+    display: inline-flex !important;
+    flex: 0 0 auto;
+  }
+
+  .suite-shell .crumb {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .suite-shell .crumb .here {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .suite-shell .topbar-actions {
+    flex: 0 0 auto;
+    gap: 4px !important;
+  }
+
+  .suite-shell .topbar .search,
+  .suite-shell .topbar .btn:not(.icon):not(.primary) {
+    display: none !important;
+  }
+
+  .suite-shell .topbar .btn.primary {
+    height: 34px;
+    padding-inline: 10px !important;
+  }
+
+  .suite-shell .workspace {
+    height: calc(100vh - 52px);
+    overflow-y: auto !important;
+  }
+
+  .suite-shell .home-content-grid {
+    display: flex !important;
+    flex: none !important;
+    flex-direction: column !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .suite-shell .page-h {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    align-items: start !important;
+    padding: 24px 16px 14px !important;
+    gap: 14px !important;
+  }
+
+  .suite-shell .page-h h1 {
+    font-size: clamp(26px, 8vw, 34px) !important;
+    line-height: 1.08 !important;
+  }
+
+  .suite-shell .page-actions {
+    justify-content: flex-start !important;
+  }
+
+  .suite-shell .kpis {
+    grid-template-columns: 1fr !important;
+    padding: 0 16px 14px !important;
+  }
+
+  .suite-shell .kpi {
+    padding: 14px 16px !important;
+  }
+
+  .suite-shell .kanban,
+  .suite-shell .gantt,
+  .suite-shell .tbl-wrap,
+  .suite-shell .docs-grid,
+  .suite-shell .kb-grid,
+  .suite-shell .teams-grid,
+  .suite-shell .pending-filters,
+  .suite-shell .pending-body {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .suite-shell .card {
+    min-width: 0 !important;
+    width: auto !important;
+  }
+
+  .suite-shell .card:has(.tbl) {
+    overflow-x: auto !important;
+  }
+
+  .suite-shell .card .tbl {
+    min-width: 520px;
+  }
+
+  .suite-shell .drawer {
+    width: 100vw !important;
+  }
+
+  .suite-shell .mobile-scrim.on {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(15, 15, 18, 0.42);
+  }
 }

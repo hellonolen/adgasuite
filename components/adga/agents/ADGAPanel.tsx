@@ -129,7 +129,7 @@ export function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow
     if (action?.type === 'open-deal') {
       agentReply = { who: 'agent', text: `Opening “${(action.deal as any).name.split(' — ')[0]}.” Loading the file on your desk now.`, cite: (action.deal as any).id };
     } else if (action?.type === 'story') {
-      const d = (deals || []).find(x => x.id === action.dealId);
+      const d = (deals || []).find((x: any) => x.id === action.dealId);
       agentReply = { who: 'agent', text: `Pulling the full story for ${d?.name.split(' — ')[0]}. Every touch, in order.`, cite: action.dealId };
     } else if (action?.type === 'route') {
       agentReply = { who: 'agent', text: `Bringing up ${action.route} for you.`, cite: 'workflow/route' };

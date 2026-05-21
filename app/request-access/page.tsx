@@ -3,13 +3,19 @@
 import React, { useEffect, useState } from "react";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 
+type Plan = "individual" | "teams" | "enterprise";
+
+function isPlan(value: string | null): value is Plan {
+  return value === "individual" || value === "teams" || value === "enterprise";
+}
+
 export default function RequestAccessPage() {
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", company: "", role: "", plan: "teams", seats: "3", notes: "" });
 
   useEffect(() => {
     const plan = new URLSearchParams(window.location.search).get("plan");
-    if (["individual", "teams", "enterprise"].includes(plan || "")) {
+    if (isPlan(plan)) {
       setForm((current) => ({ ...current, plan, seats: plan === "individual" ? "1" : current.seats }));
     }
   }, []);

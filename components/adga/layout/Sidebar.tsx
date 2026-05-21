@@ -3,7 +3,19 @@
 import React from "react";
 import { workspaces } from "@/lib/data/seed";
 
-const NAV = [
+type NavItem = {
+  id: string;
+  label: string;
+  badge?: number;
+  indicator?: string;
+};
+
+type NavSection = {
+  section: string;
+  items: NavItem[];
+};
+
+const NAV: NavSection[] = [
   { section: 'WORKSPACE', items: [
     { id: 'home',         label: 'Home' },
     { id: 'pending',      label: 'Pending',         badge: 8, indicator: 'accent' },

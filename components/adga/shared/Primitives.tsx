@@ -8,10 +8,10 @@ export const personOf = (id: string) => PEOPLE.find((p: any) => p.id === id);
 export const companyOf = (id: string) => COMPANIES.find((c: any) => c.id === id);
 
 export const Icon = ({ name, size = 16, stroke = 1.5, className = '' }: { name: string, size?: number, stroke?: number, className?: string }) => {
-  const props = {
+  const props: React.SVGProps<SVGSVGElement> = {
     width: size, height: size, viewBox: '0 0 24 24',
     fill: 'none', stroke: 'currentColor', strokeWidth: stroke,
-    strokeLinecap: 'round', strokeLinejoin: 'round' as const,
+    strokeLinecap: 'round', strokeLinejoin: 'round',
     className: 'sb-icon ' + className
   };
   switch (name) {
