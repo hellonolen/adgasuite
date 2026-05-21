@@ -3360,7 +3360,9 @@ function DocumentsPage({ deals, openDeal }) {
           const company = companyOf(uploadDeal.company);
           form.append('company_id', uploadDeal.company);
           form.append('company_name', company?.name || '');
+          form.append('contact_name', company ? (contactsByCompany[company.id] || `${company.name} contact`) : '');
         }
+        form.append('folder', folder === 'all' ? 'general' : folder);
         const response = await fetch('/api/documents/upload', { method: 'POST', body: form });
         if (response.ok) {
           const data = await response.json();

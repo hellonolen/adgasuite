@@ -10,6 +10,11 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const file = form.get("file");
   if (!(file instanceof File)) return errorJson("file is required.");
+  const dealId = stringField(form.get("deal_id"));
+  const companyId = stringField(form.get("company_id"));
+  const companyName = stringField(form.get("company_name"));
+  const contactName = stringField(form.get("contact_name"));
+  const folder = stringField(form.get("folder")) || "general";
 
   const bucket = context.env.DOCUMENTS_BUCKET || context.env.UPLOADS_BUCKET;
   if (!bucket) {
@@ -26,6 +31,8 @@ export async function POST(request: Request) {
   const document = await createDocumentMetadata(context.env.DB, {
     title: file.name,
     type: documentTypeFromName(file.name),
+    recipient_name: contactName || null,
+    recipient_company: companyName || companyId || null,
     status: "stored",
     r2_key: key,
     created_by_user_id: null,
@@ -39,8 +46,8 @@ export async function POST(request: Request) {
     size_bytes: file.size,
     sha256: hash,
     category: "document",
-    resource_type: "document",
-    resource_id: document.id,
+    resource_type: dealId ? "deal" : "document",
+    resource_id: dealId || document.id,
     visibility: "workspace",
     created_by: context.user.email,
   });
@@ -60,6 +67,11 @@ export async function POST(request: Request) {
       size: file.size,
       type: file.type,
       sha256: hash,
+      deal_id: dealId,
+      company_id: companyId,
+      company_name: companyName,
+      contact_name: contactName,
+      folder,
     },
   });
 
@@ -73,6 +85,11 @@ export async function POST(request: Request) {
       file_name: file.name,
       mime_type: file.type || "application/octet-stream",
       size_bytes: file.size,
+      deal_id: dealId,
+      company_id: companyId,
+      company_name: companyName,
+      contact_name: contactName,
+      folder,
       requested_by: context.user.email,
     },
   });
@@ -85,6 +102,10 @@ async function sha256Hex(buffer: ArrayBuffer) {
   return Array.from(new Uint8Array(digest))
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
+}
+
+function stringField(value: FormDataEntryValue | null) {
+  return typeof value === "string" && value.trim() ? value.trim() : "";
 }
 
 function documentTypeFromName(name: string) {
