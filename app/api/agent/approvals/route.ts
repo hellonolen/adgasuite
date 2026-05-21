@@ -2,7 +2,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { createAgentApproval, createEvent, listAgentApprovals, type AgentName } from "@/lib/server/repository";
 import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
 
-const agents = new Set(["conductor", "sales", "intelligence", "documents", "operations"]);
+const agents = new Set(["conductor", "sales", "intelligence", "documents", "operations", "communication", "payments"]);
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);

@@ -26,15 +26,17 @@ export async function POST(request: Request) {
 
   const form = await request.formData();
   const file = form.get("audio");
-  if (!(file instanceof File)) return errorJson("audio file is required.");
+  const liveTranscript = String(form.get("transcript_text") || "").trim();
+  const isLiveTranscript = !(file instanceof File) && liveTranscript.length > 0;
+  if (!(file instanceof File) && !isLiveTranscript) return errorJson("audio file or live transcript is required.");
 
   const timestamp = nowIso();
   const id = newId("voice");
-  const bytes = await file.arrayBuffer();
   const bucket = context.env.UPLOADS_BUCKET || context.env.DOCUMENTS_BUCKET;
-  const r2Key = `voice-notes/${id}/${file.name || "audio.webm"}`;
+  const bytes = file instanceof File ? await file.arrayBuffer() : null;
+  const r2Key = file instanceof File ? `voice-notes/${id}/${file.name || "audio.webm"}` : null;
 
-  if (bucket) {
+  if (bucket && file instanceof File && bytes && r2Key) {
     await bucket.put(r2Key, bytes, {
       httpMetadata: { contentType: file.type || "audio/webm" },
     });
@@ -45,7 +47,11 @@ export async function POST(request: Request) {
   let wordCount: number | null = null;
   let transcriptionStatus = "stored";
 
-  if (context.env.AI) {
+  if (isLiveTranscript) {
+    transcriptText = liveTranscript;
+    wordCount = liveTranscript.split(/\s+/).filter(Boolean).length;
+    transcriptionStatus = "completed_live";
+  } else if (context.env.AI && bytes) {
     try {
       const output = await context.env.AI.run(STT_MODEL, {
         audio: [...new Uint8Array(bytes)],
@@ -65,13 +71,13 @@ export async function POST(request: Request) {
     id,
     organization_id: "org_adga_primary",
     owner_user_id: context.user.email,
-    title: String(form.get("title") || file.name || "Voice note"),
+    title: String(form.get("title") || (file instanceof File ? file.name : "") || "Voice note"),
     resource_type: form.get("resource_type") ? String(form.get("resource_type")) : null,
     resource_id: form.get("resource_id") ? String(form.get("resource_id")) : null,
     r2_key: bucket ? r2Key : null,
-    file_name: file.name || "audio.webm",
-    mime_type: file.type || "audio/webm",
-    size_bytes: file.size,
+    file_name: file instanceof File ? (file.name || "audio.webm") : "live-speech-to-text",
+    mime_type: file instanceof File ? (file.type || "audio/webm") : "text/plain",
+    size_bytes: file instanceof File ? file.size : liveTranscript.length,
     transcription_status: transcriptionStatus,
     transcript_text: transcriptText,
     transcript_vtt: transcriptVtt,

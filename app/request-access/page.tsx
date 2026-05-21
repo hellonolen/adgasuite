@@ -36,8 +36,8 @@ export default function RequestAccessPage() {
             <span>Individual</span>
             <span>Teams</span>
             <span>Enterprise</span>
-            <span>D1 metadata</span>
-            <span>R2 files</span>
+            <span>Lead capture</span>
+            <span>Deal workspace</span>
           </div>
         </div>
         {sent ? (

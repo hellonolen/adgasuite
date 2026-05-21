@@ -246,19 +246,19 @@ export default function MarketingPage() {
           </div>
           <div className="three" style={{marginTop: 48}}>
             <div className="three-card">
-              <div className="num">D1</div>
-              <div className="head">Metadata stays structured.</div>
-              <div className="body">Lead, contact, deal, event, invoice, workflow, and audit metadata is tracked as queryable records.</div>
+              <div className="num">01</div>
+              <div className="head">Records stay organized.</div>
+              <div className="body">Leads, contacts, deals, invoices, reminders, and activity history stay connected in one place.</div>
             </div>
             <div className="three-card">
-              <div className="num">R2</div>
-              <div className="head">Files do not crowd the database.</div>
-              <div className="body">Documents, voice notes, uploads, and generated artifacts are stored separately from metadata.</div>
+              <div className="num">02</div>
+              <div className="head">Files stay attached.</div>
+              <div className="body">Documents, voice notes, uploads, summaries, and generated files stay tied to the right client or deal.</div>
             </div>
             <div className="three-card">
-              <div className="num">AI</div>
-              <div className="head">Agents have workflow ownership.</div>
-              <div className="body">Markdown workflows and JSON state files define what each agent owns and what each action changes.</div>
+              <div className="num">03</div>
+              <div className="head">Agents keep work moving.</div>
+              <div className="body">ADGA helps prepare follow-up, surface open items, and keep each deal moving toward the next action.</div>
             </div>
           </div>
         </section>
@@ -362,7 +362,7 @@ export default function MarketingPage() {
         <div className="foot-end">
           <span>© 2026 ADGA · All rights reserved</span>
           <span>ADGA Suite</span>
-          <span>Cloudflare-native platform</span>
+          <span>Deal flow platform</span>
         </div>
       </div>
     </main>

@@ -1,7 +1,14 @@
 import { deals, documents, intelligence, leads, tasks, workspaces } from "@/lib/data/seed";
 import { newId, nowIso } from "@/lib/server/id";
 
-export type AgentName = "conductor" | "sales" | "intelligence" | "documents" | "operations";
+export type AgentName =
+  | "conductor"
+  | "sales"
+  | "intelligence"
+  | "documents"
+  | "operations"
+  | "communication"
+  | "payments";
 export type JobStatus = "queued" | "running" | "completed" | "failed" | "canceled";
 
 export interface AgentJob {

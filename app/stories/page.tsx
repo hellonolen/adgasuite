@@ -165,7 +165,7 @@ export default function StoriesPage() {
         <div className="foot-end">
           <span>© 2026 ADGA · All rights reserved</span>
           <span>—— FIN ——</span>
-          <span>Cloudflare-native platform</span>
+          <span>Deal flow platform</span>
         </div>
       </div>
     </main>

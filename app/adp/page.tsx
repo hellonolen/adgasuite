@@ -94,8 +94,8 @@ export default function AdpPartnerPage() {
           <p className="partner-kicker">Payroll lead form</p>
           <h2>Capture the full lead.</h2>
           <p>
-            The submission is stored with timestamps, source path, contact metadata, selected needs,
-            and email delivery status so ADGA can track the referral path.
+            Capture the contact, company, payroll timing, selected needs, notes, and consent
+            so ADGA can route the referral cleanly.
           </p>
         </div>
 

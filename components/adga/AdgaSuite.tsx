@@ -1688,6 +1688,29 @@ function parseWorkflow(text, deals) {
   return null;
 }
 
+function routeAgentKey(text) {
+  const t = (text || '').toLowerCase();
+  if (t.includes('invoice') || t.includes('payment') || t.includes('payout') || t.includes('bank') || t.includes('subscription')) return 'payments';
+  if (t.includes('sms') || t.includes('email') || t.includes('message') || t.includes('call') || t.includes('voice') || t.includes('meeting') || t.includes('invite')) return 'communication';
+  if (t.includes('document') || t.includes('proposal') || t.includes('contract') || t.includes('memo') || t.includes('file')) return 'documents';
+  if (t.includes('risk') || t.includes('market') || t.includes('battlecard') || t.includes('research') || t.includes('forecast')) return 'intelligence';
+  if (t.includes('lead') || t.includes('follow') || t.includes('deal') || t.includes('pipeline')) return 'sales';
+  if (t.includes('calendar') || t.includes('task') || t.includes('setup') || t.includes('remind')) return 'operations';
+  return 'conductor';
+}
+
+function routeAgentLabel(agent) {
+  return {
+    conductor: 'Conductor',
+    sales: 'Sales',
+    intelligence: 'Intelligence',
+    documents: 'Documents',
+    operations: 'Operations',
+    communication: 'Communication',
+    payments: 'Payments',
+  }[agent] || 'Conductor';
+}
+
 function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals }) {
   const bodyRef = React.useRef(null);
   const taRef = React.useRef(null);
@@ -1738,7 +1761,7 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          agent: 'conductor',
+          agent: routeAgentKey(text),
           job_type: 'suite.agent_command',
           prompt: text || 'Process attached files.',
           context: {
@@ -1840,6 +1863,66 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         </div>
       </div>
 
+      <div className="voice-command">
+        <div className="voice-command-kicker">
+          <span>AI command</span>
+          <span>{routeAgentLabel(routeAgentKey(draft))} agent</span>
+        </div>
+        <div className="composer-box command-first">
+          {attachments.length > 0 && (
+            <div className="composer-attachments">
+              {attachments.map((a, i) => (
+                <div key={i} className="composer-chip">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{color:'var(--text-3)'}}>
+                    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+                    <path d="M14 3v5h5"/>
+                  </svg>
+                  <span>{a.name}</span>
+                  <span
+                    className="x"
+                    onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
+                    role="button"
+                    aria-label="Remove attachment"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                      <path d="M18 6 6 18M6 6l12 12"/>
+                    </svg>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          <textarea
+            ref={taRef}
+            className="composer-textarea"
+            placeholder="Tell ADGA what to do across leads, deals, meetings, invoices, documents, or follow-up."
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={onKey}
+            rows={3}
+          />
+          <div className="composer-bar">
+            <button className="composer-tool" type="button" onClick={() => fileRef.current?.click()} title="Attach files" aria-label="Attach files">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12 12 21a6 6 0 1 1-8.5-8.5L13 3a4 4 0 0 1 5.7 5.7L9.4 18a2 2 0 1 1-2.8-2.8L15 7"/>
+              </svg>
+            </button>
+            <button className={'composer-tool mic' + (state === 'listening' ? ' live' : '')} type="button" onClick={toggleMic} title={state === 'listening' ? 'Stop voice input' : 'Start voice input'} aria-label="Voice input">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="3" width="6" height="12" rx="3"/>
+                <path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>
+              </svg>
+            </button>
+            <button className="composer-send" type="button" onClick={send} disabled={!draft.trim() && attachments.length === 0} aria-label="Send">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 19V5M5 12l7-7 7 7"/>
+              </svg>
+            </button>
+            <input ref={fileRef} type="file" multiple hidden onChange={onFile} accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.csv,.txt"/>
+          </div>
+        </div>
+      </div>
+
       <div className={'voice-history ' + (historyOpen ? 'open' : '')}>
         <div className="vh-head">
           <span>Recent chats</span>
@@ -1927,7 +2010,7 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         </div>
       )}
 
-      <div className="voice-composer">
+      <div className="voice-composer secondary-composer">
         <div className="composer-box">
           {attachments.length > 0 && (
             <div className="composer-attachments">
@@ -2032,7 +2115,7 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
             <span style={{margin:'0 8px',opacity:0.5}}>·</span>
             <span className="kbd">⇧</span><span className="kbd">↵</span> new line
           </span>
-          <span>4.2 MB / 250 GB</span>
+          <span>Files stay attached to the record.</span>
         </div>
       </div>
     </aside>
@@ -2844,7 +2927,7 @@ function DealCommunicationCenter({ deal, co }) {
             <div className="field"><label>Lane</label><select name="audience" defaultValue="internal"><option value="internal">Internal team</option><option value="client">Client-visible</option></select></div>
             <div className="field" style={{gridColumn:'1 / -1'}}><label>Audio</label><input name="audio" type="file" accept="audio/*" required/></div>
             <div style={{gridColumn:'1 / -1',display:'flex',justifyContent:'flex-end'}}><button className="btn primary" type="submit" disabled={busy === 'voice'}>{busy === 'voice' ? 'Processing...' : 'Attach and transcribe'}</button></div>
-            {voiceResult?.voice_note && <div className="text-xs muted" style={{gridColumn:'1 / -1'}}>Voice note {voiceResult.voice_note.transcription_status}; resource trace is {voiceResult.voice_note.resource_type}:{voiceResult.voice_note.resource_id}.</div>}
+            {voiceResult?.voice_note && <div className="text-xs muted" style={{gridColumn:'1 / -1'}}>Voice note saved and attached to this deal.</div>}
           </form>
         </div>
 
@@ -2855,9 +2938,9 @@ function DealCommunicationCenter({ deal, co }) {
               <dt>Resource</dt><dd className="mono text-xs">deal:{deal.id}</dd>
               <dt>Internal lane</dt><dd>Private team notes, calls, summaries, blockers</dd>
               <dt>Client lane</dt><dd>Client-visible updates, invites, messages</dd>
-              <dt>Storage</dt><dd>D1 for metadata/status; R2 for audio and files</dd>
-              <dt>Workflow</dt><dd>agents/communication/SKILL.md</dd>
-              <dt>State</dt><dd>cloudflare/state/deal-communication.state.json</dd>
+              <dt>Files</dt><dd>Documents and voice notes stay attached to this deal.</dd>
+              <dt>Follow-up</dt><dd>Agent workflows prepare the next action for the team.</dd>
+              <dt>Status</dt><dd>Internal and client-facing updates remain separated.</dd>
             </dl>
           </div>
         </div>
@@ -3234,7 +3317,7 @@ function DocumentsPage({ deals, openDeal }) {
             size: file.size > 1024 * 1024 ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(file.size / 1024))} KB`,
             updated: 'Just now',
             owner: 'p1',
-            deal: data.document?.id || 'R2',
+            deal: data.document?.id || 'Upload',
             signed: false,
             storage: data.storage_object,
           });
@@ -3692,9 +3775,9 @@ function AdminPage() {
             ['Emergency owner bypass', 'hellonolen@gmail.com', 'Local allowed', 'Active'],
           ]}/>}
           {section === 'retention' && <AdminConfigPanel title="Data retention" desc="Configure how long deal records and documents are retained." rows={[
-            ['Deal records', '7 years after close', 'D1 metadata', 'Active'],
-            ['Document bodies', '7 years in R2', 'R2 lifecycle policy', 'Active'],
-            ['Audit events', 'Permanent unless exported', 'D1 event ledger', 'Active'],
+            ['Deal records', '7 years after close', 'Workspace policy', 'Active'],
+            ['Documents', '7 years after close', 'Workspace policy', 'Active'],
+            ['Activity history', 'Permanent unless exported', 'Workspace policy', 'Active'],
           ]}/>}
           {section === 'fields' && <AdminConfigPanel title="Custom fields" desc="Add company, deal, and contact attributes specific to your firm." rows={[
             ['Deal source quality', 'Select', 'Pipeline and reports', 'Active'],
@@ -4219,7 +4302,7 @@ function InvoicingCenterPage() {
           )}
         </div>
         <div className="card">
-          <div className="card-h"><div className="ttl">Client invoices</div><span className="text-xs muted">D1 stores metadata. R2 stores generated PDFs/files.</span></div>
+          <div className="card-h"><div className="ttl">Client invoices</div><span className="text-xs muted">Invoice records and generated files stay attached to the right client.</span></div>
           <table className="tbl">
             <thead><tr><th>Invoice</th><th>Client</th><th>Status</th><th>Total</th><th>Platform fee</th><th>Fee amount</th><th>Net to user</th></tr></thead>
             <tbody>{invoices.map(r => <tr key={r[0]}><td className="mono">{r[0]}</td><td>{r[1]}</td><td><Pill tone={r[2]==='Paid'?'green':r[2]==='Sent'?'blue':'gray'}>{r[2]}</Pill></td><td>{r[3]}</td><td>{r[4]}</td><td>{r[5]}</td><td>{r[6]}</td></tr>)}</tbody>
@@ -4233,6 +4316,80 @@ function InvoicingCenterPage() {
 function VoiceNotesPage() {
   const [result, setResult] = React.useState(null);
   const [saving, setSaving] = React.useState(false);
+  const [listening, setListening] = React.useState(false);
+  const [liveTranscript, setLiveTranscript] = React.useState('');
+  const [interimTranscript, setInterimTranscript] = React.useState('');
+  const [liveError, setLiveError] = React.useState('');
+  const recognitionRef = React.useRef(null);
+  const listeningRef = React.useRef(false);
+  const finalTranscriptRef = React.useRef('');
+
+  const supportsLiveSpeech = () => typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+
+  const startLiveNote = () => {
+    setLiveError('');
+    if (!supportsLiveSpeech()) {
+      setLiveError('Live speech-to-text is not available in this browser. You can still attach audio below.');
+      return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    finalTranscriptRef.current = liveTranscript ? liveTranscript.trim() + ' ' : '';
+    recognition.onresult = (event) => {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const text = event.results[i][0]?.transcript || '';
+        if (event.results[i].isFinal) finalTranscriptRef.current += text.trim() + ' ';
+        else interim += text;
+      }
+      setLiveTranscript(finalTranscriptRef.current.trim());
+      setInterimTranscript(interim.trim());
+    };
+    recognition.onerror = () => {
+      setLiveError('Speech-to-text stopped. Start again when ready.');
+      setListening(false);
+      listeningRef.current = false;
+    };
+    recognition.onend = () => {
+      if (listeningRef.current) {
+        try { recognition.start(); } catch (e) {}
+      }
+    };
+    recognitionRef.current = recognition;
+    listeningRef.current = true;
+    setListening(true);
+    recognition.start();
+  };
+
+  const stopLiveNote = () => {
+    listeningRef.current = false;
+    setListening(false);
+    setInterimTranscript('');
+    try { recognitionRef.current?.stop(); } catch (e) {}
+  };
+
+  const saveLiveNote = async () => {
+    const transcript = [liveTranscript, interimTranscript].filter(Boolean).join(' ').trim();
+    if (!transcript) return;
+    setSaving(true);
+    try {
+      const form = new FormData();
+      form.set('title', 'Live voice note');
+      form.set('transcript_text', transcript);
+      form.set('resource_type', 'workspace');
+      const response = await fetch('/api/voice-notes', { method: 'POST', body: form });
+      setResult(await response.json());
+      setLiveTranscript('');
+      setInterimTranscript('');
+      finalTranscriptRef.current = '';
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const submit = async (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -4248,32 +4405,52 @@ function VoiceNotesPage() {
   return (
     <>
       <div className="page-h">
-        <div><h1>Voice Notes</h1><div className="sub">Recordings, uploaded audio, transcripts, and agent-ready meeting notes.</div></div>
+        <div><h1>Voice Notes</h1><div className="sub">Speak notes in real time, save the transcript, and attach the result to work in ADGA.</div></div>
       </div>
       <div style={{padding:'0 32px 28px',display:'grid',gridTemplateColumns:'minmax(0,1fr) 420px',gap:14,overflow:'auto',flex:1}}>
         <div className="card">
-          <div className="card-h"><div className="ttl">Upload voice note</div><span className="text-xs muted">R2 stores audio. D1 stores transcript metadata.</span></div>
+          <div className="card-h"><div className="ttl">Live note</div><span className="text-xs muted">{listening ? 'Listening now' : 'Ready'}</span></div>
+          <div className="card-b" style={{display:'flex',flexDirection:'column',gap:12}}>
+            <div className="live-transcript">
+              {liveTranscript || interimTranscript ? (
+                <>
+                  <span>{liveTranscript}</span>
+                  {interimTranscript && <em>{interimTranscript}</em>}
+                </>
+              ) : (
+                <span className="muted">Click Start and speak. Your words will appear here as you talk.</span>
+              )}
+            </div>
+            {liveError && <div className="text-sm" style={{color:'var(--status-amber)'}}>{liveError}</div>}
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              {!listening && <button className="btn primary" type="button" onClick={startLiveNote}><Icon name="mic" size={13}/> Start speaking</button>}
+              {listening && <button className="btn primary" type="button" onClick={stopLiveNote}>Stop</button>}
+              <button className="btn" type="button" onClick={saveLiveNote} disabled={saving || !(liveTranscript || interimTranscript)}>{saving ? 'Saving...' : 'Save note'}</button>
+              <button className="btn ghost" type="button" onClick={() => { setLiveTranscript(''); setInterimTranscript(''); finalTranscriptRef.current = ''; }}>Clear</button>
+            </div>
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Attach audio</div><span className="text-xs muted">Optional fallback</span></div>
           <form className="card-b" style={{display:'flex',flexDirection:'column',gap:12}} onSubmit={submit}>
             <div className="field"><label>Title</label><input name="title" type="text" placeholder="Follow-up call, meeting recap, field note"/></div>
             <div className="field"><label>Audio</label><input name="audio" type="file" accept="audio/*" required/></div>
             <div className="row2">
-              <div className="field"><label>Resource type</label><input name="resource_type" type="text" placeholder="lead, deal, contact"/></div>
-              <div className="field"><label>Resource ID</label><input name="resource_id" type="text" placeholder="Optional"/></div>
+              <div className="field"><label>Record type</label><input name="resource_type" type="text" placeholder="lead, deal, contact"/></div>
+              <div className="field"><label>Record ID</label><input name="resource_id" type="text" placeholder="Optional"/></div>
             </div>
-            <button className="btn primary" type="submit" disabled={saving}>{saving ? 'Processing...' : 'Upload and transcribe'}</button>
+            <button className="btn" type="submit" disabled={saving}>{saving ? 'Processing...' : 'Attach audio'}</button>
           </form>
         </div>
         <div className="card">
-          <div className="card-h"><div className="ttl">Latest transcript</div></div>
+          <div className="card-h"><div className="ttl">Latest note</div></div>
           <div className="card-b">
-            {!result && <div className="text-sm muted">Upload audio to create a voice note and transcript.</div>}
+            {!result && <div className="text-sm muted">Your saved voice note will appear here.</div>}
             {result?.voice_note && (
               <dl className="kv">
-                <dt>Status</dt><dd><Pill tone={result.voice_note.transcription_status === 'completed' ? 'green' : 'amber'}>{result.voice_note.transcription_status}</Pill></dd>
-                <dt>Model</dt><dd className="mono text-xs">{result.voice_note.stt_model}</dd>
-                <dt>File</dt><dd>{result.voice_note.file_name}</dd>
+                <dt>Status</dt><dd><Pill tone={String(result.voice_note.transcription_status).startsWith('completed') ? 'green' : 'amber'}>{String(result.voice_note.transcription_status).startsWith('completed') ? 'Saved' : 'Processing'}</Pill></dd>
                 <dt>Words</dt><dd>{result.voice_note.word_count || 0}</dd>
-                <dt>Transcript</dt><dd>{result.voice_note.transcript_text || 'Transcript pending or AI binding unavailable locally.'}</dd>
+                <dt>Transcript</dt><dd>{result.voice_note.transcript_text || 'Transcript will appear when processing finishes.'}</dd>
               </dl>
             )}
           </div>
@@ -4313,35 +4490,35 @@ function MessagingPage() {
   return (
     <>
       <div className="page-h">
-        <div><h1>Messaging</h1><div className="sub">SMS for leadership and workspace users through a self-hosted open-source gateway. Postmark remains email only.</div></div>
+        <div><h1>Messaging</h1><div className="sub">Send and track client text messages from the same workspace where the lead and deal live.</div></div>
       </div>
       <div style={{padding:'0 32px 28px',display:'grid',gridTemplateColumns:'420px minmax(0,1fr)',gap:14,overflow:'auto',flex:1}}>
         <div className="card">
-          <div className="card-h"><div className="ttl">Send SMS</div></div>
+          <div className="card-h"><div className="ttl">Send text message</div></div>
           <form className="card-b" style={{display:'flex',flexDirection:'column',gap:12}} onSubmit={submit}>
             <div className="field"><label>Phone number</label><input name="to" type="tel" placeholder="+15551234567" required/></div>
             <div className="field"><label>Message</label><textarea name="message" rows={5} placeholder="Meeting reminder, follow-up, or lead response" required/></div>
-            <button className="btn primary" type="submit" disabled={sending}>{sending ? 'Sending...' : 'Send SMS'}</button>
+            <button className="btn primary" type="submit" disabled={sending}>{sending ? 'Sending...' : 'Send message'}</button>
           </form>
         </div>
-        <div className="card">
-          <div className="card-h"><div className="ttl">Gateway status</div></div>
-          <div className="card-b">
-            <p className="text-sm muted">Selected direction: self-hosted Android/SIM gateway. Configure <span className="mono">SMS_GATEWAY_URL</span> and <span className="mono">SMS_GATEWAY_API_KEY</span>. This works with TextBee/httpSMS/Vendel-style open-source gateways without changing ADGA product code.</p>
-            {result?.sms && <dl className="kv"><dt>Status</dt><dd><Pill tone={result.sms.status === 'sent' ? 'green' : 'amber'}>{result.sms.status}</Pill></dd><dt>Provider</dt><dd>{result.sms.provider}</dd><dt>Response</dt><dd>{result.sms.provider_response}</dd></dl>}
+        {result?.sms && (
+          <div className="card">
+            <div className="card-h"><div className="ttl">Delivery</div></div>
+            <div className="card-b">
+              <dl className="kv"><dt>Status</dt><dd><Pill tone={result.sms.status === 'sent' ? 'green' : 'amber'}>{result.sms.status === 'sent' ? 'Sent' : 'Queued'}</Pill></dd><dt>Message</dt><dd>{result.sms.body}</dd></dl>
+            </div>
           </div>
-        </div>
+        )}
         <div className="card" style={{gridColumn:'1 / -1'}}>
-          <div className="card-h"><div className="ttl">SMS history</div><span className="text-xs muted">Stored in D1 as metadata and linked to records when provided.</span></div>
+          <div className="card-h"><div className="ttl">Message history</div></div>
           <table className="tbl">
-            <thead><tr><th>To</th><th>Status</th><th>Provider</th><th>Message</th><th>Created</th></tr></thead>
+            <thead><tr><th>To</th><th>Status</th><th>Message</th><th>Created</th></tr></thead>
             <tbody>
-              {messages.length === 0 && <tr><td colSpan={5} className="muted">No SMS messages yet.</td></tr>}
+              {messages.length === 0 && <tr><td colSpan={4} className="muted">No messages yet.</td></tr>}
               {messages.map(m => (
                 <tr key={m.id}>
                   <td className="mono">{m.to_number}</td>
-                  <td><Pill tone={m.status === 'sent' ? 'green' : m.status === 'failed' ? 'red' : 'amber'}>{m.status}</Pill></td>
-                  <td>{m.provider}</td>
+                  <td><Pill tone={m.status === 'sent' ? 'green' : m.status === 'failed' ? 'red' : 'amber'}>{m.status === 'sent' ? 'Sent' : m.status === 'failed' ? 'Needs attention' : 'Queued'}</Pill></td>
                   <td>{m.body}</td>
                   <td className="mono text-xs">{formatDateTime(m.created_at)}</td>
                 </tr>
@@ -4385,7 +4562,7 @@ function SettingsPage({ tweaks, setTweak }) {
           <div className="lbl">Workspace</div>
           <button type="button" className={section==='ws'?'active':''} onClick={()=>setSection('ws')}>General</button>
           <button type="button" className={section==='brand'?'active':''} onClick={()=>setSection('brand')}>Branding</button>
-          <button type="button" className={section==='api'?'active':''} onClick={()=>setSection('api')}>API & Webhooks</button>
+          <button type="button" className={section==='integrations'?'active':''} onClick={()=>setSection('integrations')}>Integrations</button>
         </div>
 
         <div className="split-content">
@@ -4395,7 +4572,7 @@ function SettingsPage({ tweaks, setTweak }) {
           {section === 'shortcuts' && <SettingsShortcuts/>}
           {section === 'ws' && <SettingsWorkspace/>}
           {section === 'brand' && <SettingsBranding/>}
-          {section === 'api' && <SettingsApi/>}
+          {section === 'integrations' && <SettingsIntegrations/>}
         </div>
       </div>
     </>
@@ -4581,27 +4758,27 @@ function SettingsBranding() {
   );
 }
 
-function SettingsApi() {
+function SettingsIntegrations() {
   return (
     <div style={{paddingTop:14,maxWidth:680}}>
-      <h3 style={{margin:'0 0 14px',fontSize:17,fontWeight:600}}>API & Webhooks</h3>
+      <h3 style={{margin:'0 0 14px',fontSize:17,fontWeight:600}}>Integrations</h3>
       <div className="card" style={{marginBottom:14}}>
-        <div className="card-h"><div className="ttl">API keys</div><button className="btn primary sm" type="button"><Icon name="plus" size={12}/> Generate key</button></div>
+        <div className="card-h"><div className="ttl">Connected tools</div><button className="btn primary sm" type="button"><Icon name="plus" size={12}/> Add connection</button></div>
         <div className="card-b" style={{padding:0}}>
           {[
-            ['Production', 'adga_live_••••••••', 'Created Apr 12', 'p1'],
-            ['Internal tools', 'adga_live_••••••••', 'Created Mar 22', 'p4'],
-            ['Read-only · BI', 'adga_live_••••••••', 'Created Feb 18', 'p3'],
-          ].map(([n, k, d, owner]) => {
+            ['Calendar', 'Invites, meetings, and reminders', 'Connected', 'p1'],
+            ['Documents', 'Client files and signed records', 'Connected', 'p4'],
+            ['Payments', 'Invoices and checkout links', 'Setup needed', 'p3'],
+          ].map(([n, desc, status, owner]) => {
             const o = personOf(owner);
             return (
               <div key={n} className="list-row">
-                <Icon name="lock" size={14} className="muted"/>
+                <Icon name="link" size={14} className="muted"/>
                 <div className="grow">
                   <b>{n}</b>
-                  <div className="sub mono">{k}</div>
+                  <div className="sub">{desc}</div>
                 </div>
-                <span className="text-xs muted">{d}</span>
+                <Pill tone={status === 'Connected' ? 'green' : 'amber'}>{status}</Pill>
                 <Avatar person={o}/>
                 <button className="btn ghost sm" type="button"><Icon name="more" size={12}/></button>
               </div>
@@ -4610,20 +4787,20 @@ function SettingsApi() {
         </div>
       </div>
       <div className="card">
-        <div className="card-h"><div className="ttl">Webhooks</div><button className="btn primary sm" type="button"><Icon name="plus" size={12}/> Add endpoint</button></div>
+        <div className="card-h"><div className="ttl">Automation</div><button className="btn primary sm" type="button"><Icon name="plus" size={12}/> Add automation</button></div>
         <div className="card-b" style={{padding:0}}>
           {[
-            ['https://hooks.concorde.co/adga/deals',     'deal.advanced, deal.won',     'green'],
-            ['https://internal.concorde.co/dd-bridge',   'dd.flagged, dd.approved',     'green'],
-            ['https://compliance.concorde.co/audit',     'audit.*',                     'amber'],
-          ].map(([url, evt, t]) => (
-            <div key={url} className="list-row">
+            ['Deal stage updates', 'Notify owners when a deal moves or stalls', 'green'],
+            ['Diligence review', 'Route flagged items to the right team', 'green'],
+            ['Client follow-up', 'Prepare reminders after meetings and messages', 'amber'],
+          ].map(([name, desc, t]) => (
+            <div key={name} className="list-row">
               <Icon name="send" size={14} className="muted"/>
               <div className="grow">
-                <b className="mono text-xs">{url}</b>
-                <div className="sub">Events: {evt}</div>
+                <b>{name}</b>
+                <div className="sub">{desc}</div>
               </div>
-              <Pill tone={t}>{t === 'green' ? 'Healthy' : 'Retrying'}</Pill>
+              <Pill tone={t}>{t === 'green' ? 'Active' : 'Needs review'}</Pill>
               <button className="btn ghost sm" type="button"><Icon name="more" size={12}/></button>
             </div>
           ))}
@@ -5877,7 +6054,7 @@ function LeadCommunicationCenter({ lead }) {
               <div className="field"><label>Phone</label><input name="to" type="tel" defaultValue={lead.phone || ''} placeholder="+15551234567" required/></div>
               <div className="field"><label>Message</label><textarea name="message" rows={5} defaultValue={`Hi ${lead.name?.split(' ')[0] || ''}, following up from ADGA.`} required/></div>
               <button className="btn primary" type="submit" disabled={sending}>{sending ? 'Sending...' : 'Send text'}</button>
-              {smsResult?.sms && <div className="text-xs muted">SMS {smsResult.sms.status}: {smsResult.sms.provider_response}</div>}
+              {smsResult?.sms && <div className="text-xs muted">Message {smsResult.sms.status === 'sent' ? 'sent' : 'queued'} and attached to this lead.</div>}
             </form>
 
             <form onSubmit={uploadVoice} style={{display:'flex',flexDirection:'column',gap:10}}>
@@ -6853,7 +7030,7 @@ function QuickCreateModal({ type, onClose, onCreated }) {
           <div className="field">
             <label>Notes</label>
             <textarea rows={4} value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})}/>
-            <div className="hint">Saved to D1 metadata and queued for agent review.</div>
+            <div className="hint">Saved and queued for agent review.</div>
           </div>
           <div style={{display:'flex',justifyContent:'flex-end',gap:8}}>
             <button className="btn" type="button" onClick={onClose}>Cancel</button>
@@ -7197,6 +7374,31 @@ function applyTweaks(t) {
   root.style.setProperty('--adga-accent-fg', getAccentFg(t.accent));
 }
 
+const SUITE_ROUTE_IDS = [
+  'home', 'pending', 'inbox', 'tasks', 'calendar', 'teams',
+  'leads', 'pipeline', 'story', 'crm', 'documents', 'knowledge',
+  'intelligence', 'voice-notes', 'messaging', 'reports',
+  'admin', 'affiliates', 'invoicing', 'billing', 'settings',
+];
+
+function normalizeSuiteRoute(value) {
+  return SUITE_ROUTE_IDS.includes(value) ? value : null;
+}
+
+function getInitialSuiteRoute() {
+  if (typeof window === 'undefined') return 'home';
+  const params = new URLSearchParams(window.location.search);
+  const fromQuery = normalizeSuiteRoute(params.get('view') || params.get('route'));
+  if (fromQuery) return fromQuery;
+  const fromHash = normalizeSuiteRoute(window.location.hash.replace(/^#\/?/, ''));
+  if (fromHash) return fromHash;
+  try {
+    return normalizeSuiteRoute(window.localStorage.getItem('adga-suite-route')) || 'home';
+  } catch (e) {
+    return 'home';
+  }
+}
+
 function App() {
   const [tweaks, setTweaks] = React.useState(TWEAK_DEFAULTS);
   const setTweak = (k, v) => {
@@ -7232,7 +7434,7 @@ function App() {
     }
   }, []);
 
-  const [route, setRoute] = React.useState('home');
+  const [route, setRoute] = React.useState(getInitialSuiteRoute);
   const [deals, setDeals] = React.useState(DEALS);
   const [leads, setLeads] = React.useState(LEADS);
   const [selectedLead, setSelectedLead] = React.useState(null);
@@ -7243,9 +7445,30 @@ function App() {
   const [handoffDeal, setHandoffDeal] = React.useState(null);
   const [quickCreate, setQuickCreate] = React.useState(null);
   const [meetingInbox, setMeetingInbox] = React.useState([]);
-  const navigate = React.useCallback((next) => {
-    if (next === 'leads') setSelectedLead(null);
-    setRoute(next);
+  const navigate = React.useCallback((next, options = {}) => {
+    const normalized = normalizeSuiteRoute(next) || 'home';
+    if (normalized === 'leads' && !options.keepLeadSelection) setSelectedLead(null);
+    setRoute(normalized);
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem('adga-suite-route', normalized);
+        const url = new URL(window.location.href);
+        url.pathname = '/suite';
+        url.searchParams.set('view', normalized);
+        window.history.pushState({ route: normalized }, '', url.toString());
+      } catch (e) {}
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onPopState = () => {
+      const next = getInitialSuiteRoute();
+      setRoute(next);
+      if (next === 'leads') setSelectedLead(null);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
   React.useEffect(() => {

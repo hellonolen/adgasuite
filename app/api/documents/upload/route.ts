@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
   const bucket = context.env.DOCUMENTS_BUCKET || context.env.UPLOADS_BUCKET;
   if (!bucket) {
-    return errorJson("R2 bucket is not configured for document uploads.", 503);
+    return errorJson("Document uploads are not available right now.", 503);
   }
 
   const bytes = await file.arrayBuffer();

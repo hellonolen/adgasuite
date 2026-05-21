@@ -388,6 +388,36 @@ body::before { display: none; }
   font-family: var(--font-sans);
   min-height: 96px;
 }
+.voice-command {
+  padding: 12px 14px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.voice-command-kicker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.voice-command .composer-box {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+.voice-command .composer-textarea {
+  min-height: 104px;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+.secondary-composer {
+  display: none;
+}
 .composer-send {
   background: var(--accent);
   color: var(--accent-fg);
@@ -2090,7 +2120,7 @@ body::before { display: none !important; }
   inset: auto !important;
   transform: none !important;
   z-index: auto !important;
-  width: 300px !important;
+  width: 360px !important;
   background: var(--surface) !important;
   border-left: 1px solid var(--border-strong) !important;
   box-shadow: none !important;
@@ -2113,15 +2143,15 @@ body::before { display: none !important; }
 /* Narrow the rails as the viewport shrinks, but never float them */
 @media (max-width: 1280px) {
   .sidebar { width: 180px !important; }
-  .voice { width: 280px !important; }
+  .voice { width: 330px !important; }
 }
 @media (max-width: 1100px) {
   .sidebar { width: 168px !important; }
-  .voice { width: 260px !important; }
+  .voice { width: 300px !important; }
 }
 @media (max-width: 900px) {
   .sidebar { width: 156px !important; }
-  .voice { width: 240px !important; }
+  .voice { width: 280px !important; }
 }
 
 /* Kill any scrim */
@@ -2214,7 +2244,7 @@ body::before { display: none !important; }
   position: static !important;
   inset: auto !important;
   transform: none !important;
-  width: 300px !important;
+  width: 360px !important;
   display: flex !important;
   flex-direction: column !important;
   background: var(--surface) !important;
@@ -2237,13 +2267,13 @@ body::before { display: none !important; }
 /* Tighten rails on narrow viewports but never float */
 @media (max-width: 1280px) {
   .sidebar { width: 172px !important; }
-  .voice { width: 280px !important; }
+  .voice { width: 330px !important; }
 }
 @media (max-width: 1100px) {
   .sidebar { width: 164px !important; }
-  .voice { width: 260px !important; }
+  .voice { width: 300px !important; }
 }
 @media (max-width: 900px) {
   .sidebar { width: 156px !important; }
-  .voice { width: 240px !important; }
+  .voice { width: 280px !important; }
 }

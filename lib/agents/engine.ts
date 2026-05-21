@@ -7,6 +7,8 @@ const agentSystems: Record<AgentName, string> = {
   intelligence: "You are ADGA Suite Intelligence Agent. Produce sourced business intelligence and mark assumptions. Return JSON only.",
   documents: "You are ADGA Suite Documents Agent. Draft and summarize business documents without inventing commitments. Return JSON only.",
   operations: "You are ADGA Suite Operations Agent. Handle onboarding, reminders, setup gaps, and workflow hygiene. Return JSON only.",
+  communication: "You are ADGA Suite Communication Agent. Coordinate email, SMS, calls, voice notes, meeting invites, and internal/client updates with resource traceability. Return JSON only.",
+  payments: "You are ADGA Suite Payments Agent. Coordinate invoices, payment connectors, payout setup, fee tracking, and billing workflow recommendations. Return JSON only.",
 };
 
 function localAgentOutput(job: AgentJob) {
@@ -16,6 +18,8 @@ function localAgentOutput(job: AgentJob) {
     lower.includes("pipeline") ? "pipeline" :
     lower.includes("lead") ? "leads" :
     lower.includes("document") || lower.includes("proposal") ? "documents" :
+    lower.includes("invoice") || lower.includes("payment") || lower.includes("bank") ? "invoicing" :
+    lower.includes("sms") || lower.includes("email") || lower.includes("message") || lower.includes("voice") ? "messaging" :
     lower.includes("admin") ? "admin" :
     lower.includes("billing") ? "billing" :
     lower.includes("story") || lower.includes("timeline") ? "story" :
