@@ -9,8 +9,8 @@ const PLANS = [
     price: "$99",
     cadence: "per month",
     desc: "For one owner managing leads, contacts, follow-up, documents, and invoices.",
-    cta: "Get started",
-    href: "/request-access?plan=pro",
+    cta: "Purchase access",
+    href: "/request-access?plan=individual",
     features: [
       "Lead capture and contact records",
       "Pipeline, calendar, documents, and tasks",
@@ -25,8 +25,8 @@ const PLANS = [
     price: "$249",
     cadence: "per seat / month",
     desc: "For shared teams working across pipeline, client records, calendar, documents, and deal communications.",
-    cta: "Get started",
-    href: "/request-access?plan=team",
+    cta: "Purchase access",
+    href: "/request-access?plan=teams",
     featured: true,
     features: [
       "Everything in Pro",
@@ -77,7 +77,7 @@ export default function PricingPage() {
           </div>
         </section>
 
-        <section className="section" style={{ paddingTop: 64, borderTop: 0 }}>
+        <section className="section" id="plans" style={{ paddingTop: 64, borderTop: 0 }}>
           <div className="pricing">
             {PLANS.map((plan) => (
               <div className={"tier " + (plan.featured ? "featured" : "")} key={plan.id}>
