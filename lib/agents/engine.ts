@@ -1,15 +1,33 @@
+import fs from 'fs';
+import path from 'path';
 import { runAgentModel } from "@/lib/ai/cloudflare-worker-ai";
 import type { AgentJob, AgentName } from "@/lib/server/repository";
 
-const agentSystems: Record<AgentName, string> = {
-  conductor: "You are ADGA Suite Conductor. Route work, identify the next best workflow step, and return JSON only.",
-  sales: "You are ADGA Suite Sales Agent. Score leads, identify pipeline risk, and recommend concise next actions. Return JSON only.",
-  intelligence: "You are ADGA Suite Intelligence Agent. Produce sourced business intelligence and mark assumptions. Return JSON only.",
-  documents: "You are ADGA Suite Documents Agent. Draft and summarize business documents without inventing commitments. Return JSON only.",
-  operations: "You are ADGA Suite Operations Agent. Handle onboarding, reminders, setup gaps, and workflow hygiene. Return JSON only.",
-  communication: "You are ADGA Suite Communication Agent. Coordinate email, SMS, calls, voice notes, meeting invites, and internal/client updates with resource traceability. Return JSON only.",
-  payments: "You are ADGA Suite Payments Agent. Coordinate invoices, payment connectors, payout setup, fee tracking, and billing workflow recommendations. Return JSON only.",
-};
+const AGENTS_DIR = path.join(process.cwd(), 'agents');
+
+function getAgentSystemPrompt(agent: AgentName): string {
+  try {
+    const skillPath = path.join(AGENTS_DIR, agent, 'SKILL.md');
+    if (fs.existsSync(skillPath)) {
+      const content = fs.readFileSync(skillPath, 'utf8');
+      return `You are an ADGA Suite agent. Your instructions and mandates follow:\n\n${content}\n\nReturn JSON only.`;
+    }
+  } catch (e) {
+    console.error(`Failed to read SKILL.md for ${agent}`, e);
+  }
+
+  // Fallback if file read fails or doesn't exist
+  const fallbacks: Record<AgentName, string> = {
+    conductor: "You are ADGA Suite Conductor. Route work, identify the next best workflow step, and return JSON only.",
+    sales: "You are ADGA Suite Sales Agent. Score leads, identify pipeline risk, and recommend concise next actions. Return JSON only.",
+    intelligence: "You are ADGA Suite Intelligence Agent. Produce sourced business intelligence and mark assumptions. Return JSON only.",
+    documents: "You are ADGA Suite Documents Agent. Draft and summarize business documents without inventing commitments. Return JSON only.",
+    operations: "You are ADGA Suite Operations Agent. Handle onboarding, reminders, setup gaps, and workflow hygiene. Return JSON only.",
+    communication: "You are ADGA Suite Communication Agent. Coordinate email, SMS, calls, voice notes, meeting invites, and internal/client updates with resource traceability. Return JSON only.",
+    payments: "You are ADGA Suite Payments Agent. Coordinate invoices, payment connectors, payout setup, fee tracking, and billing workflow recommendations. Return JSON only.",
+  };
+  return fallbacks[agent];
+}
 
 function localAgentOutput(job: AgentJob) {
   const prompt = String(job.input.prompt || job.input.message || "");
@@ -44,10 +62,11 @@ export async function runAgentJob(env: CloudflareEnv, job: AgentJob) {
   if (!env.AI) return localAgentOutput(job);
 
   try {
+    const system = getAgentSystemPrompt(job.agent);
     const result = await runAgentModel<Record<string, unknown>>(
       { AI: env.AI, ADGA_AI_MODEL: env.ADGA_AI_MODEL },
       {
-        system: agentSystems[job.agent],
+        system,
         user: JSON.stringify({
           job_type: job.job_type,
           input: job.input,

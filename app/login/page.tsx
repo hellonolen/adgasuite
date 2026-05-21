@@ -1,13 +1,13 @@
-// @ts-nocheck
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
+import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("hellonolen@gmail.com");
+  const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
 
-  async function submit(event) {
+  async function submit(event: React.FormEvent) {
     event.preventDefault();
     setStatus("Opening workspace...");
     const response = await fetch("/api/auth/local", {
@@ -19,29 +19,44 @@ export default function LoginPage() {
       window.location.href = "/suite";
       return;
     }
-    setStatus("Access could not be opened from this browser.");
+    setStatus("Access denied. Please check your credentials or request access.");
   }
 
   return (
-    <main className="auth-page">
-      <a href="/" className="auth-brand"><span className="mark">A</span> ADGA</a>
-      <section className="auth-card">
-        <p className="auth-kicker">Workspace access</p>
-        <h1>Enter the suite.</h1>
-        <p className="auth-copy">Local development keeps owner access open for the approved admin emails. Production sign-in can be connected when payment and identity are ready.</p>
-        <form onSubmit={submit} className="auth-form">
-          <label>
-            Email
-            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
-          </label>
-          <button className="btn primary lg" type="submit">Continue to suite</button>
-        </form>
-        {status && <p className="auth-status">{status}</p>}
-        <div className="auth-links">
-          <a href="/request-access">Request access</a>
-          <a href="/">Back to ADGA</a>
+    <MarketingLayout>
+      <div className="auth-container wrap">
+        <div className="auth-card premium-surface">
+          <div className="auth-header">
+            <span className="ed-label">Secure Access</span>
+            <h1>Enter the suite.</h1>
+            <p className="muted">Enter your email to access your workspace and deals.</p>
+          </div>
+
+          <form onSubmit={submit} className="auth-form premium-form">
+            <div className="field">
+              <label>Email address</label>
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                placeholder="maren.voss@concorde.co"
+                required
+              />
+            </div>
+            <button className="btn primary lg w-full" type="submit">
+              Continue to workspace
+            </button>
+          </form>
+
+          {status && <p className="auth-status-msg">{status}</p>}
+
+          <div className="auth-footer">
+            <p className="text-xs muted">
+              New to ADGA? <a href="/request-access" className="accent-link">Request access</a>
+            </p>
+          </div>
         </div>
-      </section>
-    </main>
+      </div>
+    </MarketingLayout>
   );
 }

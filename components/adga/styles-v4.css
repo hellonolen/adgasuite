@@ -20,11 +20,11 @@
   --text-inverse: #ffffff;
 
   /* Product accents */
-  --accent: #202124;
-  --accent-hover: #3b3d42;
-  --accent-deep: #3b3d42;
-  --accent-soft: rgba(32, 33, 36, 0.08);
-  --accent-ring: rgba(32, 33, 36, 0.18);
+  --accent: #5b21b6;
+  --accent-hover: #4c1d95;
+  --accent-deep: #4c1d95;
+  --accent-soft: rgba(91, 33, 182, 0.08);
+  --accent-ring: rgba(91, 33, 182, 0.35);
   --accent-fg: #ffffff;
   --editorial-red: #7a1f1a;
   --editorial-saffron: #c47214;

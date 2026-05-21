@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
+import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 
 const needs = [
   "Payroll",
@@ -55,102 +56,68 @@ export default function AdpPartnerPage() {
   }
 
   return (
-    <main className="partner-page">
-      <nav className="partner-nav">
-        <a href="/" className="partner-brand"><span>A</span> ADGA</a>
-        <div>
-          <a href="/suite">Suite</a>
-          <a href="/request-access">Contact ADGA</a>
-        </div>
-      </nav>
-
-      <section className="partner-hero">
-        <div>
-          <p className="partner-kicker">ADGA affiliate partner</p>
-          <h1>Send your payroll lead to ADP.</h1>
-          <p>
-            Use this page to submit a complete payroll lead for ADP follow-up. ADGA captures the contact,
-            company, timing, needs, and consent details, then routes the record to the assigned ADP referral inbox.
-          </p>
-          <div className="partner-proof">
-            <span>Lead details tracked</span>
-            <span>Email routing logged</span>
-            <span>Date and source recorded</span>
-          </div>
-        </div>
-        <div className="partner-panel">
-          <h2>What ADP can help with</h2>
-          <ul>
-            <li>Payroll processing and payroll taxes</li>
-            <li>Hiring, onboarding, HR, and compliance support</li>
-            <li>Time tracking, benefits, workers' compensation, and retirement support</li>
-            <li>Small-business payroll options including RUN Powered by ADP</li>
-          </ul>
-        </div>
-      </section>
-
-      <section className="partner-form-wrap">
-        <div>
-          <p className="partner-kicker">Payroll lead form</p>
-          <h2>Capture the full lead.</h2>
-          <p>
-            Capture the contact, company, payroll timing, selected needs, notes, and consent
-            so ADGA can route the referral cleanly.
-          </p>
-        </div>
-
-        <form className="partner-form" onSubmit={submit}>
-          <div className="partner-grid">
-            <label>Full name<input name="full_name" required /></label>
-            <label>Email<input name="email" type="email" required /></label>
-            <label>Phone<input name="phone" type="tel" /></label>
-            <label>Company<input name="company" /></label>
-            <label>Title<input name="job_title" /></label>
-            <label>State<input name="state" /></label>
-            <label>Company size
-              <select name="company_size" defaultValue="">
-                <option value="" disabled>Select size</option>
-                <option>1-9 employees</option>
-                <option>10-49 employees</option>
-                <option>50-199 employees</option>
-                <option>200+ employees</option>
-              </select>
-            </label>
-            <label>Payroll timing
-              <select name="payroll_timing" defaultValue="">
-                <option value="" disabled>Select timing</option>
-                <option>Immediately</option>
-                <option>This month</option>
-                <option>This quarter</option>
-                <option>Researching options</option>
-              </select>
-            </label>
-            <label className="partner-wide">Current payroll provider<input name="current_payroll_provider" placeholder="None, ADP, Gusto, Paychex, QuickBooks, other" /></label>
-          </div>
-
-          <fieldset>
-            <legend>What does the lead need?</legend>
-            <div className="partner-checks">
-              {needs.map((need) => (
-                <label key={need}><input type="checkbox" name="needs" value={need} /> {need}</label>
-              ))}
+    <MarketingLayout>
+      <div className="wrap">
+        <section className="page-hero">
+          <div>
+            <div className="eyebrow">
+              <span>ADGA Affiliate</span>
+              <span className="dot" />
+              <span>Partner Channel</span>
             </div>
-          </fieldset>
+            <h1>
+              Send your<br />
+              <em>payroll lead.</em>
+            </h1>
+          </div>
+          <div>
+            <p className="lede">
+              ADGA captures the contact, company, timing, needs, and consent details, then routes the record to the assigned ADP referral inbox.
+            </p>
+          </div>
+        </section>
 
-          <label>Notes<textarea name="notes" rows={5} placeholder="Anything ADP should know before follow-up." /></label>
+        <section className="section" style={{ borderTop: 0 }}>
+          <div className="split-view">
+            <div className="partner-content">
+              <div className="card">
+                <div className="card-h"><span className="ttl">What ADP can help with</span></div>
+                <div className="card-b">
+                  <ul className="premium-list">
+                    <li>Payroll processing and payroll taxes</li>
+                    <li>Hiring, onboarding, HR, and compliance support</li>
+                    <li>Time tracking, benefits, workers' compensation</li>
+                    <li>Small-business payroll options (RUN)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
 
-          <label className="partner-consent">
-            <input type="checkbox" name="consent_to_contact" required />
-            This contact has agreed to be contacted about ADP payroll services.
-          </label>
+            <div className="partner-form-container">
+              <form className="partner-form premium-form" onSubmit={submit}>
+                <div className="form-grid">
+                  <div className="field"><label>Full name</label><input name="full_name" required /></div>
+                  <div className="field"><label>Email</label><input name="email" type="email" required /></div>
+                  <div className="field"><label>Phone</label><input name="phone" type="tel" /></div>
+                  <div className="field"><label>Company</label><input name="company" /></div>
+                </div>
 
-          <button className="partner-submit" type="submit" disabled={status === "sending"}>
-            {status === "sending" ? "Sending lead..." : "Send payroll lead"}
-          </button>
+                <div className="field">
+                  <label>Notes</label>
+                  <textarea name="notes" rows={3} placeholder="Anything ADP should know..." />
+                </div>
 
-          {message && <p className={`partner-status ${status}`}>{message}</p>}
-        </form>
-      </section>
-    </main>
+                <div className="form-footer">
+                  <button className="btn primary lg" type="submit" disabled={status === "sending"}>
+                    {status === "sending" ? "Sending..." : "Send payroll lead"}
+                  </button>
+                  {message && <p className={`status-msg ${status}`}>{message}</p>}
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+      </div>
+    </MarketingLayout>
   );
 }

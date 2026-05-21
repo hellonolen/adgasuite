@@ -35,7 +35,7 @@ body {
   place-items: center;
   padding: 32px;
   background:
-    linear-gradient(120deg, rgba(32, 33, 36, 0.05), transparent 32%),
+    linear-gradient(120deg, rgba(91, 33, 182, 0.06), transparent 32%),
     var(--adga-bg);
   color: var(--adga-text);
   font-family: var(--adga-font-sans);
@@ -215,8 +215,8 @@ body {
   height: 28px;
   display: grid;
   place-items: center;
-  background: #17171f;
-  color: #fff;
+  background: var(--adga-accent);
+  color: var(--adga-accent-fg);
   border-radius: 6px;
 }
 
@@ -382,12 +382,16 @@ body {
 .partner-submit {
   border: 0;
   border-radius: 8px;
-  background: #17171f;
-  color: #fff;
+  background: var(--adga-accent);
+  color: var(--adga-accent-fg);
   padding: 14px 16px;
   font: inherit;
   font-weight: 750;
   cursor: pointer;
+}
+
+.partner-submit:hover {
+  background: var(--adga-accent-hover);
 }
 
 .partner-submit:disabled {
@@ -445,10 +449,10 @@ body {
   --adga-text-3: #8a929d;
   --adga-border: #dde1e6;
   --adga-border-strong: #b8c0ca;
-  --adga-accent: #202124;
-  --adga-accent-hover: #3b3d42;
-  --adga-accent-soft: rgba(32, 33, 36, 0.08);
-  --adga-accent-ring: rgba(32, 33, 36, 0.18);
+  --adga-accent: #5b21b6;
+  --adga-accent-hover: #4c1d95;
+  --adga-accent-soft: rgba(91, 33, 182, 0.08);
+  --adga-accent-ring: rgba(91, 33, 182, 0.35);
   --adga-accent-fg: #ffffff;
 
   /* Shape, density, and controls */
@@ -530,8 +534,8 @@ body {
   --adga-text-3: #8a929d;
   --adga-border: #dde1e6;
   --adga-border-strong: #b8c0ca;
-  --adga-accent: #202124;
-  --adga-accent-hover: #3b3d42;
+  --adga-accent: #5b21b6;
+  --adga-accent-hover: #4c1d95;
 }
 
 .adga-palette-graphite {
@@ -544,8 +548,8 @@ body {
   --adga-text-3: #7d8089;
   --adga-border: #deded7;
   --adga-border-strong: #c4c5bc;
-  --adga-accent: #202124;
-  --adga-accent-hover: #3b3d42;
+  --adga-accent: #5b21b6;
+  --adga-accent-hover: #4c1d95;
 }
 
 .adga-palette-cobalt {
