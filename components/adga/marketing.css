@@ -1060,7 +1060,6 @@ em, i { font-style: normal; }
   .wrap { padding: 0 20px; }
   .nav { flex-wrap: wrap; gap: 14px; }
   .brand { font-size: 22px; }
-  .brand .mark { width: 26px; height: 26px; font-size: 14px; }
   .nav-links { order: 3; width: 100%; gap: 18px; padding-top: 10px; border-top: 1px solid var(--rule); justify-content: space-between; }
   .nav-cta { margin-left: auto; gap: 8px; }
   .nav-cta .btn { padding: 7px 12px; font-size: 12px; }
@@ -1080,8 +1079,28 @@ em, i { font-style: normal; }
   .stat-grid { grid-template-columns: 1fr; }
   .stat-cell { padding: 28px 22px; }
   .stat-cell .v { font-size: 32px; }
-  .foot-cols { grid-template-columns: 1fr 1fr; }
-  .foot-end { flex-direction: column; gap: 8px; padding: 18px 0; text-align: center; }
+  .foot {
+    padding: 28px 0 24px;
+    gap: 22px;
+  }
+  .foot-brand-area p {
+    max-width: 100% !important;
+  }
+  .foot-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 24px;
+  }
+  .foot-col ul {
+    gap: 7px;
+  }
+  .foot-end {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 14px;
+    padding: 18px 0;
+    text-align: center;
+    line-height: 1.5;
+  }
   .compare th, .compare td { padding: 10px 12px; font-size: 11px; }
   .compare th:first-child, .compare td:first-child { padding-left: 16px; }
   .hero-photo { min-height: 280px; aspect-ratio: 4 / 5; }
@@ -1102,5 +1121,5 @@ em, i { font-style: normal; }
   .nav-links { gap: 12px; font-size: 11.5px; }
   .nav-cta .btn:not(.primary) { display: none; }
   .hero h1 { font-size: clamp(28px, 8vw, 36px); }
-  .foot-cols { grid-template-columns: 1fr; }
+  .foot-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

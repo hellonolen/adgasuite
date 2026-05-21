@@ -13,7 +13,6 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
     <div className="marketing-root adga-presence-crisp">
       <nav className="nav wrap">
         <a href="/" className="brand">
-          <span className="mark">A</span>
           ADGA
         </a>
         <div className="nav-links">
@@ -34,7 +33,6 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
       <footer className="foot wrap">
         <div className="foot-brand-area">
           <div className="brand" style={{fontSize: 22}}>
-            <span className="mark" style={{width: 24, height: 24, fontSize: 13}}>A</span>
             ADGA
           </div>
           <p style={{marginTop: 10, fontSize: '12.5px', color: 'var(--adga-text-2)', maxWidth: '36ch'}}>

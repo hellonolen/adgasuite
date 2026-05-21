@@ -71,20 +71,13 @@ body::before { display: none; }
   height: auto;
 }
 .sb-logo {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-fg);
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: 17px;
-  font-style: italic;
+  display: none;
 }
 .sb-wordmark {
-  font-family: var(--font-serif);
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: 0.01em;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0;
   line-height: 1;
 }
 .sb-workspace { padding: 0 16px 14px; }
@@ -2168,10 +2161,13 @@ body::before { display: none !important; }
   height: auto !important;
 }
 .sb-logo {
-  width: 24px !important; height: 24px !important;
-  font-size: 14px !important;
+  display: none !important;
 }
-.sb-wordmark { font-size: 18px !important; }
+.sb-wordmark { font-size: 18px !important; letter-spacing: 0 !important; }
+.sb-wordmark-logo {
+  color: var(--accent) !important;
+  font-weight: 700 !important;
+}
 
 .sb-workspace { padding: 0 12px 10px !important; }
 .sb-ws-btn { padding: 6px 8px !important; font-size: 12px !important; }

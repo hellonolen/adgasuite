@@ -68,8 +68,7 @@ export function Sidebar({ route, setRoute, collapsed, setCollapsed }: SidebarPro
   return (
     <aside className={'sidebar ' + (collapsed ? 'collapsed' : 'open')}>
       <div className="sb-brand">
-        <div className="sb-logo">A</div>
-        <span className="sb-wordmark">ADGA</span>
+        <span className="sb-wordmark sb-wordmark-logo">ADGA</span>
       </div>
 
       <div className="sb-workspace" style={{position:'relative'}}>
