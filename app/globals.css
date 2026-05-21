@@ -442,6 +442,8 @@ body::before {
   .suite-shell .kanban {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-flow: row !important;
+    grid-auto-columns: minmax(0, 1fr) !important;
     overflow: visible !important;
   }
 
@@ -3555,6 +3557,8 @@ body {
   .suite-shell .kanban {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-flow: row !important;
+    grid-auto-columns: minmax(0, 1fr) !important;
     overflow: visible !important;
   }
 
