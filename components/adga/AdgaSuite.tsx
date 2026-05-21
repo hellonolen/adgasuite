@@ -5095,6 +5095,8 @@ function StoryPage({ deals, openDeal, focusDealId }) {
   const touches = [...baseTouches, ...userTouches];
   const co = deal ? companyOf(deal.company) : null;
   const stage = deal ? stageOf(deal.stage) : null;
+  const selectedCompanyLabel = co?.name || deal?.company || 'No client selected';
+  const selectedDealLabel = deal ? `${deal.id} · ${deal.name}` : 'Select a deal';
 
   const counts = touches.reduce((acc, t) => { acc[t.kind] = (acc[t.kind] || 0) + 1; return acc; }, {});
   const selectedOwner = deal ? personOf(deal.owner) : null;
@@ -5161,10 +5163,10 @@ function StoryPage({ deals, openDeal, focusDealId }) {
   return (
     <div className="story">
       <header className="story-h">
-        <div>
+        <div className="story-title-block">
           <div className="deal-label">
             <span style={{width:8,height:8,borderRadius:'50%',background:'var(--accent)'}}/>
-            <span>The Story of</span>
+            <span>Story record</span>
             <span style={{opacity:0.5}}>·</span>
             <span className="mono" style={{fontFamily:'var(--font-mono)'}}>{activeId}</span>
             {stage && <><span style={{opacity:0.5}}>·</span><span>{stage.name}</span></>}
@@ -5256,32 +5258,34 @@ function StoryPage({ deals, openDeal, focusDealId }) {
         {dealOptions.length} deal{dealOptions.length === 1 ? '' : 's'} available · {visibleTouches.length} of {touches.length} story item{touches.length === 1 ? '' : 's'} shown
       </div>
 
-      {/* Add tools row */}
-      <div className="story-tools" style={{marginTop:24}}>
-        <button className="story-tool add" type="button" onClick={() => { setComposeKind('note'); setComposeOpen(true); }}>
-          <span className="ic">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          </span>
-          Add to the story
-        </button>
-        <button className="story-tool" type="button" onClick={() => { setComposeKind('note'); setComposeOpen(true); }}>
-          <span className="ic">{kindIcon('note')}</span>Note
-        </button>
-        <button className="story-tool" type="button" onClick={() => { setComposeKind('audio'); setComposeOpen(true); }}>
-          <span className="ic">{kindIcon('audio')}</span>Voice memo
-        </button>
-        <button className="story-tool" type="button" onClick={() => { setComposeKind('video'); setComposeOpen(true); }}>
-          <span className="ic">{kindIcon('video')}</span>Video clip
-        </button>
-        <button className="story-tool" type="button" onClick={() => { setComposeKind('call'); setComposeOpen(true); }}>
-          <span className="ic">{kindIcon('call')}</span>Log call
-        </button>
-        <button className="story-tool" type="button" onClick={() => { setComposeKind('meeting'); setComposeOpen(true); }}>
-          <span className="ic">{kindIcon('meeting')}</span>Log meeting
-        </button>
-        <button className="story-tool" type="button" onClick={() => { setComposeKind('doc'); setComposeOpen(true); }}>
-          <span className="ic">{kindIcon('doc')}</span>Attach doc
-        </button>
+      <div className="story-workbar">
+        <div className="story-context-line">
+          <span>{selectedCompanyLabel}</span>
+          <span>{selectedDealLabel}</span>
+          <span>{visibleTouches.length} visible</span>
+        </div>
+        <div className="story-action-group">
+          <label htmlFor="story-action-select">Add</label>
+          <select
+            id="story-action-select"
+            className="story-control-field"
+            value={composeKind}
+            onChange={(event) => setComposeKind(event.target.value)}
+          >
+            <option value="note">Note</option>
+            <option value="audio">Voice memo</option>
+            <option value="video">Video clip</option>
+            <option value="call">Call</option>
+            <option value="meeting">Meeting</option>
+            <option value="doc">Document</option>
+          </select>
+          <button className="story-tool add" type="button" onClick={() => setComposeOpen(true)}>
+            <span className="ic">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            </span>
+            Add item
+          </button>
+        </div>
       </div>
 
       {composeOpen && (
