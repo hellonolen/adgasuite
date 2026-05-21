@@ -102,6 +102,8 @@ Every lead, contact, meeting, document, decision, task, and agent action belongs
 - Validation for email, phone, URL, dates, and deal value.
 - Ownership rules for unassigned leads.
 - Archive instead of destructive deletion by default.
+- Leads should open directly into usable record content. KPI cards should not push the lead list or lead context below the fold.
+- Lead communication actions should be surfaced inside the lead record and should write back to the lead trace.
 
 ## Urgency And Follow-Up Requirements
 
@@ -283,6 +285,13 @@ Documents and links:
 - The platform must track gross invoice amount, platform fee percent, platform fee amount, net amount to user, payment status, and fee collection status.
 - Owners need visibility into invoice volume, fees collected, unpaid invoices, failed payments, refunds, and disputes.
 - The invoicing center should be designed so Whop/payment integration can be connected later without rebuilding the data model.
+- Tenants must be able to connect where they receive money.
+- Bank-account payout setup must support companies and individuals.
+- Invoicing should support connector records for Stripe, PayPal, Whop, QuickBooks, bank accounts, and future providers.
+- QuickBooks should be treated as a connector using the tenant's own login and accounting/payment workflow. ADGA should not recreate QuickBooks.
+- Connector metadata belongs in D1. Connector secrets must not be stored in D1.
+- Invoice payment routes should track provider, gross amount, platform fee, net to user, payment status, payout destination, refunds, disputes, and connector status.
+- The Payments agent owns payout setup, connector readiness, invoice payment routing, platform fee tracking, and payment-state gaps.
 
 ## Data Storage Rules
 
@@ -314,6 +323,30 @@ Documents and links:
 - SMS metadata should be stored in D1.
 - SMS should support connection to leads, contacts, deals, meetings, and follow-up workflows.
 - ADGA should not charge users separately for SMS. The gateway should be treated as an available platform utility once configured.
+
+## Deal Representation And Communication Requirements
+
+- Deals must support a represented-client record so the platform clearly shows who ADGA represents.
+- A represented client should be able to log in and see the status of their own deal.
+- Client access must be scoped to the deal they are connected to.
+- Each deal needs an internal team communication lane for private notes, calls, voice notes, decisions, blockers, and agent summaries.
+- Each deal needs a client communication lane for client-visible updates, meeting invites, documents, SMS, email, and voice-note summaries.
+- Internal communication should be private by default.
+- Client-visible communication should be explicit and should write back to the deal timeline.
+- Voice notes, SMS, email, calls, and meeting invites should never stand alone. They must include a resource trace such as `deal:DEAL-1210` or `lead:L-9881`.
+- D1 stores communication metadata, statuses, transcripts, thread/message records, and trace IDs.
+- R2 stores audio and large files.
+- Workflow instructions live in `agents/communication/SKILL.md`.
+- Communication state lives in `cloudflare/state/deal-communication.state.json`.
+- Client portal state lives in `cloudflare/state/client-portal.state.json`.
+
+## Agent Governance Requirements
+
+- Feature ownership must be listed in `docs/AGENT_FEATURE_MAP.md`.
+- Every agent has a Markdown file under `agents/*/SKILL.md`.
+- Agent/job/event JSON state lives under `cloudflare/state/`.
+- Do not build disconnected standalone features.
+- Do not hardcode feature behavior that should come from workflow Markdown, JSON state, D1 records, or environment variables.
 
 ## Implementation Notes For The Next Build Pass
 

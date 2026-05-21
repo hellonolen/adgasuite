@@ -1,0 +1,63 @@
+{
+  "name": "invoice_connectors_state",
+  "version": 1,
+  "resource": {
+    "type": "tenant_payment_connector",
+    "required_fields": ["organization_id", "owner_user_id", "connector_type", "status"]
+  },
+  "connector_types": {
+    "bank_account": {
+      "purpose": "Receive payouts by ACH or bank transfer.",
+      "supports_payouts": true,
+      "supports_invoice_payment_links": false
+    },
+    "stripe": {
+      "purpose": "Create payment links and route invoice payments.",
+      "supports_payouts": true,
+      "supports_invoice_payment_links": true
+    },
+    "paypal": {
+      "purpose": "Create payment links and accept PayPal payments.",
+      "supports_payouts": true,
+      "supports_invoice_payment_links": true
+    },
+    "whop": {
+      "purpose": "Route subscription and platform commerce activity.",
+      "supports_payouts": true,
+      "supports_invoice_payment_links": true
+    },
+    "quickbooks": {
+      "purpose": "Accounting and invoice-payment connector using the tenant's own QuickBooks login.",
+      "supports_payouts": true,
+      "supports_invoice_payment_links": true
+    },
+    "other": {
+      "purpose": "Future payment or accounting connector.",
+      "supports_payouts": false,
+      "supports_invoice_payment_links": false
+    }
+  },
+  "statuses": ["not_connected", "pending", "connected", "needs_attention", "disabled"],
+  "storage_policy": {
+    "metadata": "D1",
+    "secrets": "Cloudflare secrets or provider token vault",
+    "generated_invoice_files": "R2",
+    "payment_artifacts": "R2 when file-like, D1 when status-only"
+  },
+  "agent_routing": {
+    "connector.created": ["payments", "conductor"],
+    "invoice.created": ["payments", "documents"],
+    "invoice.sent": ["payments", "communication"],
+    "invoice.paid": ["payments", "conductor"],
+    "invoice.failed": ["payments", "conductor", "operations"],
+    "invoice.disputed": ["payments", "conductor", "operations"]
+  },
+  "rules": [
+    "Every tenant can have its own invoicing center and payout connectors.",
+    "Individuals and companies can connect bank-account payout destinations.",
+    "The maximum platform transaction fee is 5%.",
+    "QuickBooks is treated as a connector, not as a rebuilt accounting system.",
+    "No raw bank credentials or payment secrets are stored in D1.",
+    "Connector records must attach to the tenant or owner user."
+  ]
+}

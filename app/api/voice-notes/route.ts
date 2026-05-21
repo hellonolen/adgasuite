@@ -1,13 +1,13 @@
 import { errorJson, json } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
-import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
+import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
 
 const STT_MODEL = "@cf/openai/whisper";
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);
-  requireAdmin(context);
+  requireUser(context);
   if (!context.env.DB) return json({ ok: true, voice_notes: [] });
 
   try {
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
-  requireAdmin(context);
+  requireUser(context);
 
   const form = await request.formData();
   const file = form.get("audio");

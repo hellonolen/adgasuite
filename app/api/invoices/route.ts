@@ -1,13 +1,13 @@
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { newId, nowIso } from "@/lib/server/id";
-import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
+import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
 
 const MAX_PLATFORM_FEE_BPS = 500;
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);
-  requireAdmin(context);
+  requireUser(context);
   if (!context.env.DB) return json({ ok: true, invoices: [] });
 
   try {
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
-  requireAdmin(context);
+  requireUser(context);
   const body = await readJson<{
     client_name?: string;
     client_email?: string;

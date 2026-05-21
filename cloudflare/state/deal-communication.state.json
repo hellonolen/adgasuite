@@ -1,0 +1,43 @@
+{
+  "name": "deal_communication_state",
+  "version": 1,
+  "resource": {
+    "type": "deal",
+    "required_fields": ["resource_type", "resource_id", "audience", "channel", "visibility"]
+  },
+  "audiences": {
+    "internal": {
+      "visibility": "internal",
+      "allowed_channels": ["note", "voice", "call", "meeting", "email"],
+      "description": "Private deal-team communication, decisions, blockers, calls, and agent summaries."
+    },
+    "client": {
+      "visibility": "client_visible",
+      "allowed_channels": ["sms", "email", "voice", "meeting"],
+      "description": "Messages and updates intended for the represented client portal and outbound delivery."
+    }
+  },
+  "storage_policy": {
+    "metadata": "D1",
+    "large_artifacts": "R2",
+    "voice_audio": "R2",
+    "transcripts": "D1",
+    "events": "D1"
+  },
+  "agent_routing": {
+    "note": ["conductor"],
+    "voice": ["conductor", "sales"],
+    "sms": ["conductor", "sales"],
+    "email": ["conductor", "sales"],
+    "meeting": ["conductor", "sales"]
+  },
+  "status_flow": ["drafted", "queued", "sent", "recorded", "summarized", "follow_up_scheduled"],
+  "rules": [
+    "Every communication must have resource_type and resource_id unless it is a general broadcast.",
+    "Internal messages must never become client-visible without an explicit visibility change.",
+    "Client messages must write back to the deal timeline.",
+    "Voice audio files are stored in R2; D1 stores metadata, transcript text, and trace IDs.",
+    "SMS uses the self-hosted open-source gateway adapter, not Twilio or Telnyx.",
+    "Postmark is email only."
+  ]
+}

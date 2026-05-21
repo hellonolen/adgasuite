@@ -1,0 +1,31 @@
+{
+  "name": "client_portal_state",
+  "version": 1,
+  "resource": {
+    "type": "deal",
+    "relationship": "represented_client"
+  },
+  "portal_status": ["prepared", "invited", "active", "paused", "closed"],
+  "client_visible_sections": [
+    "deal_status",
+    "next_milestone",
+    "meeting_invites",
+    "approved_documents",
+    "visible_requests",
+    "client_messages"
+  ],
+  "private_sections": [
+    "internal_notes",
+    "internal_voice_notes",
+    "internal_agent_summaries",
+    "private_financial_modeling",
+    "team_tasks"
+  ],
+  "access_rules": [
+    "A represented client may only see records attached to their deal.",
+    "Client access requires an explicit deal_representations record.",
+    "Approved documents are visible; raw upload buckets are never exposed directly.",
+    "Meeting links and messages are traced to the deal.",
+    "Internal team communication remains private by default."
+  ]
+}
