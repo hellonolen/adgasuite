@@ -438,6 +438,39 @@ body::before {
     min-height: 70px !important;
     max-height: 112px !important;
   }
+
+  .suite-shell .kanban {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    overflow: visible !important;
+  }
+
+  .suite-shell .kanban .col {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .suite-shell .card .tbl,
+  .suite-shell .tbl {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed;
+  }
+
+  .suite-shell .tbl th,
+  .suite-shell .tbl td {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    font-size: 12px;
+    white-space: normal;
+  }
+
+  .suite-shell .contact-link-cell,
+  .suite-shell .deal-team-cell {
+    grid-template-columns: minmax(0, 1fr);
+    white-space: normal;
+  }
 }
 
 body:has(.suite-shell)::before {
