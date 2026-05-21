@@ -4,64 +4,32 @@ import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 
 const PLANS = [
   {
-    id: "start",
-    name: "Start",
-    price: "$0",
-    cadence: "limited workspace",
-    desc: "For one operator testing ADGA with a small active pipeline.",
-    cta: "Start free",
-    href: "/request-access?plan=start",
-    features: [
-      "Lead capture and contact records",
-      "One active pipeline",
-      "Basic follow-up reminders",
-      "Limited voice notes",
-      "Individual workspace",
-    ],
-  },
-  {
     id: "pro",
     name: "Pro",
-    price: "$20",
+    price: "$99",
     cadence: "per month",
-    desc: "For a solo deal owner running live leads, contacts, and follow-up.",
-    cta: "Start Pro",
+    desc: "For one owner managing leads, contacts, follow-up, documents, and invoices.",
+    cta: "Get started",
     href: "/request-access?plan=pro",
     features: [
-      "Everything in Start",
-      "Unlimited leads and contacts",
+      "Lead capture and contact records",
       "Pipeline, calendar, documents, and tasks",
-      "Live voice notes and transcripts",
+      "Voice notes and transcripts",
       "Standard ADGA agent actions",
-    ],
-  },
-  {
-    id: "max",
-    name: "Max",
-    price: "$100",
-    cadence: "per month",
-    desc: "For heavy individual users who need more agent capacity and deeper deal work.",
-    cta: "Start Max",
-    href: "/request-access?plan=max",
-    featured: true,
-    features: [
-      "Everything in Pro",
-      "5x individual agent capacity",
-      "Advanced Story view for deals",
-      "Priority follow-up preparation",
-      "More active workspaces",
+      "Individual workspace",
     ],
   },
   {
     id: "team",
     name: "Team",
-    price: "$25",
+    price: "$249",
     cadence: "per seat / month",
-    desc: "For shared teams working the same pipeline and deal rooms.",
-    cta: "Create team",
+    desc: "For shared teams working across pipeline, client records, calendar, documents, and deal communications.",
+    cta: "Get started",
     href: "/request-access?plan=team",
+    featured: true,
     features: [
-      "Everything teams need from Pro",
+      "Everything in Pro",
       "Shared workspace and team roles",
       "Internal and client lanes",
       "Team calendar and invoices",
@@ -71,10 +39,10 @@ const PLANS = [
   {
     id: "enterprise",
     name: "Enterprise",
-    price: "$20",
-    cadence: "per seat + usage",
-    desc: "For firms that need advanced controls and custom workflows.",
-    cta: "Talk to ADGA",
+    price: "Custom",
+    cadence: "annual contract",
+    desc: "For larger firms that need advanced controls, connected teams, and account-level oversight.",
+    cta: "Arrange a meeting",
     href: "/request-access?plan=enterprise",
     features: [
       "Everything in Team",
@@ -110,7 +78,7 @@ export default function PricingPage() {
         </section>
 
         <section className="section" style={{ paddingTop: 64, borderTop: 0 }}>
-          <div className="pricing pricing-five">
+          <div className="pricing">
             {PLANS.map((plan) => (
               <div className={"tier " + (plan.featured ? "featured" : "")} key={plan.id}>
                 {plan.featured && <span className="badge">Most capacity for one owner</span>}
@@ -137,11 +105,11 @@ export default function PricingPage() {
             <div className="faq-list">
               <details className="faq-item" open>
                 <summary>How is this structured?</summary>
-                <p>Start is for trying ADGA. Pro is for one active operator. Max is for a heavy individual user. Team is for shared workspaces. Enterprise is for firms that need custom capacity and controls.</p>
+                <p>Pro is for one active owner. Team is for shared workspaces with multiple operators. Enterprise is for firms that need custom capacity and account-level controls.</p>
               </details>
               <details className="faq-item">
                 <summary>Can users move between plans?</summary>
-                <p>Yes. A user can move from Start to Pro or Max as usage grows. A solo workspace can become a Team workspace without rebuilding records.</p>
+                <p>Yes. A solo Pro workspace can move up to Team without rebuilding records, and Team can move to Enterprise when the firm needs custom controls.</p>
               </details>
             </div>
           </div>

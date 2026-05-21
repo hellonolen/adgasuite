@@ -33,48 +33,9 @@ export default function MarketingPage() {
                 Existing teams · <a href="/login">open ADGA</a>
               </div>
             </div>
-            <div className="hero-product-panel hero-photo">
-              <div className="hero-panel-top">
-                <span>Live lead</span>
-                <b>Immediate follow-up</b>
-              </div>
-              <div className="hero-lead-card">
-                <div>
-                  <span className="hero-score" style={{color: 'var(--accent)'}}>92</span>
-                </div>
-                <div>
-                  <strong>Aurore Chastain</strong>
-                  <span>Sutter Maritime · Head of Corp Dev</span>
-                </div>
-                <em>Hot</em>
-              </div>
-              <div className="hero-workflow">
-                <div><span /> Capture</div>
-                <div><span /> Qualify</div>
-                <div><span /> Schedule</div>
-                <div><span /> Deal room</div>
-              </div>
-              <div className="hero-panel-grid">
-                <div>
-                  <small>Next action</small>
-                  <strong>Call within 5 minutes</strong>
-                </div>
-                <div>
-                  <small>Meeting</small>
-                  <strong>Invite queued</strong>
-                </div>
-                <div>
-                  <small>Files</small>
-                  <strong>2 documents attached</strong>
-                </div>
-                <div>
-                  <small>Owner</small>
-                  <strong>Maren Voss</strong>
-                </div>
-              </div>
-              <div className="hero-agent-note">
-                ADGA prepared the reply, logged the record, and opened the client follow-up path.
-              </div>
+            <div className="hero-photo">
+              <div className="ph-title">Live execution record</div>
+              <div className="ph-meta">LEAD · CONTACT · DEAL</div>
             </div>
           </div>
           {/* Marquee strip */}
@@ -180,43 +141,6 @@ export default function MarketingPage() {
                 <span><b>Deal operator</b> · Principal · private market advisory</span>
               </div>
               <div style={{marginTop: 14}}><a href="/stories" className="btn">See customer stories</a></div>
-            </div>
-          </div>
-        </section>
-        {/* ===== Pricing teaser ===== */}
-        <section className="section" id="pricing">
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 24, flexWrap: 'wrap'}}>
-            <div>
-              <span className="ed-label">Subscription</span>
-              <h2 className="title" style={{margin: '18px 0 0'}}>Plans for individuals, teams, and firms.</h2>
-            </div>
-            <a href="/pricing" className="btn lg">See pricing</a>
-          </div>
-          <div className="pricing" style={{marginTop: 48}}>
-            <div className="tier">
-              <div>
-                <div className="name">Individual</div>
-                <div className="desc">For one owner managing leads, contacts, follow-up, documents, and invoices.</div>
-              </div>
-              <div className="price">$99<small>per month</small></div>
-              <a href="/pricing" className="btn">See what's included</a>
-            </div>
-            <div className="tier featured">
-              <span className="badge">For teams</span>
-              <div>
-                <div className="name">Teams</div>
-                <div className="desc">For shared teams working across pipeline, client records, calendar, documents, and deal communications.</div>
-              </div>
-              <div className="price">$249<small>per seat / month</small></div>
-              <a href="/request-access?plan=teams" className="btn primary">Request access</a>
-            </div>
-            <div className="tier">
-              <div>
-                <div className="name">Enterprise</div>
-                <div className="desc">For larger firms that need advanced controls, connected teams, and account-level oversight.</div>
-              </div>
-              <div className="price">Custom</div>
-              <a href="/request-access?plan=enterprise" className="btn">Arrange a meeting</a>
             </div>
           </div>
         </section>
