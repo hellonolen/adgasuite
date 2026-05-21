@@ -1724,13 +1724,13 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
 
   const [draft, setDraft] = React.useState('');
   const [attachments, setAttachments] = React.useState([]);
-  const [historyOpen, setHistoryOpen] = React.useState(false);
+  const [panelTab, setPanelTab] = React.useState('chat');
   const [activeChat, setActiveChat] = React.useState(SAMPLE_HISTORY[0].id);
   const [messages, setMessages] = React.useState(VOICE_TRANSCRIPT);
 
   React.useEffect(() => {
-    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-  }, [messages, state]);
+    if (panelTab === 'chat' && bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+  }, [messages, state, panelTab]);
 
   const autosize = () => {
     if (!taRef.current) return;
@@ -1834,20 +1834,9 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         </div>
         <div className="voice-tools">
           <button
-            className={'composer-tool' + (historyOpen ? ' active' : '')}
-            type="button"
-            onClick={() => setHistoryOpen(o => !o)}
-            title="Chat history"
-            aria-label="Toggle history"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/>
-            </svg>
-          </button>
-          <button
             className="composer-tool"
             type="button"
-            onClick={() => { setMessages([]); setDraft(''); }}
+            onClick={() => { setMessages([]); setDraft(''); setPanelTab('chat'); }}
             title="New chat"
             aria-label="New chat"
           >
@@ -1869,88 +1858,47 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         </div>
       </div>
 
-      <div className="voice-command">
-        <div className="voice-command-kicker">
-          <span>Message ADGA</span>
-          <span>{routeAgentLabel(routeAgentKey(draft))} agent</span>
-        </div>
-        <div className="composer-box command-first">
-          {attachments.length > 0 && (
-            <div className="composer-attachments">
-              {attachments.map((a, i) => (
-                <div key={i} className="composer-chip">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{color:'var(--text-3)'}}>
-                    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
-                    <path d="M14 3v5h5"/>
-                  </svg>
-                  <span>{a.name}</span>
-                  <span
-                    className="x"
-                    onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
-                    role="button"
-                    aria-label="Remove attachment"
-                  >
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                      <path d="M18 6 6 18M6 6l12 12"/>
-                    </svg>
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-          <textarea
-            ref={taRef}
-            className="composer-textarea"
-            placeholder="Ask ADGA to summarize, draft, search, or update records."
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            onKeyDown={onKey}
-            rows={3}
-          />
-          <div className="composer-bar">
-            <button className="composer-tool" type="button" onClick={() => fileRef.current?.click()} title="Attach files" aria-label="Attach files">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12 12 21a6 6 0 1 1-8.5-8.5L13 3a4 4 0 0 1 5.7 5.7L9.4 18a2 2 0 1 1-2.8-2.8L15 7"/>
-              </svg>
-            </button>
-            <button className={'composer-tool mic' + (state === 'listening' ? ' live' : '')} type="button" onClick={toggleMic} title={state === 'listening' ? 'Stop voice input' : 'Start voice input'} aria-label="Voice input">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="9" y="3" width="6" height="12" rx="3"/>
-                <path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>
-              </svg>
-            </button>
-            <button className="composer-send" type="button" onClick={send} disabled={!draft.trim() && attachments.length === 0} aria-label="Send">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 19V5M5 12l7-7 7 7"/>
-              </svg>
-            </button>
-            <input ref={fileRef} type="file" multiple hidden onChange={onFile} accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.csv,.txt"/>
-          </div>
-        </div>
-      </div>
-
-      <div className={'voice-history ' + (historyOpen ? 'open' : '')}>
-        <div className="vh-head">
-          <span>Recent chats</span>
-          <button type="button" style={{fontSize:10,color:'var(--accent)',background:'none',border:0,padding:0,cursor:'pointer',textTransform:'uppercase',letterSpacing:'0.08em',fontWeight:500}}>View all</button>
-        </div>
-        {SAMPLE_HISTORY.map(c => (
-          <div
-            key={c.id}
-            className={'vh-item ' + (c.id === activeChat ? 'active' : '')}
-            onClick={() => { setActiveChat(c.id); setHistoryOpen(false); }}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{color:'var(--text-3)',flexShrink:0}}>
-              <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/>
-            </svg>
-            <span className="ttl">{c.title}</span>
-            <span className="when">{c.when}</span>
-          </div>
-        ))}
+      <div className="voice-tabs" role="tablist" aria-label="ADGA panel">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={panelTab === 'chat'}
+          className={panelTab === 'chat' ? 'active' : ''}
+          onClick={() => setPanelTab('chat')}
+        >
+          Chat
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={panelTab === 'history'}
+          className={panelTab === 'history' ? 'active' : ''}
+          onClick={() => setPanelTab('history')}
+        >
+          History
+        </button>
       </div>
 
       <div className="voice-body" ref={bodyRef}>
-        {messages.length === 0 ? (
+        {panelTab === 'history' ? (
+          <div className="voice-history-panel">
+            <div className="vh-head">
+              <span>Recent conversations</span>
+              <button type="button">View all</button>
+            </div>
+            {SAMPLE_HISTORY.map(c => (
+              <button
+                key={c.id}
+                type="button"
+                className={'vh-item ' + (c.id === activeChat ? 'active' : '')}
+                onClick={() => { setActiveChat(c.id); setPanelTab('chat'); }}
+              >
+                <span className="ttl">{c.title}</span>
+                <span className="when">{c.when}</span>
+              </button>
+            ))}
+          </div>
+        ) : messages.length === 0 ? (
           <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:14,padding:'24px 16px',textAlign:'center'}}>
             <div style={{width:48,height:48,borderRadius:'50%',background:'var(--accent-soft)',display:'grid',placeItems:'center'}}>
               <div style={{width:18,height:18,borderRadius:'50%',background:'var(--accent)'}}/>
@@ -1958,7 +1906,7 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
             <div>
               <div style={{fontSize:15,fontWeight:600,letterSpacing:'-0.01em'}}>How can I help, Maren?</div>
               <div style={{fontSize:12.5,color:'var(--text-3)',marginTop:4,lineHeight:1.5,maxWidth:260}}>
-                Ask about deals, draft outreach, pull reports, or run actions across your pipeline.
+                Ask about a contact, deal, meeting, document, or next action.
               </div>
             </div>
           </div>
@@ -1997,8 +1945,8 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         )}
       </div>
 
-      {state === 'listening' && (
-        <div className="voice-live" style={{borderTop:'1px solid var(--border)'}}>
+      {panelTab === 'chat' && state === 'listening' && (
+        <div className="voice-live">
           <div className="voice-live-wave" aria-hidden="true">
             {Array.from({length: 28}).map((_, i) => (
               <i key={i} style={{animationDelay: (i * 0.04) + 's'}}/>
@@ -2008,7 +1956,7 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         </div>
       )}
 
-      {messages.length <= 1 && state === 'idle' && (
+      {panelTab === 'chat' && messages.length <= 1 && state === 'idle' && (
         <div className="voice-suggests">
           {SUGGESTIONS.map(s => (
             <button key={s} type="button" onClick={() => setDraft(s)}>{s}</button>
@@ -2016,114 +1964,88 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         </div>
       )}
 
-      <div className="voice-composer secondary-composer">
-        <div className="composer-box">
-          {attachments.length > 0 && (
-            <div className="composer-attachments">
-              {attachments.map((a, i) => (
-                <div key={i} className="composer-chip">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{color:'var(--text-3)'}}>
-                    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
-                    <path d="M14 3v5h5"/>
-                  </svg>
-                  <span>{a.name}</span>
-                  <span
-                    className="x"
-                    onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
-                    role="button"
-                    aria-label="Remove attachment"
-                  >
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                      <path d="M18 6 6 18M6 6l12 12"/>
+      {panelTab === 'chat' && (
+        <div className="voice-command">
+          <div className="composer-box">
+            {attachments.length > 0 && (
+              <div className="composer-attachments">
+                {attachments.map((a, i) => (
+                  <div key={i} className="composer-chip">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{color:'var(--text-3)'}}>
+                      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+                      <path d="M14 3v5h5"/>
                     </svg>
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-          <textarea
-            ref={taRef}
-            className="composer-textarea"
-            placeholder="Ask ADGA — “open Meridian story”, “show tasks”, “draft outreach…”"
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            onKeyDown={onKey}
-            rows={4}
-          />
-          <div className="composer-bar">
-            <button
-              className="composer-tool"
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              title="Attach files"
-              aria-label="Attach files"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12 12 21a6 6 0 1 1-8.5-8.5L13 3a4 4 0 0 1 5.7 5.7L9.4 18a2 2 0 1 1-2.8-2.8L15 7"/>
-              </svg>
-            </button>
-            <button
-              className="composer-tool"
-              type="button"
-              title="Reference a deal"
-              aria-label="Reference a deal"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 4h16v6H4zM4 14h16v6H4zM8 4v6M8 14v6"/>
-              </svg>
-            </button>
-            <button
-              className="composer-tool"
-              type="button"
-              title="Slash commands"
-              aria-label="Slash commands"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 5 5 19"/>
-              </svg>
-            </button>
-            <button
-              className={'composer-tool mic' + (state === 'listening' ? ' live' : '')}
-              type="button"
-              onClick={toggleMic}
-              title={state === 'listening' ? 'Stop voice input' : 'Start voice input'}
-              aria-label="Voice input"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="9" y="3" width="6" height="12" rx="3"/>
-                <path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>
-              </svg>
-            </button>
-            <button
-              className="composer-send"
-              type="button"
-              onClick={send}
-              disabled={!draft.trim() && attachments.length === 0}
-              aria-label="Send"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 19V5M5 12l7-7 7 7"/>
-              </svg>
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              multiple
-              hidden
-              onChange={onFile}
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.csv,.txt"
+                    <span>{a.name}</span>
+                    <span
+                      className="x"
+                      onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
+                      role="button"
+                      aria-label="Remove attachment"
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                        <path d="M18 6 6 18M6 6l12 12"/>
+                      </svg>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <textarea
+              ref={taRef}
+              className="composer-textarea"
+              placeholder="Ask ADGA to brief a contact, draft outreach, find documents, or move a deal forward."
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              onKeyDown={onKey}
+              rows={4}
             />
+            <div className="composer-bar">
+              <button
+                className="composer-tool"
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                title="Attach files"
+                aria-label="Attach files"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12 12 21a6 6 0 1 1-8.5-8.5L13 3a4 4 0 0 1 5.7 5.7L9.4 18a2 2 0 1 1-2.8-2.8L15 7"/>
+                </svg>
+              </button>
+              <button
+                className={'composer-tool mic' + (state === 'listening' ? ' live' : '')}
+                type="button"
+                onClick={toggleMic}
+                title={state === 'listening' ? 'Stop voice input' : 'Start voice input'}
+                aria-label="Voice input"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="3" width="6" height="12" rx="3"/>
+                  <path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>
+                </svg>
+              </button>
+              <button
+                className="composer-send"
+                type="button"
+                onClick={send}
+                disabled={!draft.trim() && attachments.length === 0}
+                aria-label="Send"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 19V5M5 12l7-7 7 7"/>
+                </svg>
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                multiple
+                hidden
+                onChange={onFile}
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.csv,.txt"
+              />
+            </div>
           </div>
         </div>
-        <div className="composer-hint">
-          <span>
-            <span className="kbd">↵</span> send
-            <span style={{margin:'0 8px',opacity:0.5}}>·</span>
-            <span className="kbd">⇧</span><span className="kbd">↵</span> new line
-          </span>
-          <span>Files stay attached to the record.</span>
-        </div>
-      </div>
+      )}
     </aside>
   );
 }
