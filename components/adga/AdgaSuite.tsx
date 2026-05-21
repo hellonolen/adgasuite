@@ -5081,6 +5081,9 @@ function StoryPage({ deals, openDeal, focusDealId }) {
   const [composeKind, setComposeKind] = React.useState('note');
   const [draft, setDraft] = React.useState('');
   const [extraTouches, setExtraTouches] = React.useState({});
+  const [clientQuery, setClientQuery] = React.useState('');
+  const [contactQuery, setContactQuery] = React.useState('');
+  const [storyQuery, setStoryQuery] = React.useState('');
 
   React.useEffect(() => {
     if (focusDealId) setActiveId(focusDealId);
@@ -5094,6 +5097,37 @@ function StoryPage({ deals, openDeal, focusDealId }) {
   const stage = deal ? stageOf(deal.stage) : null;
 
   const counts = touches.reduce((acc, t) => { acc[t.kind] = (acc[t.kind] || 0) + 1; return acc; }, {});
+  const selectedOwner = deal ? personOf(deal.owner) : null;
+  const selectedTeam = deal ? (deal.team || []).map(personOf).filter(Boolean) : [];
+  const selectedContacts = selectedOwner ? [selectedOwner, ...selectedTeam.filter(p => p.id !== selectedOwner.id)] : selectedTeam;
+  const clientMatches = (d) => {
+    const q = clientQuery.trim().toLowerCase();
+    if (!q) return true;
+    const company = companyOf(d.company);
+    return [
+      d.name,
+      d.id,
+      d.type,
+      d.source,
+      company?.name,
+      company?.sector,
+      company?.hq,
+    ].filter(Boolean).some(value => String(value).toLowerCase().includes(q));
+  };
+  const contactMatches = (d) => {
+    const q = contactQuery.trim().toLowerCase();
+    if (!q) return true;
+    return [d.owner, ...(d.team || [])]
+      .map(personOf)
+      .filter(Boolean)
+      .some(person => [person.name, person.role, person.initials].some(value => String(value).toLowerCase().includes(q)));
+  };
+  const dealOptions = deals.filter(d => clientMatches(d) && contactMatches(d));
+  const visibleTouches = storyQuery.trim()
+    ? touches.filter(t => [t.title, t.body, t.kind, kindLabel(t.kind), personOf(t.who)?.name]
+        .filter(Boolean)
+        .some(value => String(value).toLowerCase().includes(storyQuery.trim().toLowerCase())))
+    : touches;
 
   const submitTouch = () => {
     if (!draft.trim()) return;
@@ -5117,7 +5151,7 @@ function StoryPage({ deals, openDeal, focusDealId }) {
   };
 
   // Group touches by month for editorial month rules
-  const byMonth = touches.reduce((acc, t) => {
+  const byMonth = visibleTouches.reduce((acc, t) => {
     const m = t.date.split(' · ')[0].slice(0, 3);
     if (!acc[m]) acc[m] = [];
     acc[m].push(t);
@@ -5168,24 +5202,58 @@ function StoryPage({ deals, openDeal, focusDealId }) {
         )}
       </header>
 
-      {/* Deal switcher */}
-      <div className="story-chips">
-        {STORY_DEALS.map(id => {
-          const d = deals.find(x => x.id === id);
-          if (!d) return null;
-          return (
-            <button
-              key={id}
-              type="button"
-              className={'story-chip ' + (id === activeId ? 'active' : '')}
-              onClick={() => setActiveId(id)}
-            >
-              <span className="ind"/>
-              <span>{d.name.split(' — ')[0]}</span>
-              <span style={{fontFamily:'var(--font-mono)',fontSize:10,letterSpacing:'.1em',opacity:0.65}}>{(STORY_TOUCHES_BY_DEAL[id] || []).length}</span>
-            </button>
-          );
-        })}
+      {/* Scalable Story selectors */}
+      <div className="story-selector-bar">
+        <div className="story-control">
+          <label htmlFor="story-deal-select">Client / deal</label>
+          <select
+            id="story-deal-select"
+            className="story-control-field"
+            value={activeId}
+            onChange={(event) => setActiveId(event.target.value)}
+          >
+            {dealOptions.map(d => {
+              const company = companyOf(d.company);
+              return <option key={d.id} value={d.id}>{company?.name || d.company} - {d.name}</option>;
+            })}
+            {!dealOptions.find(d => d.id === activeId) && deal && (
+              <option value={deal.id}>{co?.name || deal.company} - {deal.name}</option>
+            )}
+          </select>
+        </div>
+        <div className="story-control">
+          <label htmlFor="story-client-search">Search clients</label>
+          <input
+            id="story-client-search"
+            className="story-control-field"
+            value={clientQuery}
+            onChange={(event) => setClientQuery(event.target.value)}
+            placeholder="Company, sector, location"
+          />
+        </div>
+        <div className="story-control">
+          <label htmlFor="story-contact-search">Search contacts</label>
+          <input
+            id="story-contact-search"
+            className="story-control-field"
+            value={contactQuery}
+            onChange={(event) => setContactQuery(event.target.value)}
+            placeholder={selectedContacts.length ? selectedContacts.map(p => p.name.split(' ')[0]).join(', ') : 'Owner or team'}
+          />
+        </div>
+        <div className="story-control">
+          <label htmlFor="story-record-search">Search story</label>
+          <input
+            id="story-record-search"
+            className="story-control-field"
+            value={storyQuery}
+            onChange={(event) => setStoryQuery(event.target.value)}
+            placeholder="Notes, calls, documents"
+          />
+        </div>
+      </div>
+      <div className="story-result-count">
+        {dealOptions.length} deal{dealOptions.length === 1 ? '' : 's'} available · {visibleTouches.length} of {touches.length} story item{touches.length === 1 ? '' : 's'} shown
       </div>
 
       {/* Add tools row */}

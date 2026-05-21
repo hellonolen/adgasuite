@@ -2,6 +2,7 @@
 @import "../components/adga/marketing.css";
 @import "../components/adga/styles.css";
 @import "../components/adga/styles-v4.css";
+@import "../components/adga/design-system.css";
 
 html, body { margin: 0; min-height: 100%; }
 
@@ -352,8 +353,8 @@ body {
 .partner-form input:focus,
 .partner-form select:focus,
 .partner-form textarea:focus {
-  border-color: #7c5cff;
-  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.18);
+  border-color: var(--adga-accent);
+  box-shadow: 0 0 0 3px var(--adga-accent-ring);
 }
 
 .partner-wide {
@@ -429,25 +430,25 @@ body {
 :root {
   /* Fonts */
   --adga-font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --adga-font-display: "Instrument Serif", Georgia, serif;
+  --adga-font-display: var(--adga-font-sans);
   --adga-font-product: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --adga-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Shared palette */
-  --adga-bg: #f7f6fa;
+  --adga-bg: #f6f7f8;
   --adga-surface: #ffffff;
-  --adga-surface-2: #f3f2f7;
-  --adga-surface-3: #ececf1;
-  --adga-surface-hover: #efeff3;
-  --adga-text: #1a1a22;
-  --adga-text-2: #55555f;
-  --adga-text-3: #8a8a95;
-  --adga-border: #e3e2ea;
-  --adga-border-strong: #c5c4ce;
-  --adga-accent: #7c5cff;
-  --adga-accent-hover: #6647ff;
-  --adga-accent-soft: rgba(124, 92, 255, 0.10);
-  --adga-accent-ring: rgba(124, 92, 255, 0.28);
+  --adga-surface-2: #f1f3f4;
+  --adga-surface-3: #e8ecef;
+  --adga-surface-hover: #eef2f3;
+  --adga-text: #171a1f;
+  --adga-text-2: #5a626e;
+  --adga-text-3: #8a929d;
+  --adga-border: #dde1e6;
+  --adga-border-strong: #b8c0ca;
+  --adga-accent: #0f766e;
+  --adga-accent-hover: #0b5f58;
+  --adga-accent-soft: rgba(15, 118, 110, 0.10);
+  --adga-accent-ring: rgba(15, 118, 110, 0.22);
   --adga-accent-fg: #ffffff;
 
   /* Shape, density, and controls */
@@ -503,8 +504,8 @@ body {
 
 /* Font direction classes */
 .adga-font-editorial {
-  --adga-font-display: "Instrument Serif", Georgia, serif;
-  --font-serif: var(--adga-font-display);
+  --adga-font-display: var(--adga-font-sans);
+  --font-serif: var(--adga-font-sans);
 }
 
 .adga-font-product,
@@ -520,17 +521,17 @@ body {
 
 /* Palette direction classes */
 .adga-palette-violet {
-  --adga-bg: #f7f6fa;
+  --adga-bg: #f6f7f8;
   --adga-surface: #ffffff;
-  --adga-surface-2: #f3f2f7;
-  --adga-surface-3: #ececf1;
-  --adga-text: #1a1a22;
-  --adga-text-2: #55555f;
-  --adga-text-3: #8a8a95;
-  --adga-border: #e3e2ea;
-  --adga-border-strong: #c5c4ce;
-  --adga-accent: #7c5cff;
-  --adga-accent-hover: #6647ff;
+  --adga-surface-2: #f1f3f4;
+  --adga-surface-3: #e8ecef;
+  --adga-text: #171a1f;
+  --adga-text-2: #5a626e;
+  --adga-text-3: #8a929d;
+  --adga-border: #dde1e6;
+  --adga-border-strong: #b8c0ca;
+  --adga-accent: #0f766e;
+  --adga-accent-hover: #0b5f58;
 }
 
 .adga-palette-graphite {

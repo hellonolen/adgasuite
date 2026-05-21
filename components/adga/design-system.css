@@ -1,0 +1,206 @@
+/* ADGA Suite final design authority.
+   Loaded last to neutralize older editorial CSS until those files are retired. */
+
+:root {
+  --adga-bg: #f6f7f8;
+  --adga-surface: #ffffff;
+  --adga-surface-2: #f1f3f4;
+  --adga-surface-3: #e8ecef;
+  --adga-surface-hover: #eef2f3;
+  --adga-text: #171a1f;
+  --adga-text-2: #5a626e;
+  --adga-text-3: #8a929d;
+  --adga-border: #dde1e6;
+  --adga-border-strong: #b8c0ca;
+  --adga-accent: #0f766e;
+  --adga-accent-hover: #0b5f58;
+  --adga-accent-soft: rgba(15, 118, 110, 0.10);
+  --adga-accent-ring: rgba(15, 118, 110, 0.22);
+  --adga-accent-fg: #ffffff;
+  --adga-font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --adga-font-display: var(--adga-font-sans);
+  --adga-font-product: var(--adga-font-sans);
+  --adga-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --adga-radius-sm: 4px;
+  --adga-radius-md: 7px;
+  --adga-radius-lg: 10px;
+
+  --bg: var(--adga-bg);
+  --paper: var(--adga-surface);
+  --paper-2: var(--adga-surface-2);
+  --surface: var(--adga-surface);
+  --surface-2: var(--adga-surface-2);
+  --surface-3: var(--adga-surface-3);
+  --surface-hover: var(--adga-surface-hover);
+  --ink: var(--adga-text);
+  --ink-2: var(--adga-text-2);
+  --ink-3: var(--adga-text-3);
+  --text: var(--adga-text);
+  --text-2: var(--adga-text-2);
+  --text-3: var(--adga-text-3);
+  --border: var(--adga-border);
+  --border-strong: var(--adga-border-strong);
+  --rule: var(--adga-border);
+  --rule-strong: var(--adga-border-strong);
+  --accent: var(--adga-accent);
+  --accent-hover: var(--adga-accent-hover);
+  --accent-deep: var(--adga-accent-hover);
+  --accent-soft: var(--adga-accent-soft);
+  --accent-ring: var(--adga-accent-ring);
+  --accent-fg: var(--adga-accent-fg);
+  --font-sans: var(--adga-font-sans);
+  --font-serif: var(--adga-font-sans);
+  --font-mono: var(--adga-font-mono);
+  --radius: var(--adga-radius-md);
+  --radius-lg: var(--adga-radius-lg);
+}
+
+body,
+.app,
+.suite-shell,
+.wrap,
+.partner-page {
+  font-family: var(--adga-font-sans);
+  color: var(--adga-text);
+  background: var(--adga-bg);
+}
+
+h1, h2, h3, h4,
+.hero h1,
+.page-hero h1,
+.section h2.title,
+.spread .copy h3,
+.story-spread h3,
+.page-h h1,
+.story-h h1,
+.touch-card .title,
+.kpi .val,
+.story-stat .v,
+.lead-name,
+.share-title,
+.handoff-h h2,
+.ph-title,
+.quote q,
+.tier .price,
+.price-card .price {
+  font-family: var(--adga-font-sans) !important;
+  font-style: normal !important;
+  letter-spacing: 0 !important;
+}
+
+em,
+.italic,
+.strip-row em,
+.hero h1 em,
+.page-hero h1 em,
+.spread .copy h3 em,
+.story-h h1 em,
+.cta h2 em {
+  font-family: inherit !important;
+  font-style: normal !important;
+  color: inherit;
+}
+
+.btn,
+button,
+input,
+select,
+textarea,
+.chip,
+.story-tool,
+.story-control-field {
+  font-family: var(--adga-font-sans);
+}
+
+.btn.primary,
+.partner-submit,
+.story-tool.add,
+.story-chip.active {
+  background: var(--adga-accent) !important;
+  border-color: var(--adga-accent) !important;
+  color: var(--adga-accent-fg) !important;
+  box-shadow: none !important;
+}
+
+.btn,
+.chip,
+.card,
+.drawer,
+.story-control-field,
+.story-tool,
+.touch-card,
+.lead-card,
+.deal-card,
+.partner-panel,
+.partner-form {
+  border-color: var(--adga-border);
+  box-shadow: none;
+}
+
+.ed-label::before,
+.dot,
+.story-spread .label .dot {
+  background: var(--adga-accent) !important;
+}
+
+.story-selector-bar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.2fr) minmax(190px, 0.85fr) minmax(190px, 0.85fr) minmax(220px, 1fr);
+  gap: 10px;
+  padding: 16px 0 18px;
+  border-top: 1px solid var(--adga-border);
+  border-bottom: 1px solid var(--adga-border);
+  margin-top: 24px;
+}
+
+.story-control {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.story-control label {
+  font-family: var(--adga-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--adga-text-3);
+}
+
+.story-control-field {
+  min-width: 0;
+  width: 100%;
+  height: 40px;
+  box-sizing: border-box;
+  border: 1px solid var(--adga-border-strong);
+  border-radius: var(--adga-radius-md);
+  background: var(--adga-surface);
+  color: var(--adga-text);
+  padding: 0 11px;
+  font-size: 13px;
+  outline: none;
+}
+
+.story-control-field:focus {
+  border-color: var(--adga-accent);
+  box-shadow: 0 0 0 3px var(--adga-accent-ring);
+}
+
+.story-result-count {
+  margin-top: 10px;
+  color: var(--adga-text-3);
+  font-family: var(--adga-font-mono);
+  font-size: 11px;
+}
+
+@media (max-width: 1080px) {
+  .story-selector-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .story-selector-bar {
+    grid-template-columns: 1fr;
+  }
+}

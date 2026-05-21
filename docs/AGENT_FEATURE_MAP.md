@@ -22,6 +22,7 @@ Each listed agent has 1 Markdown file assigned to it.
 
 | Feature area | Source requirements | Agent Markdown | JSON state |
 | --- | --- | --- | --- |
+| Visual system and UI standardization | `docs/DESIGN_SYSTEM.md`, `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/operations/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/agent-event.schema.json` |
 | Lead intake, urgency, follow-up | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/sales/SKILL.md`, `agents/conductor/SKILL.md`, `agents/communication/SKILL.md` | `cloudflare/state/agent-job.schema.json`, `cloudflare/state/agent-event.schema.json` |
 | Deal pipeline and represented client access | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/conductor/SKILL.md`, `agents/communication/SKILL.md`, `agents/sales/SKILL.md` | `cloudflare/state/client-portal.state.json`, `cloudflare/state/deal-communication.state.json` |
 | Internal team communication | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/communication/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/deal-communication.state.json` |

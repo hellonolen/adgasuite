@@ -18,6 +18,8 @@ The product should communicate control, momentum, and operational clarity for pe
 - Keep the tone bold, modern, direct, and premium.
 - Avoid soft, cursive, airy, fairy, playful, or decorative product language.
 - Avoid technical setup language on customer-facing pages.
+- Follow `docs/DESIGN_SYSTEM.md` as the visual source of truth before adding page-specific styling.
+- Use a single premium SaaS font system across the app and marketing pages. Do not use serif/cursive styling in the software UI.
 
 ## Stronger Positioning Direction
 
@@ -222,6 +224,15 @@ Documents and links:
 - The user should always understand where they are: Leads list, lead detail, or lead creation.
 - The user should be able to move in and out of a lead record without losing context.
 - The left sidebar and the assistant/chat should both be able to take the user to the same lead information.
+
+## Story Navigation Requirements
+
+- Story client/deal selection must use scalable searchable controls, not a horizontal rail of capsules.
+- Story must support searching by client/company.
+- Story must support searching by contact/team member.
+- Story must support searching within story content such as notes, calls, documents, meetings, and voice notes.
+- The selector pattern must work for hundreds of clients without visual overflow.
+- Story filters should show how many records and story items are currently visible.
 - Breadcrumbs, tabs, or a clear page title should make the current location obvious.
 
 ## Assistant And Navigation Requirements
