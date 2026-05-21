@@ -272,6 +272,19 @@ Documents and links:
 - Affiliate records should connect to customers and subscriptions without exposing private platform internals.
 - Affiliate payouts should be tracked even if payout execution is handled later.
 
+## ADP Affiliate Page Requirements
+
+- `adga.ai/adp` is a dedicated affiliate partner page for ADP.
+- The page is not for ADGA to run payroll. It captures a complete payroll lead and sends that lead to ADP.
+- The ADP page should collect full contact, company, payroll timing, current provider, state, company size, needs, notes, source, consent, and timestamps.
+- ADP referral lead records should be stored in D1.
+- Referral email deliveries should be stored in D1 with to-email, provider, status, provider response, sent date, created date, and updated date.
+- The default routing email is `ADP_REFERRAL_TO_EMAIL`.
+- Email delivery uses Postmark.
+- The platform must track how many referral emails were sent for each ADP lead.
+- The platform must track all date information for the lead and email delivery.
+- This affiliate pattern should be reusable for future partners.
+
 ## Invoicing Center Requirements
 
 - ADGA needs a full invoicing center for platform owners.

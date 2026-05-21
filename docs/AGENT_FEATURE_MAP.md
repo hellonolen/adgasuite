@@ -34,6 +34,7 @@ Each listed agent has 1 Markdown file assigned to it.
 | Bank-account payout setup | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/payments/SKILL.md`, `agents/operations/SKILL.md` | `cloudflare/state/invoice-connectors.state.json` |
 | Stripe, PayPal, Whop, QuickBooks connectors | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/payments/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/invoice-connectors.state.json` |
 | Affiliate center | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/payments/SKILL.md`, `agents/operations/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/agent-event.schema.json` |
+| ADP affiliate payroll lead page | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/sales/SKILL.md`, `agents/communication/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/agent-event.schema.json` |
 | Intelligence and battlecards | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/intelligence/SKILL.md` | `cloudflare/state/agent-job.schema.json` |
 
 ## No-Rogue-Coding Rule

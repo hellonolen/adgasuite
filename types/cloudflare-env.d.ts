@@ -36,6 +36,7 @@ declare global {
     ADGA_ADMIN_EMAIL?: string;
     ADGA_ADMIN_EMAILS?: string;
     ADGA_LOCAL_ADMIN_BYPASS?: string;
+    ADP_REFERRAL_TO_EMAIL?: string;
     POSTMARK_SERVER_TOKEN?: string;
     POSTMARK_FROM_EMAIL?: string;
     SMS_GATEWAY_URL?: string;

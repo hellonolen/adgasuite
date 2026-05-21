@@ -17,6 +17,7 @@ ADGA_AI_MODEL = "@cf/moonshotai/kimi-k2.6"
 ADGA_ADMIN_EMAIL = "hellonolen@gmail.com"
 ADGA_ADMIN_EMAILS = "hellonolen@gmail.com,kamarokyle5@gmail.com"
 ADGA_LOCAL_ADMIN_BYPASS = "true"
+ADP_REFERRAL_TO_EMAIL = "hellonolen@gmail.com"
 WHOP_REDIRECT_URL = "https://adga.ai/suite"
 
 [assets]
