@@ -120,18 +120,25 @@ Required surfaces:
 - An import existing deals flow.
 - A post-close expansion panel.
 
-## Trial Policy
+## Workspace Activation
 
-ADGA should not use a long trial as the default public promise.
+ADGA should not sell the platform around a public free trial.
 
-Allowed public trial models:
+The first customer experience should be a seven-step activation path:
 
-- 3-day focused trial.
-- 7-day maximum trial.
-- Paid pilot.
-- Plan checkout with email verification.
+1. Import or create deals.
+2. Connect contacts and companies.
+3. Attach documents and notes.
+4. Set stages and close paths.
+5. Create next actions.
+6. Review risks and blockers.
+7. Run the weekly close plan.
 
-Do not default to a 14-day trial.
+This can be delivered as an onboarding checklist, an email sequence, an in-app progress tracker, or all three.
+
+The activation path is not a 7-day free trial. It is the setup process for getting real deals into ADGA quickly.
+
+Do not default to a 14-day trial. Do not make "free trial" the public promise.
 
 ## Public Copy Rules
 
@@ -143,6 +150,7 @@ Use:
 - Start closing deals.
 - Bring existing deals into ADGA.
 - Run the deal process from signal to close.
+- Your organized deal flow from lead to close, then repeat.
 
 Avoid:
 
@@ -151,4 +159,4 @@ Avoid:
 - Behind-the-scenes automation mechanics.
 - Manual follow-up from ADGA staff.
 - Long trial framing.
-
+- Free trial as the primary CTA.

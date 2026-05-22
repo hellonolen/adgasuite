@@ -18,12 +18,12 @@ export default function MarketingPage() {
           <div className="hero-grid">
             <div>
               <h1>
-                The deal platform<br />
-                that keeps every<br />
-                <em>close in motion.</em>
+                Your organized<br />
+                deal flow from lead<br />
+                to close, <em>then repeat.</em>
               </h1>
               <p className="lede">
-                ADGA connects leads, contacts, calls, documents, meetings, tasks, payments, and prepared next actions into one execution record for every active deal.
+                ADGA gives every lead, contact, call, document, meeting, task, payment, and next action a place in the deal process so teams can move from first signal to repeat purchase.
               </p>
               <div className="ctas">
                 <a href="/pricing" className="btn primary lg">Start closing deals</a>
@@ -79,7 +79,7 @@ export default function MarketingPage() {
           </div>
         </section>
         {/* ===== Deal process ===== */}
-        <section className="section process-section">
+        <section className="section process-section" id="deal-process">
           <span className="ed-label">Deal process</span>
           <div className="process-head">
             <h2 className="title">From signal to repeat purchase.</h2>
@@ -100,6 +100,58 @@ export default function MarketingPage() {
             ].map(([num, label, body]) => (
               <div className="process-step" key={num}>
                 <span>{num}</span>
+                <b>{label}</b>
+                <small>{body}</small>
+              </div>
+            ))}
+          </div>
+        </section>
+        {/* ===== Activation ===== */}
+        <section className="section activation-section" id="activation">
+          <span className="ed-label">Workspace activation</span>
+          <div className="activation-head">
+            <h2 className="title">Set up the deal desk. Do the work.</h2>
+            <p>
+              ADGA should not be treated like a passive trial. The first week is an activation path that gets real deals, contacts, documents, and next actions into motion.
+            </p>
+          </div>
+          <div className="activation-list" aria-label="Seven-step ADGA onboarding checklist">
+            {[
+              ["01", "Import or create deals", "Bring in active deals, old pipeline, or the first opportunity from a lead."],
+              ["02", "Connect contacts and companies", "Attach the people, accounts, decision makers, and relationship context."],
+              ["03", "Attach documents and notes", "Bring in proposals, contracts, voice notes, transcripts, folders, and files."],
+              ["04", "Set stages and close paths", "Place each deal in Signal, Capture, Qualify, Shape, Advance, Close, Deliver, or Expand."],
+              ["05", "Create next actions", "Assign the call, meeting, document, follow-up, task, or payment step that moves the deal."],
+              ["06", "Review risk and blockers", "Identify missing data, no-response risk, stalled movement, unsigned files, and close-date drift."],
+              ["07", "Run the weekly close plan", "Use the workspace to move priority deals, protect commitments, and surface expansion paths."]
+            ].map(([num, label, body]) => (
+              <div className="activation-row" key={num}>
+                <span>{num}</span>
+                <b>{label}</b>
+                <small>{body}</small>
+              </div>
+            ))}
+          </div>
+        </section>
+        {/* ===== Use cases ===== */}
+        <section className="section usecase-section" id="use-cases">
+          <span className="ed-label">Use cases</span>
+          <div className="process-head">
+            <h2 className="title">Different deals. One operating path.</h2>
+            <p>
+              ADGA is built around the anatomy of a deal, so the same system can support high-value commercial work across categories.
+            </p>
+          </div>
+          <div className="usecase-grid">
+            {[
+              ["Capital raise", "Track investor contacts, diligence files, commitments, follow-up, and closing timeline."],
+              ["Acquisition", "Keep buyer, seller, advisors, documents, approvals, meetings, and terms in one record."],
+              ["Partnership", "Move introductions, stakeholders, commercial terms, documents, and launch steps forward."],
+              ["Licensing", "Manage rights, counterparties, term sheets, review cycles, signatures, and renewal paths."],
+              ["Procurement", "Track vendors, quotes, decision criteria, approvals, contracts, payments, and delivery."],
+              ["High-ticket sales", "Turn qualified interest into calls, proposals, follow-up, close, delivery, and expansion."]
+            ].map(([label, body]) => (
+              <div className="usecase-card" key={label}>
                 <b>{label}</b>
                 <small>{body}</small>
               </div>

@@ -75,9 +75,9 @@
         },
         {
           "id": "trial-policy-contract",
-          "title": "Define trial options and checkout rules",
+          "title": "Define no-public-trial policy and seven-step workspace activation rules",
           "owner": "payments",
-          "status": "planned",
+          "status": "complete",
           "artifacts": ["docs/ADGA_DEAL_PROCESS_SPINE.md", "cloudflare/state/workspace-activation.schema.json"]
         }
       ]

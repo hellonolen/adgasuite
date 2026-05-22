@@ -108,10 +108,10 @@ export default function SecurityPage() {
           </h2>
           <div className="right">
             <p>
-              The complete compliance file — SOC 2 Type II report, penetration test summary, DPA, and security questionnaire — is available within one working day.
+              Security controls, data-processing terms, and workspace audit details are available inside verified ADGA workspaces.
             </p>
             <div className="ctas">
-              <a href="/request-access?plan=teams" className="btn primary lg">Request the file</a>
+              <a href="#controls" className="btn primary lg">Review security controls</a>
               <a href="/pricing" className="btn lg">See pricing</a>
             </div>
           </div>

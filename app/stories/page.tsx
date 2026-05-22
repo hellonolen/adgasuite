@@ -23,8 +23,8 @@ export default function StoriesPage() {
               Four houses, four floors, four different rooms — every one running deals on ADGA.
             </p>
             <div className="actions">
-              <a href="/request-access?plan=teams" className="btn primary lg">Begin a subscription</a>
-              <a href="/product" className="btn lg">See the product</a>
+              <a href="/pricing" className="btn primary lg">Start closing deals</a>
+              <a href="/product" className="btn lg">Review the workspace</a>
             </div>
           </div>
         </section>

@@ -31,16 +31,16 @@ export default function VerifyAuthPage() {
     <MarketingLayout>
       <main className="auth-page auth-two-panel wrap">
         <section className="auth-brand">
-          <span className="auth-kicker">Secure access</span>
-          <h1>ADGA is opening your deal workspace.</h1>
-          <p>Magic links are short-lived, single-use, and tied to the email address that requested access.</p>
+          <span className="auth-kicker">Secure sign in</span>
+          <h1>ADGA is verifying your deal workspace.</h1>
+          <p>Magic links are short-lived, single-use, and tied to the email address that requested the sign-in link.</p>
         </section>
         <section className="auth-card">
           <span className="auth-kicker">Verification</span>
           <h2>Checking link</h2>
           <p className="auth-status">{status}</p>
           <div className="auth-links">
-            <a href="/login">Request a new link</a>
+            <a href="/login">Send a new sign-in link</a>
           </div>
         </section>
       </main>

@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/schemas/workspace-activation.schema.json",
+  "title": "ADGA Workspace Activation State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "workspaceId",
+    "status",
+    "startedAt",
+    "steps",
+    "trialPolicy",
+    "audit"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "workspaceId": { "type": "string", "minLength": 1 },
+    "status": {
+      "type": "string",
+      "enum": ["not_started", "in_progress", "complete", "blocked"]
+    },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "completedAt": { "type": "string", "format": "date-time" },
+    "steps": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "label", "status", "targetDay", "requiredArtifacts"],
+        "properties": {
+          "key": {
+            "type": "string",
+            "enum": [
+              "import_or_create_deals",
+              "connect_contacts_companies",
+              "attach_documents_notes",
+              "set_stages_close_paths",
+              "create_next_actions",
+              "review_risks_blockers",
+              "run_weekly_close_plan"
+            ]
+          },
+          "label": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["not_started", "in_progress", "complete", "blocked"]
+          },
+          "targetDay": { "type": "integer", "minimum": 1, "maximum": 7 },
+          "completedAt": { "type": "string", "format": "date-time" },
+          "requiredArtifacts": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["deal", "contact", "company", "document", "call", "meeting", "task", "next_action", "risk_review", "close_plan"]
+            }
+          },
+          "relatedRecordIds": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "trialPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["publicTrialOffered", "activationChecklistEnabled"],
+      "properties": {
+        "publicTrialOffered": { "type": "boolean", "const": false },
+        "activationChecklistEnabled": { "type": "boolean", "const": true },
+        "activationWindowDays": { "type": "integer", "minimum": 1, "maximum": 7 }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["createdAt", "updatedAt"],
+      "properties": {
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      }
+    }
+  }
+}

@@ -51,9 +51,9 @@ export default function RequestAccessPage() {
         <section className="access-hero">
           <div className="access-copy">
             <span className="ed-label">ADGA Suite</span>
-            <h1>Start with the right plan.</h1>
+            <h1>Activate your deal workspace.</h1>
             <p>
-              Existing users should sign in. New workspaces should choose a plan, verify email during onboarding, then enter the suite.
+              Existing users should sign in. New workspaces choose a plan, verify email, and start the activation checklist that gets real deals moving.
             </p>
             <div className="access-actions">
               <a className="btn primary lg" href="/pricing">Choose a plan</a>
@@ -61,8 +61,8 @@ export default function RequestAccessPage() {
             </div>
             <div className="access-steps" aria-label="Start flow">
               <div><b>1</b><span>Choose a plan on pricing</span></div>
-              <div><b>2</b><span>Verify email and complete purchase/review</span></div>
-              <div><b>3</b><span>Sign in and open the suite</span></div>
+              <div><b>2</b><span>Verify email and complete checkout</span></div>
+              <div><b>3</b><span>Import deals and run the activation checklist</span></div>
             </div>
           </div>
 
@@ -93,8 +93,8 @@ export default function RequestAccessPage() {
             <div className="access-form-wrap">
               {sent ? (
                 <div className="auth-success">
-                  <h2>Workspace request received.</h2>
-                  <p className="muted">Next step: verify the email address you submitted. After purchase confirmation, use sign in to enter the suite.</p>
+                  <h2>Workspace setup started.</h2>
+                  <p className="muted">Next step: verify the email address you submitted. After checkout and email verification, sign in to enter the suite.</p>
                   <div className="access-actions compact">
                     <a className="btn primary lg" href="/login">Go to sign in</a>
                     <a className="btn lg" href="/pricing">Return to pricing</a>
@@ -121,7 +121,7 @@ export default function RequestAccessPage() {
                   </div>
                   <div className="access-submit-row">
                     <button className="btn primary lg" type="submit">Verify email</button>
-                    <span>Ready to begin? Start on <a href="/pricing">pricing</a>.</span>
+                    <span>Ready to move deals forward? Choose a <a href="/pricing">plan</a>.</span>
                   </div>
                 </form>
               )}

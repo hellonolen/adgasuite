@@ -9,7 +9,7 @@ const PLANS = [
     price: "$99",
     cadence: "per month",
     desc: "For one owner managing leads, contacts, follow-up, documents, and invoices.",
-    cta: "Start Pro",
+    cta: "Run Pro deal desk",
     href: "/request-access?plan=individual",
     features: [
       "Lead capture and contact records",
@@ -25,7 +25,7 @@ const PLANS = [
     price: "$249",
     cadence: "per seat / month",
     desc: "For shared teams working across pipeline, client records, calendar, documents, and deal communications.",
-    cta: "Start Team",
+    cta: "Run Team deal desk",
     href: "/request-access?plan=teams",
     featured: true,
     features: [
@@ -42,7 +42,7 @@ const PLANS = [
     price: "Custom",
     cadence: "annual contract",
     desc: "For larger firms that need advanced controls, connected teams, and account-level oversight.",
-    cta: "Start Enterprise",
+    cta: "Activate Enterprise",
     href: "/request-access?plan=enterprise",
     features: [
       "Everything in Team",
@@ -66,14 +66,39 @@ export default function PricingPage() {
               <span>Individuals, teams, firms</span>
             </div>
             <h1>
-              Pick the level<br />
-              of ADGA you need.
+              Choose the deal desk<br />
+              your pipeline needs.
             </h1>
           </div>
           <div>
             <p className="lede">
-              Start small, move up when the work demands more capacity, and bring the team in when the deal flow becomes shared.
+              No public trial. Choose a plan, verify email, activate the workspace, and start moving real deals through ADGA.
             </p>
+          </div>
+        </section>
+
+        <section className="section activation-section" style={{ borderTop: 0, paddingTop: 36 }}>
+          <span className="ed-label">Activation included</span>
+          <div className="activation-head">
+            <h2 className="title">Seven steps to a working deal desk.</h2>
+            <p>Every plan starts with the same operating path: bring deals in, attach the people and proof, set the close path, and run the next actions.</p>
+          </div>
+          <div className="activation-list compact" aria-label="Workspace activation checklist">
+            {[
+              ["01", "Import deals", "Bring active deals or create the first opportunity."],
+              ["02", "Attach people", "Connect contacts, companies, and decision makers."],
+              ["03", "Add proof", "Attach documents, notes, calls, and transcripts."],
+              ["04", "Set stages", "Place each deal in the process."],
+              ["05", "Create actions", "Assign the next call, meeting, file, or follow-up."],
+              ["06", "Review risk", "Find missing data, blockers, and stalled movement."],
+              ["07", "Run the plan", "Move priority deals through the weekly close plan."]
+            ].map(([num, label, body]) => (
+              <div className="activation-row" key={num}>
+                <span>{num}</span>
+                <b>{label}</b>
+                <small>{body}</small>
+              </div>
+            ))}
           </div>
         </section>
 

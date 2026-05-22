@@ -37,7 +37,7 @@ function magicEmailHtml(link: string, email: string) {
             <tr>
               <td style="padding:30px;">
                 <h1 style="margin:0 0 12px;font-size:28px;line-height:1.12;letter-spacing:-0.03em;">Open your deal workspace.</h1>
-                <p style="margin:0 0 22px;font-size:15px;line-height:1.55;color:#4f485d;">This link signs you into ADGA and expires in ${MAGIC_TOKEN_TTL_MINUTES} minutes. If you did not request access, you can ignore this email.</p>
+                <p style="margin:0 0 22px;font-size:15px;line-height:1.55;color:#4f485d;">This link signs you into ADGA and expires in ${MAGIC_TOKEN_TTL_MINUTES} minutes. If you did not request this sign-in link, you can ignore this email.</p>
                 <a href="${link}" style="display:inline-block;background:#5b21b6;color:#ffffff;text-decoration:none;border-radius:12px;padding:13px 18px;font-size:14px;font-weight:700;">Sign in to ADGA</a>
                 <p style="margin:22px 0 0;font-size:12px;line-height:1.5;color:#7b7287;">Pretty link:<br><a href="${link}" style="color:#5b21b6;text-decoration:underline;">${link}</a></p>
               </td>
