@@ -11,7 +11,7 @@ const USE_CASES = [
   ["High-ticket sales", "Turn qualified interest into calls, proposals, follow-up, close, delivery, and expansion."],
 ];
 
-export default function UseCasesPage() {
+export default function CasesPage() {
   return (
     <MarketingLayout>
       <div className="wrap">
@@ -33,7 +33,7 @@ export default function UseCasesPage() {
             </p>
             <div className="actions">
               <a href="/pricing" className="btn primary lg">Start closing deals</a>
-              <a href="/deal-process" className="btn lg">View process</a>
+              <a href="/process" className="btn lg">View process</a>
             </div>
           </div>
         </section>
@@ -56,23 +56,29 @@ export default function UseCasesPage() {
           </div>
         </section>
 
-        <section className="section">
+        <section className="section outcome-section">
           <span className="ed-label">Shared structure</span>
-          <div className="three">
-            <div className="three-card">
-              <div className="num">01</div>
-              <div className="head">People and accounts.</div>
-              <div className="body">Every category needs a contact record, company context, stakeholders, owners, and relationship history.</div>
+          <div className="process-head">
+            <h2 className="title">Different categories still need the same operating record.</h2>
+            <p>
+              Each deal type needs the people, proof, movement, and close path visible in the same system.
+            </p>
+          </div>
+          <div className="outcome-grid">
+            <div className="outcome-card">
+              <span>People</span>
+              <b>Contacts and accounts</b>
+              <small>Every category needs stakeholders, owners, company context, and relationship history.</small>
             </div>
-            <div className="three-card">
-              <div className="num">02</div>
-              <div className="head">Proof and terms.</div>
-              <div className="body">Every category needs documents, calls, notes, commitments, pricing, agreements, and decision history.</div>
+            <div className="outcome-card">
+              <span>Proof</span>
+              <b>Documents and terms</b>
+              <small>Every category needs notes, files, calls, commitments, pricing, agreements, and decisions.</small>
             </div>
-            <div className="three-card">
-              <div className="num">03</div>
-              <div className="head">Movement and close.</div>
-              <div className="body">Every category needs clear next actions, stage movement, risk visibility, scheduling, and a repeat path.</div>
+            <div className="outcome-card">
+              <span>Movement</span>
+              <b>Actions and close</b>
+              <small>Every category needs stage movement, risk visibility, scheduling, payment, and a repeat path.</small>
             </div>
           </div>
         </section>

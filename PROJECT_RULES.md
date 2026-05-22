@@ -91,6 +91,7 @@ Reference:
 
 - Every primary top-menu item must resolve to its own standalone page route.
 - Do not use homepage hash anchors as primary top-menu destinations.
-- The current primary marketing menu is Platform, Deal Process, Use Cases, and Pricing.
+- Primary marketing routes must use one clear word after the slash. Do not use dashed page slugs for primary menu pages.
+- The current primary marketing menu is Platform (`/product`), Deal Process (`/process`), Use Cases (`/cases`), and Pricing (`/pricing`).
 - Security belongs in footer/legal or trust-context placement, not the primary top menu.
 - Main marketing CTA language is Sign in and Start closing deals. Do not use Open ADGA, Get Started, or Request Access as public primary CTA language.

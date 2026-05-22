@@ -13,7 +13,7 @@ const PROCESS_STEPS = [
   ["08", "Expand", "Identify renewal, repeat purchase, referral, upsell, cross-sell, or partner path."],
 ];
 
-export default function DealProcessPage() {
+export default function ProcessPage() {
   return (
     <MarketingLayout>
       <div className="wrap">
@@ -59,23 +59,29 @@ export default function DealProcessPage() {
           </div>
         </section>
 
-        <section className="section">
-          <span className="ed-label">What changes</span>
-          <div className="three">
-            <div className="three-card">
-              <div className="num">01</div>
-              <div className="head">The deal has a visible stage.</div>
-              <div className="body">The workspace shows where the deal is, what is missing, who owns the next move, and what has to happen before close.</div>
+        <section className="section outcome-section">
+          <span className="ed-label">Workspace outcome</span>
+          <div className="process-head">
+            <h2 className="title">Every record shows stage, context, and next move.</h2>
+            <p>
+              The suite should make it obvious where the deal stands, what relationship data is attached, and what has to happen next.
+            </p>
+          </div>
+          <div className="outcome-grid">
+            <div className="outcome-card">
+              <span>Stage</span>
+              <b>Where the deal is</b>
+              <small>Current stage, missing items, owner, close path, and movement history stay visible.</small>
             </div>
-            <div className="three-card">
-              <div className="num">02</div>
-              <div className="head">The relationship stays attached.</div>
-              <div className="body">Contacts, companies, calls, meetings, documents, approvals, and decisions stay connected to the record.</div>
+            <div className="outcome-card">
+              <span>Context</span>
+              <b>What is attached</b>
+              <small>Contacts, companies, calls, meetings, documents, approvals, and decisions stay connected.</small>
             </div>
-            <div className="three-card">
-              <div className="num">03</div>
-              <div className="head">The next action is clear.</div>
-              <div className="body">Follow-up, scheduling, document review, invoice movement, and close risk are surfaced in the flow of work.</div>
+            <div className="outcome-card">
+              <span>Next move</span>
+              <b>What happens now</b>
+              <small>Follow-up, scheduling, document review, invoice movement, and close risk stay in front of the team.</small>
             </div>
           </div>
         </section>
