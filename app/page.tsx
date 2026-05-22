@@ -114,7 +114,7 @@ export default function MarketingPage() {
                 <li><span className="n">v.</span><span>Voice notes, transcripts, documents, and meeting records</span><span className="meta">MEDIA</span></li>
                 <li><span className="n">vi.</span><span>Agent workflows that prepare the next action</span><span className="meta">AGENTS</span></li>
               </ul>
-              <div style={{marginTop: 24}}><a href="/product" className="btn primary">See the full platform</a></div>
+              <div style={{marginTop: 24}}><a href="/pricing" className="btn primary">Get started</a></div>
             </div>
             <div className="preview">
               <div className="frame visual-card">

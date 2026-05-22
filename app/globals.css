@@ -1241,6 +1241,29 @@ body:has(.suite-shell)::before {
   padding-bottom: clamp(64px, 8vw, 112px);
 }
 
+.marketing-root .product {
+  align-items: start !important;
+}
+
+.marketing-root .product .preview {
+  width: min(100%, 720px) !important;
+  justify-self: end;
+  aspect-ratio: 16 / 10 !important;
+  min-height: 0 !important;
+  max-height: clamp(320px, 48vw, 520px) !important;
+  overflow: hidden;
+}
+
+.marketing-root .product .preview .frame {
+  min-height: 0 !important;
+}
+
+.marketing-root .visual-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .marketing-root .foot {
   align-items: start;
   padding-top: 44px;
@@ -1278,6 +1301,21 @@ body:has(.suite-shell)::before {
   .marketing-root .spread .preview,
   .marketing-root .product .preview {
     min-height: 240px !important;
+  }
+
+  .marketing-root .product .preview {
+    width: 100% !important;
+    justify-self: stretch;
+    aspect-ratio: 16 / 11 !important;
+    max-height: 360px !important;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 1024px) {
+  .marketing-root .product .preview {
+    justify-self: start;
+    width: min(100%, 680px) !important;
+    max-height: 420px !important;
   }
 }
 
