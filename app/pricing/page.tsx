@@ -66,18 +66,36 @@ export default function PricingPage() {
               <span>Individuals, teams, firms</span>
             </div>
             <h1>
-              Choose the deal desk<br />
-              your pipeline needs.
+              Pricing.
             </h1>
           </div>
           <div>
             <p className="lede">
-              No public trial. Choose a plan, verify email, activate the workspace, and start moving real deals through ADGA.
+              Choose the deal desk that matches the team and deal volume, verify email, and start moving real deals through ADGA.
             </p>
           </div>
         </section>
 
-        <section className="section activation-section" style={{ borderTop: 0, paddingTop: 36 }}>
+        <section className="section" id="plans" style={{ paddingTop: 36, borderTop: 0 }}>
+          <div className="pricing">
+            {PLANS.map((plan) => (
+              <div className={"tier " + (plan.featured ? "featured" : "")} key={plan.id}>
+                {plan.featured && <span className="badge">Most capacity for one owner</span>}
+                <div>
+                  <div className="name">{plan.name}</div>
+                  <div className="desc">{plan.desc}</div>
+                </div>
+                <div className="price">{plan.price}<small>{plan.cadence}</small></div>
+                <ul>
+                  {plan.features.map((feature) => <li key={feature}>{feature}</li>)}
+                </ul>
+                <a href={plan.href} className={plan.featured ? "btn primary" : "btn"}>{plan.cta}</a>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="section activation-section">
           <span className="ed-label">Activation included</span>
           <div className="activation-head">
             <h2 className="title">Seven steps to a working deal desk.</h2>
@@ -97,25 +115,6 @@ export default function PricingPage() {
                 <span>{num}</span>
                 <b>{label}</b>
                 <small>{body}</small>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="section" id="plans" style={{ paddingTop: 64, borderTop: 0 }}>
-          <div className="pricing">
-            {PLANS.map((plan) => (
-              <div className={"tier " + (plan.featured ? "featured" : "")} key={plan.id}>
-                {plan.featured && <span className="badge">Most capacity for one owner</span>}
-                <div>
-                  <div className="name">{plan.name}</div>
-                  <div className="desc">{plan.desc}</div>
-                </div>
-                <div className="price">{plan.price}<small>{plan.cadence}</small></div>
-                <ul>
-                  {plan.features.map((feature) => <li key={feature}>{feature}</li>)}
-                </ul>
-                <a href={plan.href} className={plan.featured ? "btn primary" : "btn"}>{plan.cta}</a>
               </div>
             ))}
           </div>

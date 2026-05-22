@@ -95,3 +95,4 @@ Reference:
 - The current primary marketing menu is Platform (`/product`), Deal Process (`/process`), Use Cases (`/cases`), and Pricing (`/pricing`).
 - Security belongs in footer/legal or trust-context placement, not the primary top menu.
 - Main marketing CTA language is Sign in and Start closing deals. Do not use Open ADGA, Get Started, or Request Access as public primary CTA language.
+- Each marketing page must show the page's main job first. Pricing shows plans before activation or FAQ content. Process shows the process before supporting explanation. Cases shows use cases before supporting explanation.
