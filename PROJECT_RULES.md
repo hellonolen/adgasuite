@@ -42,6 +42,26 @@ AI runtime rule:
 
 This is not an MVP, demo, or investor mockup. Features must be real production workflows before they are marked done.
 
+## Agentic Development Standard
+
+Agentic platform work must start with documentation and state contracts before UI or API implementation.
+
+Required order:
+
+1. Markdown requirement or operating-spine update.
+2. Agent ownership in `agents/*/SKILL.md`.
+3. JSON state/schema file when durable state is involved.
+4. Event, approval, and audit contract.
+5. Implementation.
+6. Browser verification.
+7. Production deployment.
+
+Reference:
+
+- `docs/ADGA_AGENTIC_OPERATING_SPINE.md`
+- `docs/ADGA_AGENTIC_TASKS.json`
+- `docs/AGENT_FEATURE_MAP.md`
+
 ## Admin Access
 
 - Platform owner/admin email: `hellonolen@gmail.com`.

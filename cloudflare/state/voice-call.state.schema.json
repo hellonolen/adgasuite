@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/schemas/voice-call.state.schema.json",
+  "title": "ADGA Voice Call State",
+  "type": "object",
+  "required": [
+    "id",
+    "workspaceId",
+    "direction",
+    "status",
+    "startedAt",
+    "consent",
+    "recording",
+    "transcript",
+    "relatedRecords",
+    "agenticOutputs",
+    "audit"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable voice call ID."
+    },
+    "workspaceId": {
+      "type": "string"
+    },
+    "direction": {
+      "type": "string",
+      "enum": ["inbound", "outbound"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["scheduled", "ringing", "active", "completed", "missed", "failed", "cancelled"]
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "endedAt": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "durationSeconds": {
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["role", "phone"],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": ["user", "lead", "contact", "client", "counterparty", "voiceagent", "unknown"]
+          },
+          "name": {
+            "type": ["string", "null"]
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": ["string", "null"]
+          },
+          "recordId": {
+            "type": ["string", "null"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "consent": {
+      "type": "object",
+      "required": ["recordingAllowed", "transcriptionAllowed", "mode"],
+      "properties": {
+        "recordingAllowed": {
+          "type": "boolean"
+        },
+        "transcriptionAllowed": {
+          "type": "boolean"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["one_party", "two_party", "explicit_prompt", "disabled", "unknown"]
+        },
+        "jurisdiction": {
+          "type": ["string", "null"]
+        },
+        "capturedAt": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "evidence": {
+          "type": ["string", "null"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "recording": {
+      "type": "object",
+      "required": ["enabled", "r2Key", "status"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["not_started", "recording", "stored", "disabled", "failed"]
+        },
+        "r2Key": {
+          "type": ["string", "null"]
+        },
+        "contentType": {
+          "type": ["string", "null"]
+        },
+        "sizeBytes": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "transcript": {
+      "type": "object",
+      "required": ["enabled", "status", "r2Key"],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["not_started", "processing", "stored", "disabled", "failed"]
+        },
+        "r2Key": {
+          "type": ["string", "null"]
+        },
+        "language": {
+          "type": ["string", "null"]
+        },
+        "speakerLabels": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "relatedRecords": {
+      "type": "object",
+      "properties": {
+        "leadId": {
+          "type": ["string", "null"]
+        },
+        "contactId": {
+          "type": ["string", "null"]
+        },
+        "companyId": {
+          "type": ["string", "null"]
+        },
+        "dealId": {
+          "type": ["string", "null"]
+        },
+        "calendarEventId": {
+          "type": ["string", "null"]
+        },
+        "documentIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "taskIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "agenticOutputs": {
+      "type": "object",
+      "required": ["summary", "commitments", "objections", "decisions", "nextSteps", "risks", "preparedActionIds"],
+      "properties": {
+        "summary": {
+          "type": ["string", "null"]
+        },
+        "commitments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "objections": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "decisions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "nextSteps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "risks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recommendedNextMove": {
+          "type": ["string", "null"]
+        },
+        "preparedActionIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "audit": {
+      "type": "object",
+      "required": ["createdAt", "updatedAt", "createdBy"],
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdBy": {
+          "type": "string",
+          "enum": ["user", "voiceagent", "system"]
+        },
+        "agentEventIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

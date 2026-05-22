@@ -4,7 +4,7 @@ This is the control document for avoiding rogue feature work. Every platform fea
 
 ## Agent Count
 
-ADGA Suite currently has 7 agent Markdown files:
+ADGA Suite currently has 8 agent Markdown files:
 
 | Agent | Markdown file | Primary ownership |
 | --- | --- | --- |
@@ -15,6 +15,7 @@ ADGA Suite currently has 7 agent Markdown files:
 | Intelligence | `agents/intelligence/SKILL.md` | Company profiles, battlecards, surveys, market notes |
 | Communication | `agents/communication/SKILL.md` | SMS, email, calls, voice notes, meeting invites, record traceability |
 | Payments | `agents/payments/SKILL.md` | Bank accounts, invoice connectors, payout setup, fee tracking |
+| VoiceAgent | `agents/voice/SKILL.md` | Inbound calls, outbound calls, scheduling, recording, transcription, call summaries, post-call execution |
 
 Each listed agent has 1 Markdown file assigned to it.
 
@@ -23,12 +24,18 @@ Each listed agent has 1 Markdown file assigned to it.
 | Feature area | Source requirements | Agent Markdown | JSON state |
 | --- | --- | --- | --- |
 | Visual system and UI standardization | `docs/DESIGN_SYSTEM.md`, `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/operations/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/agent-event.schema.json` |
+| Agentic operating spine | `docs/ADGA_AGENTIC_OPERATING_SPINE.md`, `docs/ADGA_AGENTIC_TASKS.json` | `agents/conductor/SKILL.md`, `agents/operations/SKILL.md` | `cloudflare/state/agent-event.schema.json`, `cloudflare/state/agent-job.schema.json` |
+| Platform-wide search and retrieval | `docs/ADGA_AGENTIC_OPERATING_SPINE.md`, `docs/ADGA_AGENTIC_TASKS.json` | `agents/intelligence/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/workspace-search.schema.json`, `cloudflare/state/record-graph.schema.json` |
+| Persistent deal memory | `docs/ADGA_AGENTIC_OPERATING_SPINE.md`, `docs/ADGA_AGENTIC_TASKS.json` | `agents/sales/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/deal-memory.schema.json`, `cloudflare/state/agent-event.schema.json` |
+| Event engine and autonomous monitoring | `docs/ADGA_AGENTIC_OPERATING_SPINE.md`, `docs/ADGA_AGENTIC_TASKS.json` | `agents/conductor/SKILL.md`, `agents/sales/SKILL.md`, `agents/operations/SKILL.md` | `cloudflare/state/agent-event.schema.json`, `cloudflare/state/agent-job.schema.json` |
+| Prepared actions and approval lanes | `docs/ADGA_AGENTIC_OPERATING_SPINE.md`, `docs/ADGA_AGENTIC_TASKS.json` | `agents/conductor/SKILL.md`, `agents/operations/SKILL.md` | `cloudflare/state/prepared-action.schema.json`, `cloudflare/state/agent-event.schema.json` |
 | Lead intake, urgency, follow-up | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/sales/SKILL.md`, `agents/conductor/SKILL.md`, `agents/communication/SKILL.md` | `cloudflare/state/agent-job.schema.json`, `cloudflare/state/agent-event.schema.json` |
 | Deal pipeline and represented client access | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/conductor/SKILL.md`, `agents/communication/SKILL.md`, `agents/sales/SKILL.md` | `cloudflare/state/client-portal.state.json`, `cloudflare/state/deal-communication.state.json` |
 | Internal team communication | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/communication/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/deal-communication.state.json` |
 | Client communication | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/communication/SKILL.md`, `agents/sales/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/deal-communication.state.json`, `cloudflare/state/client-portal.state.json` |
 | Calendar and meeting invites | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/operations/SKILL.md`, `agents/communication/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/agent-event.schema.json` |
 | Voice notes, transcription, STT | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/communication/SKILL.md`, `agents/sales/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/deal-communication.state.json` |
+| VoiceAgent calls, recording, transcription, scheduling, post-call execution | `docs/ADGA_AGENTIC_OPERATING_SPINE.md`, `docs/ADGA_AGENTIC_TASKS.json` | `agents/voice/SKILL.md`, `agents/communication/SKILL.md`, `agents/sales/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/voice-call.state.schema.json`, `cloudflare/state/deal-communication.state.json`, `cloudflare/state/agent-event.schema.json`, `cloudflare/state/agent-job.schema.json` |
 | SMS | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/communication/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/deal-communication.state.json` |
 | Documents and R2 storage | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md`, `docs/PRODUCTION_RUNBOOK.md` | `agents/documents/SKILL.md`, `agents/conductor/SKILL.md` | `cloudflare/state/agent-event.schema.json` |
 | Invoicing center | `docs/PRODUCT_POSITIONING_AND_TOOL_BACKLOG.md` | `agents/payments/SKILL.md`, `agents/documents/SKILL.md`, `agents/communication/SKILL.md` | `cloudflare/state/invoice-connectors.state.json` |
@@ -41,6 +48,7 @@ Each listed agent has 1 Markdown file assigned to it.
 ## No-Rogue-Coding Rule
 
 - A feature is not complete unless it has a product requirement, agent owner, state model when needed, D1/R2 boundary, and UI surface.
+- Agentic work must start in markdown and JSON before UI or API implementation.
 - UI pages can expose a feature, but the page is not the source of truth.
 - Every outbound or stored action should have a resource trace.
 - D1 stores metadata and state. R2 stores files, audio, generated invoice PDFs, uploads, and storage-heavy artifacts.

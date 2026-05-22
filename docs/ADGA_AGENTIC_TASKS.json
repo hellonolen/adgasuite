@@ -1,0 +1,189 @@
+{
+  "name": "ADGA Agentic Operating Spine Task List",
+  "version": "2026-05-22",
+  "targetAgenticScore": 85,
+  "rules": {
+    "markdownFirst": true,
+    "jsonStateBeforeUi": true,
+    "noRogueCoding": true,
+    "humanOverrideRequired": true,
+    "externalActionsRequireApproval": true
+  },
+  "phases": [
+    {
+      "id": "phase-1-spine-contracts",
+      "name": "Spine and contracts",
+      "status": "in_progress",
+      "goal": "Lock the agentic operating model before additional feature coding.",
+      "tasks": [
+        {
+          "id": "spine-md",
+          "title": "Create ADGA Agentic Operating Spine markdown",
+          "owner": "conductor",
+          "status": "complete",
+          "artifacts": ["docs/ADGA_AGENTIC_OPERATING_SPINE.md"]
+        },
+        {
+          "id": "voice-agent-md",
+          "title": "Create VoiceAgent markdown ownership file",
+          "owner": "voice",
+          "status": "complete",
+          "artifacts": ["agents/voice/SKILL.md"]
+        },
+        {
+          "id": "voice-call-state",
+          "title": "Create VoiceAgent call state schema",
+          "owner": "voice",
+          "status": "complete",
+          "artifacts": ["cloudflare/state/voice-call.state.schema.json"]
+        },
+        {
+          "id": "feature-map-update",
+          "title": "Route VoiceAgent and agentic spine through feature map",
+          "owner": "conductor",
+          "status": "complete",
+          "artifacts": ["docs/AGENT_FEATURE_MAP.md"]
+        }
+      ]
+    },
+    {
+      "id": "phase-2-retrieval-record-graph",
+      "name": "Retrieval and record graph",
+      "status": "planned",
+      "goal": "Make ADGA able to search and reason across all records.",
+      "tasks": [
+        {
+          "id": "workspace-search-contract",
+          "title": "Define workspace-wide search JSON contract",
+          "owner": "intelligence",
+          "status": "planned",
+          "artifacts": ["cloudflare/state/workspace-search.schema.json"]
+        },
+        {
+          "id": "record-relationship-contract",
+          "title": "Define lead-contact-company-deal-document-call relationship graph",
+          "owner": "conductor",
+          "status": "planned",
+          "artifacts": ["cloudflare/state/record-graph.schema.json"]
+        },
+        {
+          "id": "deal-memory-contract",
+          "title": "Define persistent deal memory object",
+          "owner": "sales",
+          "status": "planned",
+          "artifacts": ["cloudflare/state/deal-memory.schema.json"]
+        }
+      ]
+    },
+    {
+      "id": "phase-3-event-engine-monitoring",
+      "name": "Event engine and monitoring",
+      "status": "planned",
+      "goal": "Create triggers that turn workspace changes into agent jobs.",
+      "tasks": [
+        {
+          "id": "event-trigger-map",
+          "title": "Define event trigger map for leads, calls, meetings, documents, invoices, and approvals",
+          "owner": "conductor",
+          "status": "planned",
+          "artifacts": ["cloudflare/state/agent-event.schema.json"]
+        },
+        {
+          "id": "deal-risk-monitor",
+          "title": "Define stale deal, no-response, close-date, and missing-next-action monitors",
+          "owner": "sales",
+          "status": "planned",
+          "artifacts": ["skills/pipeline-risk.skill.md"]
+        },
+        {
+          "id": "cron-monitor-spec",
+          "title": "Specify cron jobs for daily deal monitoring and follow-up checks",
+          "owner": "operations",
+          "status": "planned",
+          "artifacts": ["cloudflare/agents/README.md"]
+        }
+      ]
+    },
+    {
+      "id": "phase-4-prepared-actions-approvals",
+      "name": "Prepared actions and approvals",
+      "status": "planned",
+      "goal": "Move from suggestions to prepared work with approval lanes.",
+      "tasks": [
+        {
+          "id": "prepared-action-schema",
+          "title": "Define prepared action JSON schema",
+          "owner": "conductor",
+          "status": "planned",
+          "artifacts": ["cloudflare/state/prepared-action.schema.json"]
+        },
+        {
+          "id": "approval-lane-policy",
+          "title": "Define safe internal, review recommended, explicit approval, and restricted lanes",
+          "owner": "operations",
+          "status": "planned",
+          "artifacts": ["agents/operations/SKILL.md", "agents/conductor/SKILL.md"]
+        },
+        {
+          "id": "approval-audit-contract",
+          "title": "Define audit trail fields for every prepared and completed action",
+          "owner": "conductor",
+          "status": "planned",
+          "artifacts": ["cloudflare/state/agent-event.schema.json"]
+        }
+      ]
+    },
+    {
+      "id": "phase-5-voiceagent",
+      "name": "VoiceAgent",
+      "status": "planned",
+      "goal": "Make calls, scheduling, recording, transcription, and post-call execution part of the deal operating layer.",
+      "tasks": [
+        {
+          "id": "voice-recording-consent",
+          "title": "Define recording consent and jurisdiction settings",
+          "owner": "voice",
+          "status": "planned",
+          "artifacts": ["cloudflare/state/voice-call.state.schema.json"]
+        },
+        {
+          "id": "voice-scheduling-flow",
+          "title": "Define scheduling flow from call request to calendar event to meeting brief",
+          "owner": "voice",
+          "status": "planned",
+          "artifacts": ["agents/voice/SKILL.md", "cloudflare/state/voice-call.state.schema.json"]
+        },
+        {
+          "id": "post-call-execution",
+          "title": "Define transcript summary, next steps, task creation, deal update, and follow-up draft workflow",
+          "owner": "voice",
+          "status": "planned",
+          "artifacts": ["agents/voice/SKILL.md", "cloudflare/state/prepared-action.schema.json"]
+        }
+      ]
+    },
+    {
+      "id": "phase-6-outcome-dashboard",
+      "name": "Outcome dashboard",
+      "status": "planned",
+      "goal": "Show measurable agentic work completed, pending, blocked, and at risk.",
+      "tasks": [
+        {
+          "id": "outcome-metrics-contract",
+          "title": "Define metrics for monitored deals, prepared follow-ups, recorded calls, transcripts, risks, and value at risk",
+          "owner": "intelligence",
+          "status": "planned",
+          "artifacts": ["cloudflare/state/agentic-outcomes.schema.json"]
+        },
+        {
+          "id": "home-dashboard-requirements",
+          "title": "Replace decorative dashboard metrics with operating outcomes",
+          "owner": "operations",
+          "status": "planned",
+          "artifacts": ["docs/DESIGN_SYSTEM.md", "docs/ADGA_AGENTIC_OPERATING_SPINE.md"]
+        }
+      ]
+    }
+  ]
+}
+
