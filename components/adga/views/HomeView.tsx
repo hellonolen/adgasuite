@@ -12,7 +12,7 @@ export function HomeView({ deals, leads, tasks }: any) {
       <div className="page-h">
         <div>
           <h1>Good morning, Maren.</h1>
-          <div className="sub">You have 3 deals advancing today and 8 pending agent actions.</div>
+          <div className="sub">You have 3 deals advancing today and 8 prepared next actions.</div>
         </div>
         <div className="page-actions">
           <button className="btn primary"><Icon name="plus" size={14}/> New deal</button>

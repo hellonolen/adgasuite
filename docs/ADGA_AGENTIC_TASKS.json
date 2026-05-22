@@ -47,6 +47,42 @@
       ]
     },
     {
+      "id": "phase-1b-deal-process",
+      "name": "Deal process spine",
+      "status": "in_progress",
+      "goal": "Define the sovereign ADGA process from signal to close to repeat purchase before more UI work.",
+      "tasks": [
+        {
+          "id": "deal-process-md",
+          "title": "Create deal anatomy and process markdown",
+          "owner": "conductor",
+          "status": "complete",
+          "artifacts": ["docs/ADGA_DEAL_PROCESS_SPINE.md"]
+        },
+        {
+          "id": "deal-process-state",
+          "title": "Create deal process state schema",
+          "owner": "conductor",
+          "status": "complete",
+          "artifacts": ["cloudflare/state/deal-process.schema.json"]
+        },
+        {
+          "id": "existing-deal-import-contract",
+          "title": "Define import flow for existing deals, documents, contacts, calls, meetings, and spreadsheets",
+          "owner": "operations",
+          "status": "planned",
+          "artifacts": ["cloudflare/state/deal-process.schema.json", "cloudflare/state/record-graph.schema.json"]
+        },
+        {
+          "id": "trial-policy-contract",
+          "title": "Define trial options and checkout rules",
+          "owner": "payments",
+          "status": "planned",
+          "artifacts": ["docs/ADGA_DEAL_PROCESS_SPINE.md", "cloudflare/state/workspace-activation.schema.json"]
+        }
+      ]
+    },
+    {
       "id": "phase-2-retrieval-record-graph",
       "name": "Retrieval and record graph",
       "status": "planned",
@@ -186,4 +222,3 @@
     }
   ]
 }
-

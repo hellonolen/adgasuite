@@ -45,7 +45,7 @@ export default function LoginPage() {
         <div className="auth-card premium-surface">
           <div className="auth-header">
             <span className="ed-label">Sign in</span>
-            <h1>Open ADGA.</h1>
+            <h1>Sign in to ADGA.</h1>
             <p className="muted">Enter your work email. We’ll send a clean verification link to open your workspace.</p>
           </div>
 
@@ -74,7 +74,7 @@ export default function LoginPage() {
 
           <div className="auth-footer">
             <p className="text-xs muted">
-              New to ADGA? <a href="/pricing" className="accent-link">Get started</a>.
+              New to ADGA? <a href="/pricing" className="accent-link">Choose a plan</a>.
             </p>
           </div>
         </div>

@@ -20,11 +20,11 @@ export default function ProductPage() {
           </div>
           <div>
             <p className="lede">
-              A connected workspace for every person, company, touch, meeting, file, invoice, and agent action behind a deal.
+              A connected workspace for every person, company, touch, meeting, file, invoice, and next action behind a deal.
             </p>
             <div className="actions">
-              <a href="/login" className="btn primary lg">Open ADGA</a>
-              <a href="/pricing" className="btn lg">See pricing</a>
+              <a href="/pricing" className="btn primary lg">Start closing deals</a>
+              <a href="/login" className="btn lg">Sign in</a>
             </div>
           </div>
         </section>

@@ -9,13 +9,13 @@ const PLANS = [
     price: "$99",
     cadence: "per month",
     desc: "For one owner managing leads, contacts, follow-up, documents, and invoices.",
-    cta: "Get started",
+    cta: "Start Pro",
     href: "/request-access?plan=individual",
     features: [
       "Lead capture and contact records",
       "Pipeline, calendar, documents, and tasks",
       "Voice notes and transcripts",
-      "Standard ADGA agent actions",
+      "Prepared next-action workflows",
       "Individual workspace",
     ],
   },
@@ -25,7 +25,7 @@ const PLANS = [
     price: "$249",
     cadence: "per seat / month",
     desc: "For shared teams working across pipeline, client records, calendar, documents, and deal communications.",
-    cta: "Get started",
+    cta: "Start Team",
     href: "/request-access?plan=teams",
     featured: true,
     features: [
@@ -42,7 +42,7 @@ const PLANS = [
     price: "Custom",
     cadence: "annual contract",
     desc: "For larger firms that need advanced controls, connected teams, and account-level oversight.",
-    cta: "Get started",
+    cta: "Start Enterprise",
     href: "/request-access?plan=enterprise",
     features: [
       "Everything in Team",

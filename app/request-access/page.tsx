@@ -56,7 +56,7 @@ export default function RequestAccessPage() {
               Existing users should sign in. New workspaces should choose a plan, verify email during onboarding, then enter the suite.
             </p>
             <div className="access-actions">
-              <a className="btn primary lg" href="/pricing">Get started</a>
+              <a className="btn primary lg" href="/pricing">Choose a plan</a>
               <a className="btn lg" href="/login">Sign in</a>
             </div>
             <div className="access-steps" aria-label="Start flow">

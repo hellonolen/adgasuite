@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/schemas/deal-process.schema.json",
+  "title": "ADGA Deal Process State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "workspaceId",
+    "dealId",
+    "source",
+    "stage",
+    "stageHistory",
+    "nextAction",
+    "relatedRecords",
+    "risks",
+    "missingData",
+    "postClose",
+    "audit"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "workspaceId": { "type": "string", "minLength": 1 },
+    "dealId": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "capturedAt"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ad", "referral", "inbound_form", "qr", "call", "email", "event", "partner", "csv", "crm_import", "manual", "document", "spreadsheet", "unknown"]
+        },
+        "label": { "type": "string" },
+        "capturedAt": { "type": "string", "format": "date-time" },
+        "originalReference": { "type": "string" }
+      }
+    },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "label", "confidence", "enteredAt"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "enum": ["signal", "capture", "qualify", "shape", "advance", "close", "deliver", "expand"]
+        },
+        "label": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 100 },
+        "enteredAt": { "type": "string", "format": "date-time" },
+        "targetExitAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "stageHistory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "changedAt", "reason"],
+        "properties": {
+          "from": { "type": ["string", "null"] },
+          "to": { "type": "string" },
+          "changedAt": { "type": "string", "format": "date-time" },
+          "reason": { "type": "string" },
+          "changedBy": { "type": "string" }
+        }
+      }
+    },
+    "nextAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "label", "dueAt", "ownerId", "approvalLane"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["call", "email", "sms", "meeting", "document", "task", "invoice", "stage_review", "brief", "import_cleanup", "expansion_review"]
+        },
+        "label": { "type": "string" },
+        "dueAt": { "type": "string", "format": "date-time" },
+        "ownerId": { "type": "string" },
+        "approvalLane": {
+          "type": "string",
+          "enum": ["safe_internal", "review_recommended", "explicit_approval", "restricted"]
+        },
+        "preparedActionId": { "type": "string" }
+      }
+    },
+    "relatedRecords": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "leadId": { "type": "string" },
+        "contactIds": { "type": "array", "items": { "type": "string" } },
+        "companyId": { "type": "string" },
+        "documentIds": { "type": "array", "items": { "type": "string" } },
+        "callIds": { "type": "array", "items": { "type": "string" } },
+        "meetingIds": { "type": "array", "items": { "type": "string" } },
+        "messageIds": { "type": "array", "items": { "type": "string" } },
+        "taskIds": { "type": "array", "items": { "type": "string" } },
+        "invoiceIds": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "severity", "label"],
+        "properties": {
+          "type": { "type": "string" },
+          "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+          "label": { "type": "string" },
+          "sourceRecordId": { "type": "string" }
+        }
+      }
+    },
+    "missingData": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "reason", "requiredForStage"],
+        "properties": {
+          "field": { "type": "string" },
+          "reason": { "type": "string" },
+          "requiredForStage": { "type": "string" }
+        }
+      }
+    },
+    "postClose": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "purchaseCompletedAt": { "type": "string", "format": "date-time" },
+        "deliveryStatus": { "type": "string", "enum": ["not_started", "in_progress", "complete", "blocked"] },
+        "expansionEligible": { "type": "boolean" },
+        "nextPurchaseSignal": { "type": "string" },
+        "reviewDueAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["createdAt", "updatedAt"],
+      "properties": {
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      }
+    }
+  }
+}

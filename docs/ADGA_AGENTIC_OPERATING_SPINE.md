@@ -5,6 +5,7 @@ This document is the source of truth for making ADGA Suite an agentic deal execu
 Before implementation starts, new agentic work must be reflected in:
 
 - This markdown document.
+- `docs/ADGA_DEAL_PROCESS_SPINE.md` when the work changes the deal lifecycle, import flow, stage model, or post-close expansion.
 - The relevant agent markdown file in `agents/*/SKILL.md`.
 - A JSON state/schema file when the work creates durable state.
 - `docs/AGENT_FEATURE_MAP.md` when ownership or routing changes.
@@ -47,7 +48,8 @@ Target breakdown:
 - External communication, payments, legal edits, account changes, and destructive edits require explicit approval.
 - Agent activity must be visible and traceable.
 - No customer-facing copy should imply there is a human sales team waiting for contact.
-- Primary CTA language is **Get started**, **Open ADGA**, and outcome-oriented deal movement language.
+- Primary CTA language should be outcome-oriented deal movement language. Do not use access/request phrasing or vague product-entry phrasing.
+- The deal lifecycle, existing-deal import model, trial policy, and post-close expansion path are defined in `docs/ADGA_DEAL_PROCESS_SPINE.md`.
 
 ## The Ten Required Capabilities
 
@@ -371,4 +373,3 @@ Use that file to track phases, owners, dependencies, state contracts, and accept
 
 - Surface agentic work completed, pending, and blocked.
 - Show measurable deal movement.
-

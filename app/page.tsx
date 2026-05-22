@@ -9,33 +9,51 @@ export default function MarketingPage() {
         {/* ===== Hero ===== */}
         <section className="hero">
           <div className="meta">
-            <span>AI deal flow suite</span>
+            <span>Deal execution platform</span>
             <span className="dot" />
-            <span>Leads · Clients · Deals</span>
+            <span>Records · Calls · Documents</span>
             <span className="dot" />
-            <span>Agent-operated</span>
+            <span>Agentic deal flow</span>
           </div>
           <div className="hero-grid">
             <div>
               <h1>
-                ADGA keeps<br />
-                deal work from<br />
-                <em>getting scattered.</em>
+                The deal platform<br />
+                that keeps every<br />
+                <em>close in motion.</em>
               </h1>
               <p className="lede">
-                Every lead, contact, meeting, document, decision, task, and agent action belongs to a live execution record, so the next move is visible before it gets missed.
+                ADGA connects leads, contacts, calls, documents, meetings, tasks, payments, and prepared next actions into one execution record for every active deal.
               </p>
               <div className="ctas">
-                <a href="/pricing" className="btn primary lg">Get started</a>
-                <a href="/login" className="btn lg">Open ADGA</a>
+                <a href="/pricing" className="btn primary lg">Start closing deals</a>
               </div>
-              <div className="signin">
-                Existing teams · <a href="/login">open ADGA</a>
+              <div className="hero-proof" aria-label="ADGA operating proof">
+                <div><b>01</b><span>Capture the record</span><small>Lead source, contact, company, urgency, owner, and route.</small></div>
+                <div><b>02</b><span>Move the work</span><small>Calls, notes, files, tasks, approvals, calendar, and follow-up.</small></div>
+                <div><b>03</b><span>Protect the close</span><small>Every decision, file, commitment, and next move remains attached to the deal.</small></div>
               </div>
             </div>
             <div className="hero-photo visual-card">
               <img src="/adga/visual-deal-desk.svg" alt="ADGA live execution record with deal, contact, file, and timeline context" />
               <div className="ph-meta">LEAD · CONTACT · DEAL</div>
+            </div>
+          </div>
+          <div className="hero-command">
+            <div>
+              <span>Live pipeline</span>
+              <b>$284.6M weighted</b>
+              <small>Deal movement, stage risk, next meetings, and missing follow-up surfaced before the close slips.</small>
+            </div>
+            <div>
+              <span>Contact memory</span>
+              <b>Every touch attached</b>
+              <small>Calls, voice notes, transcripts, documents, and decisions stay tied to the contact and company.</small>
+            </div>
+            <div>
+              <span>Next action prep</span>
+              <b>Next action ready</b>
+              <small>ADGA prepares briefs, drafts outreach, queues tasks, and keeps judgment calls in front of the team.</small>
             </div>
           </div>
           {/* Marquee strip */}
@@ -58,6 +76,34 @@ export default function MarketingPage() {
               <span>Procurement</span><span className="dot">·</span>
               <span><em>Reseller</em></span><span className="dot">·</span>
             </div>
+          </div>
+        </section>
+        {/* ===== Deal process ===== */}
+        <section className="section process-section">
+          <span className="ed-label">Deal process</span>
+          <div className="process-head">
+            <h2 className="title">From signal to repeat purchase.</h2>
+            <p>
+              ADGA gives every deal a visible path, whether it starts as a new lead, an imported opportunity, a call, an email thread, or an existing pipeline record.
+            </p>
+          </div>
+          <div className="process-rail" aria-label="ADGA deal process">
+            {[
+              ["01", "Signal", "Ad, referral, inbound form, QR, call, email, event, partner, or import."],
+              ["02", "Capture", "Create or match the contact, company, source, owner, urgency, and first next action."],
+              ["03", "Qualify", "Confirm fit, timing, value, authority, blockers, and reason to keep moving."],
+              ["04", "Shape", "Define the offer, terms, stakeholders, files, close date, and meeting plan."],
+              ["05", "Advance", "Run follow-up, calls, documents, objections, tasks, and commitments."],
+              ["06", "Close", "Track signature, purchase, payment, decision record, and final handoff."],
+              ["07", "Deliver", "Move from closed deal to onboarding, milestones, support route, and ownership."],
+              ["08", "Expand", "Identify renewal, repeat purchase, referral, upsell, cross-sell, or partner path."]
+            ].map(([num, label, body]) => (
+              <div className="process-step" key={num}>
+                <span>{num}</span>
+                <b>{label}</b>
+                <small>{body}</small>
+              </div>
+            ))}
           </div>
         </section>
         {/* ===== Three columns ===== */}
@@ -104,7 +150,7 @@ export default function MarketingPage() {
                 one record.
               </h3>
               <p>
-                ADGA gives owners and teams a connected workspace for every person, company, touch, meeting, file, invoice, and agent action behind a deal.
+                ADGA gives owners and teams a connected workspace for every person, company, touch, meeting, file, invoice, and next action behind a deal.
               </p>
               <ul>
                 <li><span className="n">i.</span><span>Leads recorded with source, urgency, date, and owner</span><span className="meta">PIPELINE</span></li>
@@ -112,9 +158,9 @@ export default function MarketingPage() {
                 <li><span className="n">iii.</span><span>Secure deal files, signatures, due-diligence checklists</span><span className="meta">FILES</span></li>
                 <li><span className="n">iv.</span><span>Internal and client communication tied to the deal</span><span className="meta">TIMELINE</span></li>
                 <li><span className="n">v.</span><span>Voice notes, transcripts, documents, and meeting records</span><span className="meta">MEDIA</span></li>
-                <li><span className="n">vi.</span><span>Agent workflows that prepare the next action</span><span className="meta">AGENTS</span></li>
+                <li><span className="n">vi.</span><span>Next-step workflows that prepare the close</span><span className="meta">FLOW</span></li>
               </ul>
-              <div style={{marginTop: 24}}><a href="/pricing" className="btn primary">Get started</a></div>
+              <div style={{marginTop: 24}}><a href="/pricing" className="btn primary">Start closing deals</a></div>
             </div>
             <div className="preview">
               <div className="frame visual-card">
@@ -164,8 +210,8 @@ export default function MarketingPage() {
             </div>
             <div className="three-card">
               <div className="num">03</div>
-              <div className="head">Agents keep work moving.</div>
-              <div className="body">ADGA helps prepare follow-up, surface open items, and keep each deal moving toward the next action.</div>
+              <div className="head">Deal work keeps moving.</div>
+              <div className="body">ADGA prepares follow-up, surfaces open items, and keeps each deal moving toward the next action.</div>
             </div>
           </div>
         </section>
@@ -185,8 +231,7 @@ export default function MarketingPage() {
               <div><span>03</span><b>Move deals forward</b><small>Track leads, contacts, documents, meetings, and deal movement.</small></div>
             </div>
             <div className="ctas">
-              <a href="/pricing" className="btn primary lg">Get started</a>
-              <a href="/login" className="btn lg">Open ADGA</a>
+              <a href="/pricing" className="btn primary lg">Start closing deals</a>
             </div>
           </div>
         </section>

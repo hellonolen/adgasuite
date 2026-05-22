@@ -23,8 +23,8 @@ export default function SecurityPage() {
               The closing room is the most sensitive room in the house. Everything inside ADGA is encrypted, audited, and signed for.
             </p>
             <div className="actions">
-              <a href="#contact" className="btn primary lg">Request our compliance file</a>
-              <a href="#controls" className="btn lg">See the controls</a>
+              <a href="#controls" className="btn primary lg">Review controls</a>
+              <a href="/pricing" className="btn lg">See pricing</a>
             </div>
           </div>
         </section>

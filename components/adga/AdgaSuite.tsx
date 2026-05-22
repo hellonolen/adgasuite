@@ -3007,7 +3007,7 @@ function DealCommunicationCenter({ deal, co }) {
               <dt>Internal lane</dt><dd>Private team notes, calls, summaries, blockers</dd>
               <dt>Client lane</dt><dd>Client-visible updates, invites, messages</dd>
               <dt>Files</dt><dd>Documents and voice notes stay attached to this deal.</dd>
-              <dt>Follow-up</dt><dd>Agent workflows prepare the next action for the team.</dd>
+              <dt>Follow-up</dt><dd>Prepared workflows keep the next action ready for the team.</dd>
               <dt>Status</dt><dd>Internal and client-facing updates remain separated.</dd>
             </dl>
           </div>
@@ -7996,7 +7996,7 @@ function Topbar({ crumb, setCmdk, tweaks, setTweak, setRoute, setQuickCreate }) 
         </button>
         <button className="btn icon ghost" type="button" title="Notifications"><Icon name="bell" size={15}/></button>
         {tweaks.voiceCollapsed && (
-          <button className="btn adga-open-btn" type="button" onClick={() => setTweak('voiceCollapsed', false)} title="Open ADGA">
+          <button className="btn adga-open-btn" type="button" onClick={() => setTweak('voiceCollapsed', false)} title="Show ADGA panel">
             <Icon name="sparkles" size={13}/> ADGA
           </button>
         )}
