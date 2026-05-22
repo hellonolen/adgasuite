@@ -24,14 +24,14 @@ export default function LoginPage() {
       if (data.previewUrl) setPreviewUrl(data.previewUrl);
       return;
     }
-    setStatus(data.error || "Could not send a sign-in link. Please request access.");
+    setStatus(data.error || "Could not send a sign-in link. Choose a plan to get started.");
   }
 
   return (
     <MarketingLayout>
       <div className="auth-page auth-two-panel wrap">
         <section className="auth-brand">
-          <span className="auth-kicker">ADGA secure access</span>
+          <span className="auth-kicker">ADGA sign in</span>
           <h1>Enter the deal workspace with a verified email.</h1>
           <p>
             ADGA uses a short-lived magic link so teams can open the suite without carrying another password into deal work.
@@ -74,7 +74,7 @@ export default function LoginPage() {
 
           <div className="auth-footer">
             <p className="text-xs muted">
-              New to ADGA? <a href="/pricing" className="accent-link">Choose a plan</a> or <a href="/request-access" className="accent-link">request access</a>.
+              New to ADGA? <a href="/pricing" className="accent-link">Get started</a>.
             </p>
           </div>
         </div>

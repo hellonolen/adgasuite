@@ -26,8 +26,8 @@ export default function MarketingPage() {
                 Every lead, contact, meeting, document, decision, task, and agent action belongs to a live execution record, so the next move is visible before it gets missed.
               </p>
               <div className="ctas">
-                <a href="/request-access?plan=teams" className="btn primary lg">Request access</a>
-                <a href="/product" className="btn lg">See the platform</a>
+                <a href="/pricing" className="btn primary lg">Get started</a>
+                <a href="/login" className="btn lg">Open ADGA</a>
               </div>
               <div className="signin">
                 Existing teams · <a href="/login">open ADGA</a>
@@ -170,52 +170,23 @@ export default function MarketingPage() {
           </div>
         </section>
         {/* ===== CTA ===== */}
-        <section className="cta" id="contact">
+        <section className="cta" id="start">
           <h2>
-            Bring every<br />
-            <em>lead into view.</em>
+            Move every<br />
+            <em>deal forward.</em>
           </h2>
           <div className="right">
             <p>
-              Send a contact request into ADGA with the details your team needs to act quickly, route the lead, and schedule the next follow-up.
+              Choose a plan, verify email, and open the suite built to keep leads, contacts, documents, meetings, and decisions moving toward close.
             </p>
-            <form action="/api/leads/intake" method="post" style={{display: 'grid', gap: 10, margin: '18px 0'}}>
-              <input type="hidden" name="source" value="Footer contact form" />
-              <input type="hidden" name="qr_source" value="footer-contact-qr" />
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10}}>
-                <input name="full_name" placeholder="Full name" required />
-                <input name="email" type="email" placeholder="Email" required />
-                <input name="phone" placeholder="Phone" />
-                <input name="company" placeholder="Company" required />
-                <input name="job_title" placeholder="Title" />
-                <input name="website" placeholder="Business website" />
-                <input name="linkedin_url" placeholder="LinkedIn or social profile" />
-                <input name="state_region" placeholder="State" />
-              </div>
-              <textarea name="need_summary" rows={3} placeholder="What should we know about this lead?" />
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10}}>
-                <select name="urgency" defaultValue="Normal" className="story-control-field">
-                  <option>Immediate</option>
-                  <option>Same Day</option>
-                  <option>Scheduled</option>
-                  <option>Normal</option>
-                  <option>Low</option>
-                </select>
-                <select name="preferred_contact_method" defaultValue="Email" className="story-control-field">
-                  <option>Email</option>
-                  <option>Phone</option>
-                  <option>Text</option>
-                  <option>LinkedIn</option>
-                </select>
-              </div>
-              <div style={{display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginTop: 12}}>
-                <div aria-label="Footer QR code" style={{width: 82, height: 82, border: '1px solid var(--border)', display: 'grid', placeItems: 'center', fontSize: 11, color: 'var(--text-3)', borderRadius: 8}}>QR</div>
-                <button className="btn primary lg" type="submit">Send contact</button>
-              </div>
-            </form>
+            <div className="cta-steps" aria-label="Start using ADGA">
+              <div><span>01</span><b>Choose a plan</b><small>Pick the plan that matches the team and deal volume.</small></div>
+              <div><span>02</span><b>Verify email</b><small>Use the magic link to enter the suite after checkout.</small></div>
+              <div><span>03</span><b>Move deals forward</b><small>Track leads, contacts, documents, meetings, and deal movement.</small></div>
+            </div>
             <div className="ctas">
-              <a href="/request-access?plan=teams" className="btn primary lg">Request access</a>
-              <a href="/pricing" className="btn lg">See pricing</a>
+              <a href="/pricing" className="btn primary lg">Get started</a>
+              <a href="/login" className="btn lg">Open ADGA</a>
             </div>
           </div>
         </section>

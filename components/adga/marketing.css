@@ -666,6 +666,37 @@ em, i { font-style: normal; }
   max-width: 30ch;
 }
 .cta .ctas { display: flex; gap: 12px; }
+.cta-steps {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 2px;
+}
+.cta-steps div {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 8px 14px;
+  align-items: baseline;
+  padding: 16px 0;
+  border-top: 1px solid var(--rule);
+}
+.cta-steps div:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+.cta-steps span {
+  color: var(--accent);
+  font: 700 11px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+}
+.cta-steps b {
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 650;
+}
+.cta-steps small {
+  grid-column: 2;
+  color: var(--ink-2);
+  font: 500 13px/1.45 var(--font-sans);
+}
 .cta input,
 .cta textarea,
 .cta select {
@@ -1205,6 +1236,8 @@ em, i { font-style: normal; }
   .faq-item summary { font-size: 16px; }
   .faq-item summary::after { font-size: 20px; }
   .cta h2 { font-size: clamp(26px, 7vw, 36px); }
+  .cta .right p { font-size: 18px; max-width: 100%; }
+  .cta .ctas { flex-wrap: wrap; }
   .billing-toggle { font-size: 11px; }
   .price-card .price, .tier .price { font-size: 32px; }
 }

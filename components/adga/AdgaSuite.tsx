@@ -4346,7 +4346,7 @@ function BillingPage() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ plan: 'enterprise' }),
-                  }).catch(() => {})}>Contact sales</button>
+                  }).catch(() => {})}>Start enterprise</button>
                 </div>
               </div>
             </div>

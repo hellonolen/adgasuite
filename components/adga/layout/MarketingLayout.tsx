@@ -35,7 +35,7 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
         <div className="nav-cta">
           <span className="nav-mono">Deal flow platform</span>
           <a href="/login" className="btn" onClick={() => setMenuOpen(false)}>Sign in</a>
-          <a href="/request-access?plan=teams" className="btn primary" onClick={() => setMenuOpen(false)}>Request access</a>
+          <a href="/pricing" className="btn primary" onClick={() => setMenuOpen(false)}>Get started</a>
         </div>
       </nav>
 
@@ -73,7 +73,7 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
             <ul>
               <li><a href="#">About</a></li>
               <li><a href="#">Careers</a></li>
-              <li><a href="/#contact">Contact</a></li>
+              <li><a href="/pricing">Get started</a></li>
             </ul>
           </div>
           <div className="foot-col">
