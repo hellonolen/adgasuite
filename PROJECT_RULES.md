@@ -85,6 +85,7 @@ Reference:
 - Clear tables, drawers, filters, forms, settings, and empty states.
 - No dark mode as the primary product surface.
 - No bloated cards or decorative placeholder sections.
+- Text inside cards, pills, badges, accordions, filters, and buttons must have comfortable side padding. Do not make content barely fit its container or appear clipped at the start or end.
 
 ## Marketing Navigation
 

@@ -1228,6 +1228,34 @@ body:has(.suite-shell)::before {
   box-shadow: var(--adga-theme-shadow) !important;
 }
 
+.marketing-root .faq-item {
+  padding: clamp(28px, 3vw, 44px) clamp(28px, 4vw, 56px) !important;
+  margin-bottom: 14px;
+  border: 1px solid var(--adga-theme-rule) !important;
+}
+
+.marketing-root .faq-item:first-child {
+  border-top: 1px solid var(--adga-theme-rule) !important;
+}
+
+.marketing-root .faq-item summary {
+  gap: clamp(22px, 3vw, 42px) !important;
+}
+
+.marketing-root .faq-item p {
+  max-width: 72ch !important;
+  padding-right: clamp(24px, 5vw, 72px);
+}
+
+.marketing-root .btn {
+  padding-left: clamp(18px, 1.6vw, 24px) !important;
+  padding-right: clamp(18px, 1.6vw, 24px) !important;
+}
+
+.marketing-root .tier .badge {
+  padding: 7px 14px !important;
+}
+
 .marketing-root .section,
 .marketing-root .foot,
 .marketing-root .foot-end,
@@ -4064,6 +4092,8 @@ body {
 .suite-shell .ed-tag,
 .suite-shell .kb-tag {
   border-color: transparent !important;
+  max-width: 100%;
+  overflow: visible !important;
   box-shadow: none !important;
 }
 
@@ -4073,11 +4103,15 @@ body {
   background: rgba(25, 23, 36, 0.055) !important;
   color: var(--text-2) !important;
   letter-spacing: 0.11em !important;
+  min-height: 24px !important;
+  padding-inline: 10px !important;
 }
 
 .suite-shell .pill {
   background: rgba(25, 23, 36, 0.055) !important;
   color: var(--text-2) !important;
+  min-height: 24px !important;
+  padding-inline: 10px !important;
 }
 
 .suite-shell .pill::before {
