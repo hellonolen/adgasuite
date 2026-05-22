@@ -85,3 +85,11 @@ Reference:
 - Clear tables, drawers, filters, forms, settings, and empty states.
 - No dark mode as the primary product surface.
 - No bloated cards or decorative placeholder sections.
+
+## Marketing Navigation
+
+- Every primary top-menu item must resolve to its own standalone page route.
+- Do not use homepage hash anchors as primary top-menu destinations.
+- The current primary marketing menu is Platform, Deal Process, Use Cases, and Pricing.
+- Security belongs in footer/legal or trust-context placement, not the primary top menu.
+- Main marketing CTA language is Sign in and Start closing deals. Do not use Open ADGA, Get Started, or Request Access as public primary CTA language.
