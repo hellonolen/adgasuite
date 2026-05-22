@@ -7,9 +7,182 @@
 
 html, body { margin: 0; min-height: 100%; }
 
+html { scroll-behavior: smooth; }
+
 body::before {
   display: block !important;
 }
+
+/* ===== Motion layer ===== */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1), transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-stagger > * {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1), transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 60ms; opacity: 1; transform: translateY(0); }
+  .reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 120ms; opacity: 1; transform: translateY(0); }
+  .reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 180ms; opacity: 1; transform: translateY(0); }
+  .reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 240ms; opacity: 1; transform: translateY(0); }
+  .reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 300ms; opacity: 1; transform: translateY(0); }
+  .reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 360ms; opacity: 1; transform: translateY(0); }
+  .reveal-stagger.is-visible > *:nth-child(7) { transition-delay: 420ms; opacity: 1; transform: translateY(0); }
+  .reveal-stagger.is-visible > *:nth-child(8) { transition-delay: 480ms; opacity: 1; transform: translateY(0); }
+  .reveal-stagger.is-visible > *:nth-child(n+9) { transition-delay: 540ms; opacity: 1; transform: translateY(0); }
+}
+
+/* Hover lift on marketing cards */
+.marketing-root .tier,
+.marketing-root .three-card,
+.marketing-root .usecase-card,
+.marketing-root .process-step {
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 280ms cubic-bezier(0.22, 1, 0.36, 1), border-color 280ms ease;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .marketing-root .tier:hover,
+  .marketing-root .three-card:hover,
+  .marketing-root .usecase-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 44px rgba(86, 36, 199, 0.10), 0 2px 0 rgba(255, 255, 255, 0.8) inset;
+  }
+  .marketing-root .process-step:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Animated underline on inline links */
+.marketing-root .lede a,
+.marketing-root .body a:not(.btn),
+.marketing-root .desc a:not(.btn),
+.marketing-root .faq-item p a {
+  position: relative;
+  text-decoration: none;
+  color: var(--accent, #5d2cd6);
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  transition: background-size 220ms ease;
+}
+.marketing-root .lede a:hover,
+.marketing-root .body a:not(.btn):hover,
+.marketing-root .desc a:not(.btn):hover,
+.marketing-root .faq-item p a:hover {
+  background-size: 100% 1px;
+}
+
+/* Primary CTA gradient shimmer */
+.marketing-root .btn.primary {
+  position: relative;
+  overflow: hidden;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease, filter 220ms ease;
+}
+.marketing-root .btn.primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .marketing-root .btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px rgba(86, 36, 199, 0.30);
+    filter: brightness(1.04);
+  }
+  .marketing-root .btn.primary:hover::before {
+    transform: translateX(100%);
+  }
+  .marketing-root .btn:not(.primary):hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* Hero accent — subtle gradient drift behind the visual card */
+.marketing-root .hero {
+  position: relative;
+  isolation: isolate;
+}
+.marketing-root .hero::before {
+  content: "";
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  width: 70%;
+  height: 110%;
+  background: radial-gradient(ellipse at center, rgba(122, 70, 222, 0.10) 0%, transparent 60%);
+  filter: blur(40px);
+  z-index: -1;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .marketing-root .hero::before {
+    animation: hero-drift 18s ease-in-out infinite alternate;
+  }
+  @keyframes hero-drift {
+    from { transform: translate(0, 0) scale(1); opacity: 0.85; }
+    to { transform: translate(-3%, 4%) scale(1.08); opacity: 1; }
+  }
+}
+
+/* Nav link hover */
+.marketing-root .nav-links a {
+  position: relative;
+  transition: color 200ms ease;
+}
+.marketing-root .nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1.5px;
+  background: var(--accent, #5d2cd6);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .marketing-root .nav-links a:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+/* Selects and inputs — focus polish */
+.marketing-root select:focus-visible,
+.marketing-root input:focus-visible,
+.marketing-root textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent, #5d2cd6);
+  box-shadow: 0 0 0 4px rgba(86, 36, 199, 0.10);
+  transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+
+/* Image hover on suite feature cards */
+@media (prefers-reduced-motion: no-preference) {
+  .marketing-root .three-card .photo img,
+  .marketing-root .hero-photo img {
+    transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .marketing-root .three-card:hover .photo img,
+  .marketing-root .hero-photo:hover img {
+    transform: scale(1.02);
+  }
+}
+/* ===== /Motion layer ===== */
+
 
 /* ===== ADGA Suite refinement pass v2 ===== */
 .suite-shell {
@@ -305,11 +478,23 @@ body::before {
 }
 
 .suite-shell .voice {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 20 !important;
+  width: 340px !important;
+  min-width: 0 !important;
+  height: 100vh !important;
+  transform: none !important;
   background: rgba(255, 255, 255, 0.94) !important;
   border-left: 1px solid var(--suite-border-muted) !important;
   box-shadow: -12px 0 30px rgba(32, 24, 54, 0.06) !important;
   -webkit-backdrop-filter: blur(14px) saturate(120%) !important;
   backdrop-filter: blur(14px) saturate(120%) !important;
+}
+
+.suite-shell .voice.collapsed {
+  display: none !important;
+  width: 0 !important;
 }
 
 .suite-shell .voice-h,
@@ -2337,11 +2522,18 @@ body {
 }
 
 /* ===== Suite shell layout contract =====
-   Keep this after imported ADGA styles so breakpoint behavior has one final
-   source of truth. */
+   SINGLE SOURCE OF TRUTH. Keep all grid-template-columns rules for .app here.
+   Do not duplicate this in final-overrides.css or styles-v4.css.
+
+   Breakpoints:
+     >=1280px : sidebar 260 + main + rail 340 (voice-open) | sidebar 260 + main (voice-closed)
+     1024-1279: sidebar 220 + main; rail hidden
+     768-1023 : sidebar collapsed (overlay); main full
+     <768     : sidebar hidden (overlay); main full
+*/
 .suite-shell .app {
   display: grid !important;
-  grid-template-columns: 168px minmax(0, 1fr) 320px !important;
+  grid-template-columns: 260px minmax(0, 1fr) 340px !important;
   grid-template-rows: 100vh !important;
   width: 100vw;
   max-width: 100vw;
@@ -2353,7 +2545,7 @@ body {
 }
 
 .suite-shell .app.voice-closed {
-  grid-template-columns: 168px minmax(0, 1fr) !important;
+  grid-template-columns: 260px minmax(0, 1fr) !important;
 }
 
 .suite-shell .sidebar {
@@ -2361,7 +2553,7 @@ body {
   inset: auto !important;
   z-index: 20 !important;
   display: flex !important;
-  width: 168px !important;
+  width: 260px !important;
   min-width: 0 !important;
   height: 100vh !important;
   transform: none !important;
@@ -3431,26 +3623,38 @@ body {
   display: none !important;
 }
 
-@media (max-width: 1280px) {
+/* ===== Suite-shell responsive contract — SINGLE SOURCE OF TRUTH ===== */
+
+/* 1024px - 1279px : Hide right rail entirely, keep sidebar at 220px */
+@media (max-width: 1279px) {
   .suite-shell {
     --suite-gutter: clamp(24px, 3vw, 36px);
     --suite-gap: 16px;
   }
 
-  .suite-shell .app {
-    grid-template-columns: 160px minmax(0, 1fr) 300px !important;
-  }
-
+  .suite-shell .app,
+  .suite-shell .app.voice-open,
   .suite-shell .app.voice-closed {
-    grid-template-columns: 160px minmax(0, 1fr) !important;
+    grid-template-columns: 220px minmax(0, 1fr) !important;
   }
 
   .suite-shell .sidebar {
-    width: 160px !important;
+    width: 220px !important;
   }
 
-  .suite-shell .voice {
-    width: 300px !important;
+  .suite-shell .voice,
+  .suite-shell .voice.collapsed {
+    display: none !important;
+    width: 0 !important;
+  }
+
+  .suite-shell .app.voice-open .workspace {
+    padding-right: 0 !important;
+  }
+
+  .suite-shell .topbar .adga-mobile-btn,
+  .suite-shell .topbar .adga-open-btn {
+    display: inline-flex !important;
   }
 
   .suite-shell .doc-library-layout {
@@ -3459,32 +3663,6 @@ body {
 
   .suite-shell .doc-detail-panel {
     position: static;
-  }
-}
-
-@media (max-width: 1100px) {
-  .suite-shell {
-    --suite-gutter: 24px;
-  }
-
-  .suite-shell .app {
-    grid-template-columns: 152px minmax(0, 1fr) 300px !important;
-  }
-
-  .suite-shell .app.voice-open {
-    grid-template-columns: 152px minmax(0, 1fr) 300px !important;
-  }
-
-  .suite-shell .app.voice-closed {
-    grid-template-columns: 152px minmax(0, 1fr) !important;
-  }
-
-  .suite-shell .app.voice-open .workspace {
-    padding-right: min(360px, 34vw) !important;
-  }
-
-  .suite-shell .sidebar {
-    width: 152px !important;
   }
 
   .suite-shell .page-h {
@@ -3519,13 +3697,8 @@ body {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  .suite-shell .doc-center-shell,
-  .suite-shell .doc-library-layout {
+  .suite-shell .doc-center-shell {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .suite-shell .doc-detail-panel {
-    position: static;
   }
 
   .suite-shell .deal-focus-header {
@@ -3566,75 +3739,42 @@ body {
   .suite-shell .price-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .suite-shell .voice {
-    position: relative !important;
-    inset: auto !important;
-    z-index: 20 !important;
-    width: 300px !important;
-    height: 100vh !important;
-    transform: none !important;
-    box-shadow: -12px 0 32px rgba(29, 21, 52, 0.07), inset 1px 0 0 rgba(255, 255, 255, 0.62) !important;
-  }
-
-  .suite-shell .voice.collapsed {
-    display: none !important;
-  }
-
-  .suite-shell .topbar .adga-mobile-btn {
-    display: none !important;
-  }
 }
 
-@media (min-width: 821px) and (max-width: 1440px) {
-  .suite-shell .app,
-  .suite-shell .app.voice-open {
-    grid-template-columns: 160px minmax(0, 1fr) !important;
+/* 768px - 1023px : Collapse sidebar behind hamburger; main fills viewport */
+@media (max-width: 1023px) {
+  .suite-shell {
+    --suite-gutter: 20px;
   }
 
-  .suite-shell .app.voice-closed {
-    grid-template-columns: 160px minmax(0, 1fr) !important;
-  }
-
-  .suite-shell .app.voice-open .workspace {
-    padding-right: 300px !important;
-  }
-
-  .suite-shell .voice {
-    position: fixed !important;
-    top: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    z-index: 70 !important;
-    width: min(360px, 34vw) !important;
-    min-width: 300px !important;
-    height: 100vh !important;
-    box-shadow: -24px 0 64px rgba(29, 21, 52, 0.16), inset 1px 0 0 rgba(255, 255, 255, 0.62) !important;
-  }
-
-  .suite-shell .voice.collapsed {
-    display: none !important;
-  }
-
-  .suite-shell .topbar .adga-mobile-btn {
-    display: inline-flex !important;
-  }
-
-  .suite-shell .suite-workspace-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-@media (min-width: 821px) and (max-width: 1100px) {
   .suite-shell .app,
   .suite-shell .app.voice-open,
   .suite-shell .app.voice-closed {
-    grid-template-columns: 152px minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  .suite-shell .suite-workspace-grid {
-    padding-left: 24px;
-    padding-right: 24px;
+  .suite-shell .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    z-index: 80 !important;
+    width: min(284px, 86vw) !important;
+    height: 100vh !important;
+    transform: translateX(calc(-100% - 16px)) !important;
+    transition: transform 220ms cubic-bezier(.4, 0, .2, 1) !important;
+    pointer-events: none;
+  }
+
+  .suite-shell .sidebar:not(.collapsed) {
+    transform: translateX(0) !important;
+    pointer-events: auto;
+    box-shadow: var(--shadow-lg) !important;
+  }
+
+  .suite-shell .topbar .menu-btn {
+    display: inline-flex !important;
+    flex: 0 0 auto;
   }
 }
 
@@ -3660,15 +3800,20 @@ body {
     left: 0 !important;
     z-index: 80 !important;
     width: min(284px, 86vw) !important;
+    transform: translateX(calc(-100% - 16px)) !important;
+    transition: transform 220ms cubic-bezier(.4, 0, .2, 1) !important;
+    pointer-events: none;
+  }
+
+  .suite-shell .sidebar:not(.collapsed) {
     transform: translateX(0) !important;
+    pointer-events: auto;
     box-shadow: var(--shadow-lg) !important;
   }
 
   .suite-shell .sidebar.collapsed {
     display: flex !important;
     width: min(284px, 86vw) !important;
-    transform: translateX(calc(-100% - 16px)) !important;
-    pointer-events: none;
   }
 
   .suite-shell .topbar {
@@ -4233,11 +4378,23 @@ body {
 }
 
 .suite-shell .voice {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 20 !important;
+  width: 340px !important;
+  min-width: 0 !important;
+  height: 100vh !important;
+  transform: none !important;
   background: rgba(255, 255, 255, 0.94) !important;
   border-left: 1px solid var(--suite-border-muted) !important;
   box-shadow: -12px 0 30px rgba(32, 24, 54, 0.06) !important;
   -webkit-backdrop-filter: blur(14px) saturate(120%) !important;
   backdrop-filter: blur(14px) saturate(120%) !important;
+}
+
+.suite-shell .voice.collapsed {
+  display: none !important;
+  width: 0 !important;
 }
 
 .suite-shell .voice-h,

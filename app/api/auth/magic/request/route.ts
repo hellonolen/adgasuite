@@ -15,6 +15,32 @@ interface MagicRequestBody {
   redirect?: string;
 }
 
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_PER_EMAIL = 3;
+const RATE_LIMIT_MAX_PER_IP = 10;
+const rateLimitBuckets = new Map<string, number[]>();
+
+function clientIp(request: Request): string {
+  return (
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+function rateLimitHit(key: string, limit: number): boolean {
+  const now = Date.now();
+  const bucket = (rateLimitBuckets.get(key) || []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  if (bucket.length >= limit) {
+    rateLimitBuckets.set(key, bucket);
+    return true;
+  }
+  bucket.push(now);
+  rateLimitBuckets.set(key, bucket);
+  return false;
+}
+
 function safeRedirect(value?: string) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return "/suite";
   return value;
@@ -59,6 +85,11 @@ export async function POST(request: Request) {
     return errorJson("Enter a valid work email.", 400);
   }
 
+  const ip = clientIp(request);
+  if (rateLimitHit(`ip:${ip}`, RATE_LIMIT_MAX_PER_IP) || rateLimitHit(`email:${email}`, RATE_LIMIT_MAX_PER_EMAIL)) {
+    return errorJson("Too many requests. Try again in a minute.", 429);
+  }
+
   if (!context.env.DB) {
     if (process.env.NODE_ENV !== "production") {
       return json({ ok: true, skipped: true, previewUrl: "/suite", message: "Local DB is not configured. Use the preview link." });
@@ -91,10 +122,14 @@ export async function POST(request: Request) {
     return errorJson("Could not send the sign-in email.", 502, result);
   }
 
+  // SECURITY: only expose the raw verify URL in non-production builds.
+  // In production the preview URL would hand any caller a working auth token.
+  const exposePreviewUrl = skipped && process.env.NODE_ENV !== "production";
+
   return json({
     ok: true,
     sent: result.ok,
     skipped,
-    previewUrl: skipped ? verifyUrl.toString() : undefined,
+    previewUrl: exposePreviewUrl ? verifyUrl.toString() : undefined,
   });
 }

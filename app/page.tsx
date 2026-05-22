@@ -2,102 +2,180 @@
 
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 
-export default function MarketingPage() {
+const STAGES: ReadonlyArray<readonly [string, string, string]> = [
+  ["01", "Signal", "Ad, referral, inbound form, QR, call, email, event, partner, or import."],
+  ["02", "Capture", "Match contact, company, source, owner, urgency, and first next action."],
+  ["03", "Qualify", "Confirm fit, timing, value, authority, blockers, and reason to keep moving."],
+  ["04", "Shape", "Define offer, terms, stakeholders, files, close date, and meeting plan."],
+  ["05", "Advance", "Run follow-up, calls, documents, objections, tasks, and commitments."],
+  ["06", "Close", "Track signature, purchase, payment, decision record, and final handoff."],
+  ["07", "Deliver", "Move from closed deal to onboarding, milestones, support route, ownership."],
+  ["08", "Expand", "Identify renewal, repeat purchase, referral, upsell, cross-sell, or partner."],
+];
+
+const ANATOMY = [
+  {
+    label: "People",
+    items: ["Primary contact", "Company or account", "Owner & stakeholders", "Decision authority", "Represented client"],
+  },
+  {
+    label: "Process",
+    items: ["Current stage", "Stage confidence", "Next action", "Due date", "Blockers & risks"],
+  },
+  {
+    label: "Proof",
+    items: ["Calls & transcripts", "Meetings & briefs", "Voice notes", "Documents & terms", "Activity timeline"],
+  },
+  {
+    label: "Close",
+    items: ["Approvals", "Signature", "Invoice & payment", "Decision record", "Handoff to delivery"],
+  },
+];
+
+const SUITE_FEATURES = [
+  {
+    img: "/adga/visual-capture.svg",
+    metaText: "LEADS · INTAKE · ROUTE",
+    label: "Lead intake",
+    head: "Every signal becomes a record.",
+    body: "Forms, QR links, imports, manual entries — captured with source, urgency, owner, and first next action attached automatically.",
+    bullets: ["Inbound form + QR submissions", "CSV imports", "Routing by source or geography", "Stale-lead detection"],
+  },
+  {
+    img: "/adga/visual-followup.svg",
+    metaText: "EMAIL · SMS · VOICE",
+    label: "Contact work",
+    head: "Every touch stays on file.",
+    body: "Calls, messages, voice notes, meetings, documents, and follow-up sequences stay tied to the contact and the deal — for as long as you need.",
+    bullets: ["Internal & client communication lanes", "Voice notes with auto-transcription", "Meeting invites with ICS attachments", "Follow-up sequence editor"],
+  },
+  {
+    img: "/adga/visual-execution.svg",
+    metaText: "FILES · TERMS · INVOICE",
+    label: "Execution",
+    head: "Move the deal to close.",
+    body: "Track client, internal team, decisions, documents, approvals, invoices, and payment connectors in one record — without leaving the deal.",
+    bullets: ["Secure deal files in R2 storage", "Due-diligence checklists", "Invoicing with Stripe payouts", "Watermark + scoped redaction"],
+  },
+];
+
+const USE_CASES = [
+  { label: "Real estate closing team", body: "Coordinate agents, brokers, attorneys, lenders, inspections, and closing docs against a single deal record." },
+  { label: "Capital raise", body: "Track investor contacts, diligence files, commitments, follow-up cadence, and closing timeline in one place." },
+  { label: "Acquisition", body: "Keep buyer, seller, advisors, documents, approvals, meetings, and terms attached to the deal." },
+  { label: "Partnership", body: "Move introductions, stakeholders, commercial terms, documents, and launch steps forward." },
+  { label: "Licensing", body: "Manage rights, counterparties, term sheets, review cycles, signatures, and renewal paths." },
+  { label: "High-ticket sales", body: "Turn qualified interest into calls, proposals, follow-up, close, delivery, and expansion." },
+];
+
+const IMPORT_SOURCES = [
+  "CSV export from another CRM",
+  "Manual entry of an existing pipeline",
+  "Email thread or shared inbox",
+  "Calendar history of past meetings",
+  "Document folder for a deal already in motion",
+  "Call transcript from prior conversations",
+];
+
+const FAQ_ITEMS = [
+  {
+    q: "Who is ADGA for?",
+    a: "Operators running real deals: solo closers, real estate closing teams, capital raisers, M&A advisors, partnership leads, and high-ticket sales teams. If money moves and stakes are real, ADGA is the workspace.",
+  },
+  {
+    q: "Can I bring existing deals over?",
+    a: "Yes. Import from CSV, another CRM, an email thread, calendar history, a document folder, or a call transcript. Contacts, companies, deals, stages, files, and notes come with.",
+  },
+  {
+    q: "How does pricing work?",
+    a: "Three plans: Pro for one operator, Team for closing teams, Enterprise for firms. Monthly or annual (2 months free). Add seats anytime. See the pricing page for the full breakdown.",
+  },
+  {
+    q: "Where does my data live?",
+    a: "Cloudflare D1 for deal records and metadata. Cloudflare R2 for documents, voice notes, and generated files. Encrypted in transit and at rest. Your workspace is yours — no shared tenants in your data.",
+  },
+  {
+    q: "Does the AI act on its own?",
+    a: "No. Every customer-facing action is prepared and waits for your approval. The AI drafts follow-up, surfaces missing data, suggests next moves, and summarizes calls — you keep the wheel.",
+  },
+];
+
+export default function HomePage() {
   return (
     <MarketingLayout>
       <div className="wrap">
-        {/* ===== Hero ===== */}
         <section className="hero">
-          <div className="meta">
-            <span>Deal execution platform</span>
-            <span className="dot" />
-            <span>Records · Calls · Documents</span>
-            <span className="dot" />
-            <span>Agentic deal flow</span>
-          </div>
           <div className="hero-grid">
             <div>
-              <h1>
-                Your organized<br />
-                deal flow from lead<br />
-                to close, <em>then repeat.</em>
-              </h1>
+              <h1>Built to close deals.</h1>
               <p className="lede">
-                ADGA gives every lead, contact, call, document, meeting, task, payment, and next action a place in the deal process so teams can move from first signal to repeat purchase.
+                ADGA is the deal flow platform that keeps every contact, call, document, and next action tied to the deal record — so closes happen on schedule, not by accident.
               </p>
               <div className="ctas">
                 <a href="/pricing" className="btn primary lg">Start closing deals</a>
               </div>
-              <div className="hero-proof" aria-label="ADGA operating proof">
-                <div><b>01</b><span>Capture the record</span><small>Lead source, contact, company, urgency, owner, and route.</small></div>
-                <div><b>02</b><span>Move the work</span><small>Calls, notes, files, tasks, approvals, calendar, and follow-up.</small></div>
-                <div><b>03</b><span>Protect the close</span><small>Every decision, file, commitment, and next move remains attached to the deal.</small></div>
-              </div>
             </div>
             <div className="hero-photo visual-card">
-              <img src="/adga/visual-deal-desk.svg" alt="ADGA live execution record with deal, contact, file, and timeline context" />
+              <img src="/adga/visual-deal-desk.svg" alt="ADGA deal record showing pipeline, contacts, files, and timeline" />
               <div className="ph-meta">LEAD · CONTACT · DEAL</div>
             </div>
           </div>
-          <div className="hero-command">
-            <div>
-              <span>Live pipeline</span>
-              <b>$284.6M weighted</b>
-              <small>Deal movement, stage risk, next meetings, and missing follow-up surfaced before the close slips.</small>
-            </div>
-            <div>
-              <span>Contact memory</span>
-              <b>Every touch attached</b>
-              <small>Calls, voice notes, transcripts, documents, and decisions stay tied to the contact and company.</small>
-            </div>
-            <div>
-              <span>Next action prep</span>
-              <b>Next action ready</b>
-              <small>ADGA prepares briefs, drafts outreach, queues tasks, and keeps judgment calls in front of the team.</small>
-            </div>
-          </div>
-          {/* Marquee strip */}
-          <div className="strip">
-            <div className="strip-row">
-              <span>Acquisition</span><span className="dot">·</span>
-              <span><em>Capital raise</em></span><span className="dot">·</span>
-              <span>Partnership</span><span className="dot">·</span>
-              <span>Licensing</span><span className="dot">·</span>
-              <span><em>Joint venture</em></span><span className="dot">·</span>
-              <span>Buyout</span><span className="dot">·</span>
-              <span>Procurement</span><span className="dot">·</span>
-              <span><em>Reseller</em></span><span className="dot">·</span>
-              <span>Acquisition</span><span className="dot">·</span>
-              <span><em>Capital raise</em></span><span className="dot">·</span>
-              <span>Partnership</span><span className="dot">·</span>
-              <span>Licensing</span><span className="dot">·</span>
-              <span><em>Joint venture</em></span><span className="dot">·</span>
-              <span>Buyout</span><span className="dot">·</span>
-              <span>Procurement</span><span className="dot">·</span>
-              <span><em>Reseller</em></span><span className="dot">·</span>
-            </div>
+        </section>
+
+        <section className="section" id="anatomy">
+          <span className="ed-label">Inside a deal record</span>
+          <h2 className="title">Everything attached. Nothing lost.</h2>
+          <p style={{ maxWidth: "60ch", marginTop: 12, color: "var(--adga-text-2)" }}>
+            A deal is more than a card on a board. Every record carries the people, the process, the proof, and the close path — together.
+          </p>
+          <div
+            className="anatomy-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 24,
+              marginTop: 32,
+              maxWidth: 1080,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            {ANATOMY.map((column) => (
+              <div
+                key={column.label}
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--rule)",
+                  borderRadius: 14,
+                  padding: 24,
+                }}
+              >
+                <span className="ed-label">{column.label}</span>
+                <ul style={{ marginTop: 16, padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
+                  {column.items.map((item) => (
+                    <li key={item} style={{ fontSize: 14, color: "var(--adga-text)" }}>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </section>
-        {/* ===== Deal process ===== */}
-        <section className="section process-section" id="deal-process">
-          <span className="ed-label">Deal process</span>
-          <div className="process-head">
-            <h2 className="title">From signal to repeat purchase.</h2>
-            <p>
-              ADGA gives every deal a visible path, whether it starts as a new lead, an imported opportunity, a call, an email thread, or an existing pipeline record.
-            </p>
-          </div>
-          <div className="process-rail" aria-label="ADGA deal process">
-            {[
-              ["01", "Signal", "Ad, referral, inbound form, QR, call, email, event, partner, or import."],
-              ["02", "Capture", "Create or match the contact, company, source, owner, urgency, and first next action."],
-              ["03", "Qualify", "Confirm fit, timing, value, authority, blockers, and reason to keep moving."],
-              ["04", "Shape", "Define the offer, terms, stakeholders, files, close date, and meeting plan."],
-              ["05", "Advance", "Run follow-up, calls, documents, objections, tasks, and commitments."],
-              ["06", "Close", "Track signature, purchase, payment, decision record, and final handoff."],
-              ["07", "Deliver", "Move from closed deal to onboarding, milestones, support route, and ownership."],
-              ["08", "Expand", "Identify renewal, repeat purchase, referral, upsell, cross-sell, or partner path."]
-            ].map(([num, label, body]) => (
+
+        <section className="section" id="process">
+          <span className="ed-label">The deal process</span>
+          <h2 className="title">From first signal to repeat purchase.</h2>
+          <div
+            className="process-rail"
+            style={{
+              marginTop: 32,
+              maxWidth: 1080,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            {STAGES.map(([num, label, body]) => (
               <div className="process-step" key={num}>
                 <span>{num}</span>
                 <b>{label}</b>
@@ -106,182 +184,124 @@ export default function MarketingPage() {
             ))}
           </div>
         </section>
-        {/* ===== Activation ===== */}
-        <section className="section activation-section" id="activation">
-          <span className="ed-label">Workspace activation</span>
-          <div className="activation-head">
-            <h2 className="title">Set up the deal desk. Do the work.</h2>
-            <p>
-              ADGA should not be treated like a passive trial. The first week is an activation path that gets real deals, contacts, documents, and next actions into motion.
-            </p>
-          </div>
-          <div className="activation-list" aria-label="Seven-step ADGA onboarding checklist">
-            {[
-              ["01", "Import or create deals", "Bring in active deals, old pipeline, or the first opportunity from a lead."],
-              ["02", "Connect contacts and companies", "Attach the people, accounts, decision makers, and relationship context."],
-              ["03", "Attach documents and notes", "Bring in proposals, contracts, voice notes, transcripts, folders, and files."],
-              ["04", "Set stages and close paths", "Place each deal in Signal, Capture, Qualify, Shape, Advance, Close, Deliver, or Expand."],
-              ["05", "Create next actions", "Assign the call, meeting, document, follow-up, task, or payment step that moves the deal."],
-              ["06", "Review risk and blockers", "Identify missing data, no-response risk, stalled movement, unsigned files, and close-date drift."],
-              ["07", "Run the weekly close plan", "Use the workspace to move priority deals, protect commitments, and surface expansion paths."]
-            ].map(([num, label, body]) => (
-              <div className="activation-row" key={num}>
-                <span>{num}</span>
-                <b>{label}</b>
-                <small>{body}</small>
+
+        <section className="section" id="suite">
+          <span className="ed-label">What's in the suite</span>
+          <h2 className="title">One workspace. Every deal.</h2>
+          <div
+            className="three"
+            style={{
+              marginTop: 32,
+              maxWidth: 1080,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            {SUITE_FEATURES.map((feature) => (
+              <div className="three-card" key={feature.label}>
+                <div className="photo visual-card">
+                  <img src={feature.img} alt={feature.head} />
+                  <div className="ph-meta">{feature.metaText}</div>
+                </div>
+                <span className="ed-label">{feature.label}</span>
+                <div className="head">{feature.head}</div>
+                <div className="body">{feature.body}</div>
+                <ul style={{ marginTop: 12, padding: 0, listStyle: "none", display: "grid", gap: 6, fontSize: 13, color: "var(--adga-text-2)" }}>
+                  {feature.bullets.map((bullet) => (
+                    <li key={bullet} style={{ paddingLeft: 14, position: "relative" }}>
+                      <span style={{ position: "absolute", left: 0, color: "var(--accent)" }}>·</span>
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
         </section>
-        {/* ===== Use cases ===== */}
-        <section className="section usecase-section" id="use-cases">
-          <span className="ed-label">Use cases</span>
-          <div className="process-head">
-            <h2 className="title">Different deals. One operating path.</h2>
-            <p>
-              ADGA is built around the anatomy of a deal, so the same system can support high-value commercial work across categories.
-            </p>
-          </div>
-          <div className="usecase-grid">
-            {[
-              ["Capital raise", "Track investor contacts, diligence files, commitments, follow-up, and closing timeline."],
-              ["Acquisition", "Keep buyer, seller, advisors, documents, approvals, meetings, and terms in one record."],
-              ["Partnership", "Move introductions, stakeholders, commercial terms, documents, and launch steps forward."],
-              ["Licensing", "Manage rights, counterparties, term sheets, review cycles, signatures, and renewal paths."],
-              ["Procurement", "Track vendors, quotes, decision criteria, approvals, contracts, payments, and delivery."],
-              ["High-ticket sales", "Turn qualified interest into calls, proposals, follow-up, close, delivery, and expansion."]
-            ].map(([label, body]) => (
-              <div className="usecase-card" key={label}>
-                <b>{label}</b>
-                <small>{body}</small>
+
+        <section className="section" id="use-cases">
+          <span className="ed-label">Built for</span>
+          <h2 className="title">Different deals. One operating path.</h2>
+          <div
+            className="usecase-grid"
+            style={{
+              marginTop: 32,
+              maxWidth: 1080,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            {USE_CASES.map((useCase) => (
+              <div className="usecase-card" key={useCase.label}>
+                <b>{useCase.label}</b>
+                <small>{useCase.body}</small>
               </div>
             ))}
           </div>
         </section>
-        {/* ===== Three columns ===== */}
-        <section className="section">
-          <span className="ed-label">Operating layer</span>
-          <h2 className="title">What ADGA keeps moving.</h2>
-          <div className="three">
-            <div className="three-card">
-              <div className="photo visual-card">
-                <img src="/adga/visual-capture.svg" alt="Lead capture workspace with form, QR, import, and routing signals" />
-                <div className="ph-meta">FORM · QR · IMPORT</div>
+
+        <section className="section" id="import">
+          <span className="ed-label">Bring existing deals in</span>
+          <h2 className="title">Don't start over.</h2>
+          <p style={{ maxWidth: "60ch", marginTop: 12, color: "var(--adga-text-2)" }}>
+            Most platforms make you abandon what you've built. ADGA brings active pipeline, contacts, files, and notes with you — match on day one.
+          </p>
+          <div
+            style={{
+              marginTop: 28,
+              maxWidth: 1080,
+              marginLeft: "auto",
+              marginRight: "auto",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 16,
+            }}
+          >
+            {IMPORT_SOURCES.map((source, index) => (
+              <div
+                key={source}
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--rule)",
+                  borderRadius: 12,
+                  padding: "18px 20px",
+                  display: "flex",
+                  gap: 14,
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, color: "var(--accent)", letterSpacing: "0.12em" }}>
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span style={{ fontSize: 14, color: "var(--adga-text)" }}>{source}</span>
               </div>
-              <span className="ed-label">Lead intake</span>
-              <div className="head">Capture the full record.</div>
-              <div className="body">Inbound forms, QR links, manual entries, imported lists, urgency, source, date, owner, and next action.</div>
-            </div>
-            <div className="three-card">
-              <div className="photo visual-card">
-                <img src="/adga/visual-followup.svg" alt="Follow-up timeline with email, calls, meetings, and voice notes" />
-                <div className="ph-meta">EMAIL · SMS · VOICE</div>
-              </div>
-              <span className="ed-label">Contact work</span>
-              <div className="head">Keep the relationship current.</div>
-              <div className="body">Calls, messages, voice notes, meeting requests, documents, reminders, and follow-up sequences stay tied to the person.</div>
-            </div>
-            <div className="three-card">
-              <div className="photo visual-card">
-                <img src="/adga/visual-execution.svg" alt="Deal execution board with files, terms, approvals, and invoices" />
-                <div className="ph-meta">FILES · TERMS · INVOICE</div>
-              </div>
-              <span className="ed-label">Execution path</span>
-              <div className="head">Move the work to close.</div>
-              <div className="body">Track the client, internal team, decisions, documents, meetings, approvals, invoices, and payment connectors together.</div>
-            </div>
+            ))}
           </div>
         </section>
-        {/* ===== Product showcase ===== */}
-        <section className="section">
-          <span className="ed-label">Product system</span>
-          <div className="product">
-            <div className="copy">
-              <h3>
-                One suite,<br />
-                one record.
-              </h3>
-              <p>
-                ADGA gives owners and teams a connected workspace for every person, company, touch, meeting, file, invoice, and next action behind a deal.
-              </p>
-              <ul>
-                <li><span className="n">i.</span><span>Leads recorded with source, urgency, date, and owner</span><span className="meta">PIPELINE</span></li>
-                <li><span className="n">ii.</span><span>Contacts &amp; accounts, with every touch on file</span><span className="meta">CRM</span></li>
-                <li><span className="n">iii.</span><span>Secure deal files, signatures, due-diligence checklists</span><span className="meta">FILES</span></li>
-                <li><span className="n">iv.</span><span>Internal and client communication tied to the deal</span><span className="meta">TIMELINE</span></li>
-                <li><span className="n">v.</span><span>Voice notes, transcripts, documents, and meeting records</span><span className="meta">MEDIA</span></li>
-                <li><span className="n">vi.</span><span>Next-step workflows that prepare the close</span><span className="meta">FLOW</span></li>
-              </ul>
-              <div style={{marginTop: 24}}><a href="/pricing" className="btn primary">Start closing deals</a></div>
-            </div>
-            <div className="preview">
-              <div className="frame visual-card">
-                <img src="/adga/visual-suite-record.svg" alt="ADGA suite view showing pipeline, documents, contacts, and AI notes in one record" />
-                <div className="ph-meta">SCREEN · ADGA · 09:14</div>
-              </div>
-            </div>
-          </div>
-        </section>
-        {/* ===== Quote / Testimonial ===== */}
-        <section className="section">
-          <span className="ed-label">Built for deal owners</span>
-          <div className="quote" style={{marginTop: 24}}>
-            <div className="photo visual-card">
-              <img src="/adga/visual-operator.svg" alt="Operator view with meetings, tasks, and deal context" />
-              <div className="ph-meta">OWNER · TEAM · CLIENT</div>
-            </div>
-            <div className="text">
-              <q>ADGA is built for the work that happens after a lead arrives: the follow-up, the meeting, the client record, the file, the invoice, and the close.</q>
-              <div className="who">
-                <span className="line" />
-                <span><b>Deal operator</b> · Principal · private market advisory</span>
-              </div>
-              <div style={{marginTop: 14}}><a href="/stories" className="btn">See customer stories</a></div>
-            </div>
-          </div>
-        </section>
-        {/* ===== Security teaser ===== */}
-        <section className="section" id="security">
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 24, flexWrap: 'wrap'}}>
+
+        <section className="section" id="faq">
+          <div className="faq" style={{ maxWidth: 1080, marginLeft: "auto", marginRight: "auto" }}>
             <div>
-              <span className="ed-label">Controls</span>
-              <h2 className="title" style={{margin: '18px 0 0'}}>Structured for serious work.</h2>
+              <span className="ed-label">FAQ</span>
+              <h2>Common questions.</h2>
             </div>
-            <a href="/security" className="btn lg">Review security</a>
-          </div>
-          <div className="three" style={{marginTop: 48}}>
-            <div className="three-card">
-              <div className="num">01</div>
-              <div className="head">Records stay organized.</div>
-              <div className="body">Leads, contacts, deals, invoices, reminders, and activity history stay connected in one place.</div>
-            </div>
-            <div className="three-card">
-              <div className="num">02</div>
-              <div className="head">Files stay attached.</div>
-              <div className="body">Documents, voice notes, uploads, summaries, and generated files stay tied to the right client or deal.</div>
-            </div>
-            <div className="three-card">
-              <div className="num">03</div>
-              <div className="head">Deal work keeps moving.</div>
-              <div className="body">ADGA prepares follow-up, surfaces open items, and keeps each deal moving toward the next action.</div>
+            <div className="faq-list">
+              {FAQ_ITEMS.map((item, index) => (
+                <details className="faq-item" key={item.q} open={index === 0}>
+                  <summary>{item.q}</summary>
+                  <p>{item.a}</p>
+                </details>
+              ))}
             </div>
           </div>
         </section>
-        {/* ===== CTA ===== */}
-        <section className="cta" id="start">
-          <h2>
-            Move every<br />
-            <em>deal forward.</em>
-          </h2>
+
+        <section className="cta">
+          <h2>Move every <em>deal forward.</em></h2>
           <div className="right">
             <p>
-              Choose a plan, verify email, and open the suite built to keep leads, contacts, documents, meetings, and decisions moving toward close.
+              Pick a plan, verify your email, and open the workspace built to keep leads, contacts, documents, meetings, and decisions moving toward close.
             </p>
-            <div className="cta-steps" aria-label="Start using ADGA">
-              <div><span>01</span><b>Choose a plan</b><small>Pick the plan that matches the team and deal volume.</small></div>
-              <div><span>02</span><b>Verify email</b><small>Use the magic link to enter the suite after checkout.</small></div>
-              <div><span>03</span><b>Move deals forward</b><small>Track leads, contacts, documents, meetings, and deal movement.</small></div>
-            </div>
             <div className="ctas">
               <a href="/pricing" className="btn primary lg">Start closing deals</a>
             </div>

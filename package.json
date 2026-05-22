@@ -11,7 +11,8 @@
     "preview": "npm run build:cf && wrangler dev",
     "cloudflare:production": "node scripts/cloudflare-production-setup.mjs",
     "verify:production": "node scripts/verify-production.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "setup:stripe": "bash scripts/setup-stripe.sh"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.17.1",

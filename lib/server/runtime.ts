@@ -48,19 +48,32 @@ export function getRuntimeContext(request?: Request): RuntimeContext {
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
 
-  const requestedEmail = request?.headers.get("x-adga-admin-email")?.toLowerCase();
   const localBypass =
     process.env.NODE_ENV !== "production" ||
     env.ADGA_LOCAL_ADMIN_BYPASS === "true";
-  const email = requestedEmail && adminEmails.includes(requestedEmail)
-    ? requestedEmail
-    : adminEmails[0];
+
+  // SECURITY: the x-adga-admin-email header is only honored when local bypass
+  // is active. In production every authenticated request must validate against
+  // the sessions table (see validateSession in lib/server/magic-auth).
+  const requestedEmail = localBypass
+    ? request?.headers.get("x-adga-admin-email")?.toLowerCase() ?? null
+    : null;
+
+  const email = localBypass
+    ? requestedEmail && adminEmails.includes(requestedEmail)
+      ? requestedEmail
+      : adminEmails[0]
+    : "";
 
   return {
     env,
     user: {
       email,
-      role: email === "hellonolen@gmail.com" ? "owner" : "admin",
+      role: localBypass
+        ? email === "hellonolen@gmail.com"
+          ? "owner"
+          : "admin"
+        : "member",
       isLocalAdminBypass: localBypass,
     },
   };

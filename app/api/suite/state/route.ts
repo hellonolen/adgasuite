@@ -1,14 +1,23 @@
-import { json } from "@/lib/server/http";
+import { errorJson, json } from "@/lib/server/http";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { getSuiteState } from "@/lib/server/repository";
+import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);
+  const sessionUser = await validateSession(context.env.DB, readSessionCookie(request));
+
+  if (!sessionUser && !context.user.isLocalAdminBypass) {
+    return errorJson("Authentication required.", 401);
+  }
+
   const state = await getSuiteState(context.env.DB);
 
   return json({
     ok: true,
-    user: context.user,
+    user: sessionUser
+      ? { email: sessionUser.email, role: sessionUser.role }
+      : context.user,
     ...state,
   });
 }

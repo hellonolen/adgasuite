@@ -281,12 +281,120 @@ function mapApproval(row: Record<string, unknown>): AgentApproval {
   };
 }
 
+function mapLeadRow(row: Record<string, unknown>) {
+  return {
+    id: String(row.id),
+    name: String(row.full_name || ""),
+    title: row.job_title ? String(row.job_title) : "",
+    company: String(row.company || ""),
+    sector: row.industry ? String(row.industry) : "",
+    score: Number(row.score || 0),
+    intent: row.urgency === "Immediate" || row.urgency === "Same Day" ? "high" : row.urgency === "Low" ? "low" : "med",
+    value: Number(row.estimated_value_cents || 0) / 100,
+    channel: row.source ? String(row.source) : "",
+    last: row.last_contacted_at ? String(row.last_contacted_at) : row.received_at ? String(row.received_at) : "",
+    status: String(row.status || "warm").toLowerCase(),
+    urgency: row.urgency ? String(row.urgency) : "Normal",
+    priority: String(row.priority || "medium"),
+    receivedAt: row.received_at ? String(row.received_at) : String(row.created_at),
+    followUpDueAt: row.follow_up_due_at ? String(row.follow_up_due_at) : null,
+    followUpStatus: String(row.follow_up_status || "not_started"),
+    preferredContact: row.preferred_contact_method ? String(row.preferred_contact_method) : null,
+    phone: row.phone ? String(row.phone) : null,
+    email: row.email ? String(row.email) : null,
+    city: row.city ? String(row.city) : null,
+    state: row.state_region ? String(row.state_region) : null,
+    social: parseJson(String(row.social_profiles_json || "{}"), {}),
+  };
+}
+
+function mapDealRow(row: Record<string, unknown>) {
+  return {
+    id: String(row.id),
+    name: String(row.name || ""),
+    company: row.company ? String(row.company) : "",
+    type: row.type ? String(row.type) : "",
+    value: Number(row.value_cents || 0) / 100,
+    currency: "USD",
+    stage: String(row.stage || "lead").toLowerCase(),
+    prob: Number(row.probability || 0),
+    owner: row.owner_user_id ? String(row.owner_user_id) : "",
+    team: [],
+    close: row.expected_close_at ? String(row.expected_close_at) : "",
+    updated: String(row.updated_at || ""),
+    tags: [],
+    priority: "med",
+    source: "",
+  };
+}
+
+function mapContactRow(row: Record<string, unknown>) {
+  return {
+    id: String(row.id),
+    name: String(row.full_name || `${row.first_name || ""} ${row.last_name || ""}`.trim()),
+    email: row.email ? String(row.email) : null,
+    phone: row.phone ? String(row.phone) : null,
+    company: row.company ? String(row.company) : null,
+    title: row.title ? String(row.title) : null,
+    status: String(row.status || "lead"),
+    created_at: String(row.created_at),
+  };
+}
+
+function mapTaskRow(row: Record<string, unknown>) {
+  return {
+    id: String(row.id),
+    title: String(row.title || ""),
+    deal: row.deal_id ? String(row.deal_id) : null,
+    owner: row.assigned_user_id ? String(row.assigned_user_id) : "",
+    due: row.due_at ? String(row.due_at) : "",
+    status: String(row.status || "todo"),
+    priority: String(row.priority || "medium"),
+  };
+}
+
+function mapDocumentRow(row: Record<string, unknown>) {
+  const title = String(row.title || "");
+  const ext = (title.match(/\.([a-z0-9]+)$/i)?.[1] || "pdf").toLowerCase();
+  return {
+    id: String(row.id),
+    name: title,
+    ext,
+    size: "—",
+    updated: String(row.created_at || ""),
+    deal: row.deal_id ? String(row.deal_id) : null,
+    owner: row.created_by_user_id ? String(row.created_by_user_id) : "",
+    signed: String(row.status) === "signed" || String(row.status) === "sent",
+  };
+}
+
+function mapWorkspaceRow(row: Record<string, unknown>) {
+  return {
+    id: String(row.id),
+    name: String(row.name || ""),
+    color: "var(--text-3)",
+    members: [],
+  };
+}
+
+function mapIntelligenceRow(row: Record<string, unknown>) {
+  return {
+    tag: row.category ? String(row.category) : "Reference",
+    title: String(row.title || ""),
+    desc: String(row.summary || ""),
+    readers: 0,
+    updated: String(row.updated_at || ""),
+  };
+}
+
 export async function getSuiteState(db?: D1Database) {
+  // No D1 binding (local dev without remote DB) → use in-memory seed so the UI still has shape.
   if (!db) {
     return {
       organization: { id: DEFAULT_ORG_ID, name: "ADGA", plan: "suite", subscription_status: "trialing" },
       leads,
       deals,
+      contacts: [] as ReturnType<typeof mapContactRow>[],
       tasks,
       documents,
       workspaces,
@@ -299,22 +407,36 @@ export async function getSuiteState(db?: D1Database) {
     };
   }
 
-  const [jobs, events, calendar, approvals, storage] = await Promise.all([
+  const [
+    jobs, events, calendar, approvals, storage,
+    leadRows, dealRows, contactRows, taskRows, documentRows, workspaceRows, intelligenceRows,
+  ] = await Promise.all([
     db.prepare("SELECT * FROM agent_jobs ORDER BY created_at DESC LIMIT 25").all<Record<string, unknown>>(),
     db.prepare("SELECT * FROM events ORDER BY created_at DESC LIMIT 50").all<Record<string, unknown>>(),
     db.prepare("SELECT * FROM calendar_events ORDER BY starts_at ASC LIMIT 100").all<Record<string, unknown>>(),
     db.prepare("SELECT * FROM agent_approvals ORDER BY created_at DESC LIMIT 50").all<Record<string, unknown>>(),
     db.prepare("SELECT * FROM storage_objects ORDER BY created_at DESC LIMIT 50").all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM leads ORDER BY received_at DESC, created_at DESC LIMIT 200").all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM deals ORDER BY updated_at DESC LIMIT 200").all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM contacts ORDER BY updated_at DESC LIMIT 200").all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM tasks ORDER BY due_at ASC NULLS LAST LIMIT 100").all<Record<string, unknown>>().catch(() =>
+      db.prepare("SELECT * FROM tasks ORDER BY due_at ASC LIMIT 100").all<Record<string, unknown>>()
+    ),
+    db.prepare("SELECT * FROM documents ORDER BY created_at DESC LIMIT 100").all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM knowledge_workspaces ORDER BY created_at DESC LIMIT 50").all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM intelligence_battlecards ORDER BY updated_at DESC LIMIT 50").all<Record<string, unknown>>().catch(() => ({ results: [] as Record<string, unknown>[] })),
   ]);
 
+  // When D1 is connected we trust D1 — even empty results mean "real account, no records yet."
   return {
     organization: { id: DEFAULT_ORG_ID, name: "ADGA", plan: "suite", subscription_status: "trialing" },
-    leads,
-    deals,
-    tasks,
-    documents,
-    workspaces,
-    intelligence,
+    leads: (leadRows.results || []).map(mapLeadRow),
+    deals: (dealRows.results || []).map(mapDealRow),
+    contacts: (contactRows.results || []).map(mapContactRow),
+    tasks: (taskRows.results || []).map(mapTaskRow),
+    documents: (documentRows.results || []).map(mapDocumentRow),
+    workspaces: (workspaceRows.results || []).map(mapWorkspaceRow),
+    intelligence: (intelligenceRows.results || []).map(mapIntelligenceRow),
     calendar_events: (calendar.results || []).map(mapCalendarEvent),
     agent_approvals: (approvals.results || []).map(mapApproval),
     storage_objects: (storage.results || []).map(mapStorageObject),

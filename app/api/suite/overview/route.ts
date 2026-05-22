@@ -1,18 +1,46 @@
 import { NextResponse } from "next/server";
-import { deals, documents, leads, tasks } from "@/lib/data/seed";
+import { errorJson } from "@/lib/server/http";
 import { agentModules, businessEvents } from "@/lib/agents/rules";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { listCalendarEvents } from "@/lib/server/repository";
+import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);
-  const calendar = await listCalendarEvents(context.env.DB);
+  const sessionUser = await validateSession(context.env.DB, readSessionCookie(request));
+
+  if (!sessionUser && !context.user.isLocalAdminBypass) {
+    return errorJson("Authentication required.", 401);
+  }
+
+  const db = context.env.DB;
+  const calendar = await listCalendarEvents(db);
+
+  if (!db) {
+    return NextResponse.json({
+      leads: 0,
+      pipeline_cents: 0,
+      documents: 0,
+      calendar_events: calendar.length,
+      open_tasks: 0,
+      agent_modules: agentModules,
+      event_types: businessEvents,
+    });
+  }
+
+  const [leadCount, pipelineSum, documentCount, openTaskCount] = await Promise.all([
+    db.prepare("SELECT COUNT(*) AS n FROM leads").first<{ n: number }>(),
+    db.prepare("SELECT COALESCE(SUM(value_cents), 0) AS n FROM deals").first<{ n: number }>(),
+    db.prepare("SELECT COUNT(*) AS n FROM documents").first<{ n: number }>(),
+    db.prepare("SELECT COUNT(*) AS n FROM tasks WHERE status != 'completed'").first<{ n: number }>(),
+  ]);
+
   return NextResponse.json({
-    leads: leads.length,
-    pipeline_cents: deals.reduce((sum, deal) => sum + deal.value * 100, 0),
-    documents: documents.length,
+    leads: Number(leadCount?.n ?? 0),
+    pipeline_cents: Number(pipelineSum?.n ?? 0),
+    documents: Number(documentCount?.n ?? 0),
     calendar_events: calendar.length,
-    open_tasks: tasks.filter((task) => task.status !== "completed").length,
+    open_tasks: Number(openTaskCount?.n ?? 0),
     agent_modules: agentModules,
     event_types: businessEvents,
   });

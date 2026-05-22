@@ -9,6 +9,39 @@ interface MarketingLayoutProps {
 export function MarketingLayout({ children }: MarketingLayoutProps) {
   const [menuOpen, setMenuOpen] = React.useState(false);
 
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const root = document.querySelector(".marketing-root");
+    if (!root) return;
+
+    root.querySelectorAll<HTMLElement>(".section, .hero-grid").forEach((el) => {
+      el.classList.add("reveal");
+    });
+    root.querySelectorAll<HTMLElement>(".pricing, .three, .process-rail, .usecase-grid").forEach((el) => {
+      el.classList.add("reveal-stagger");
+    });
+
+    const targets = root.querySelectorAll<HTMLElement>(".reveal, .reveal-stagger");
+    if (targets.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -80px 0px", threshold: 0.08 }
+    );
+
+    targets.forEach((target) => observer.observe(target));
+    return () => observer.disconnect();
+  }, [children]);
+
   return (
     <div className="marketing-root adga-presence-crisp">
       <nav className={'nav wrap ' + (menuOpen ? 'nav-open' : '')}>

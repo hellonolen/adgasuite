@@ -1,38 +1,38 @@
-export type AdgaPlanId = "individual" | "teams" | "enterprise";
+export type AdgaPlanId = "pro" | "team" | "enterprise";
 
 export const adgaPlans = {
-  individual: {
-    id: "individual",
-    name: "Individual",
-    audience: "For one closer running their own deal flow.",
-    price: "$99",
+  pro: {
+    id: "pro",
+    name: "Pro",
+    audience: "For the operator running deals on their own.",
+    price: "$97",
     unit: "per month",
-    seats: "1 seat",
-    storage: "10 GB",
+    seats: "1 user",
+    storage: "Unlimited deals, contacts, documents",
   },
-  teams: {
-    id: "teams",
-    name: "Teams",
-    audience: "For deal teams working across shared rooms.",
-    price: "$249",
-    unit: "per seat / month",
-    seats: "2-25 seats",
-    storage: "30 GB per seat",
+  team: {
+    id: "team",
+    name: "Team",
+    audience: "Built for closing teams working the same deals.",
+    price: "$297",
+    unit: "per month",
+    seats: "5 seats included, +$30/seat up to 12",
+    storage: "Shared deals, calendar, invoicing",
   },
   enterprise: {
     id: "enterprise",
     name: "Enterprise",
-    audience: "For larger firms that need more users, stronger security, and AI-run workflows.",
-    price: "Custom",
-    unit: "annual agreement",
-    seats: "Custom seats",
-    storage: "Custom R2 allocation",
+    audience: "Brokerages and firms running real deal volume.",
+    price: "$597",
+    unit: "per month",
+    seats: "12 seats included, +$20/seat unlimited",
+    storage: "SSO, audit logs, branded client portal",
   },
 } as const;
 
 export function normalizePlan(plan?: string): AdgaPlanId {
-  if (plan === "individual" || plan === "teams" || plan === "enterprise") return plan;
-  if (plan === "essential") return "individual";
-  if (plan === "professional" || plan === "pro" || plan === "suite") return "teams";
-  return "teams";
+  if (plan === "pro" || plan === "team" || plan === "enterprise") return plan;
+  if (plan === "individual" || plan === "solo" || plan === "essential") return "pro";
+  if (plan === "teams" || plan === "professional" || plan === "suite") return "team";
+  return "team";
 }

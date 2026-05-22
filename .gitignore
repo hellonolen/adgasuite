@@ -11,3 +11,8 @@ coverage/
 .DS_Store
 tsconfig.tsbuildinfo
 .antigravitycli/
+.mcp.json
+.playwright-mcp/
+audit-*.jpg
+audit-*.png
+/tmp/

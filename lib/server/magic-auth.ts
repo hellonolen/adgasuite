@@ -35,9 +35,53 @@ export function isoDaysFromNow(days: number) {
 export function cookieOptions() {
   return {
     httpOnly: true,
-    sameSite: "lax" as const,
+    sameSite: "strict" as const,
     secure: true,
     path: "/",
     maxAge: SESSION_TTL_DAYS * 24 * 60 * 60,
+  };
+}
+
+export interface SessionUser {
+  user_id: string;
+  email: string;
+  organization_id: string | null;
+  role: "owner" | "admin" | "member";
+}
+
+export function readSessionCookie(request: Request): string | null {
+  const cookieHeader = request.headers.get("cookie");
+  if (!cookieHeader) return null;
+  const target = `${AUTH_COOKIE_NAME}=`;
+  for (const part of cookieHeader.split(";")) {
+    const trimmed = part.trim();
+    if (trimmed.startsWith(target)) {
+      const value = trimmed.slice(target.length);
+      return value ? decodeURIComponent(value) : null;
+    }
+  }
+  return null;
+}
+
+export async function validateSession(db: D1Database | undefined, cookieValue: string | null): Promise<SessionUser | null> {
+  if (!db || !cookieValue) return null;
+  const hash = await sha256(cookieValue);
+  const row = await db
+    .prepare(
+      `SELECT s.user_id, s.organization_id, s.expires_at, u.email, u.role
+       FROM sessions s
+       INNER JOIN users u ON u.id = s.user_id
+       WHERE s.token_hash = ?`
+    )
+    .bind(hash)
+    .first<{ user_id: string; organization_id: string | null; expires_at: string; email: string; role: string }>();
+  if (!row) return null;
+  if (new Date(row.expires_at).getTime() < Date.now()) return null;
+  const role = row.role === "owner" || row.role === "admin" ? row.role : "member";
+  return {
+    user_id: row.user_id,
+    email: row.email,
+    organization_id: row.organization_id,
+    role,
   };
 }
