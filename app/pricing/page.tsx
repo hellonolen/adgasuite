@@ -125,7 +125,7 @@ function Dash() {
 }
 
 export default function PricingPage() {
-  const [cadence, setCadence] = React.useState<Cadence>("year");
+  const [cadence, setCadence] = React.useState<Cadence>("month");
   const [teamSeats, setTeamSeats] = React.useState(TEAM_INCLUDED_SEATS);
   const [enterpriseSeats, setEnterpriseSeats] = React.useState(ENTERPRISE_INCLUDED_SEATS);
 
@@ -177,16 +177,20 @@ export default function PricingPage() {
     <MarketingLayout>
       <div className="wrap">
         {/* HERO */}
-        <section style={{ padding: "72px 0 32px", textAlign: "center" }}>
+        <section style={{ padding: "72px 0 24px", textAlign: "center" }}>
           <div className="hero-pill" style={{ marginBottom: 18 }}>
             <span className="hero-pill-dot" /> Pricing
           </div>
           <h1 style={{ fontSize: "clamp(40px, 6vw, 64px)", lineHeight: 1.05, letterSpacing: "-0.02em", margin: "0 auto 16px", maxWidth: "16ch" }}>
             Pricing that scales with the deal.
           </h1>
-          <p style={{ fontSize: 17, lineHeight: 1.55, color: "var(--adga-text-2, #6b6760)", maxWidth: "60ch", margin: "0 auto 28px" }}>
+          <p style={{ fontSize: 17, lineHeight: 1.55, color: "var(--adga-text-2, #6b6760)", maxWidth: "60ch", margin: "0 auto 0" }}>
             One operator, a closing team, or a whole firm. Same deal flow platform. No record caps, no per-contact fees, no AI add-ons. Move money, keep the wheel.
           </p>
+        </section>
+
+        {/* CADENCE SWITCHER — its own section so it has real breathing room above and below. */}
+        <section style={{ padding: "20px 0 44px", textAlign: "center" }}>
           <div
             role="tablist"
             aria-label="Billing cadence"
