@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/contact.state.schema.json",
+  "title": "Contact",
+  "description": "Workspace-wide contact directory. Every contact record persisted in D1 corresponds to a real person attached to one or more deals. Sales agent owns lead-to-contact promotion + scoring + next-action recommendation. Communication agent owns the touchpoint history (calls, voice notes, meetings, SMS, email) attached to the contact. Operations agent surfaces gaps in the record (missing email, missing phone, missing source attribution).",
+  "type": "object",
+  "required": ["id", "organization_id", "status", "created_at", "updated_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "first_name": { "type": ["string", "null"] },
+    "last_name": { "type": ["string", "null"] },
+    "full_name": { "type": ["string", "null"] },
+    "email": { "type": ["string", "null"] },
+    "phone": { "type": ["string", "null"] },
+    "title": { "type": ["string", "null"] },
+    "company": { "type": ["string", "null"] },
+    "role_authority": { "type": ["string", "null"] },
+    "source": { "type": ["string", "null"] },
+    "referral_source": { "type": ["string", "null"] },
+    "owner_user_id": { "type": ["string", "null"] },
+    "stage": { "type": ["string", "null"], "description": "Where on The Journey the contact sits (Lead / Qualify / Discover / Scope / Design / Close / Sign / Deliver / Expand)." },
+    "status": { "type": "string", "default": "lead" },
+    "urgency": { "type": ["string", "null"] },
+    "priority": { "type": ["string", "null"] },
+    "follow_up_due_at": { "type": ["string", "null"], "format": "date-time" },
+    "follow_up_status": { "type": ["string", "null"] },
+    "agent_summary": { "type": ["string", "null"] },
+    "agent_next_move": { "type": ["string", "null"] },
+    "archived_at": { "type": ["string", "null"], "format": "date-time", "description": "Soft delete. Null = active. Set on DELETE." },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "events_emitted": [
+    { "type": "contact.created", "description": "New contact added through workspace directory, lead promotion, or import." },
+    { "type": "contact.updated", "description": "PATCH against the contact record." },
+    { "type": "contact.archived", "description": "Soft-delete via archived_at." },
+    { "type": "contact.touchpoint.added", "description": "Communication agent records a new call / voice note / message / meeting touching this contact." },
+    { "type": "contact.next_move.recommended", "description": "Sales agent surfaces the suggested next action for this contact." }
+  ],
+  "events_consumed": [
+    { "type": "lead.qualified", "description": "Lead is promoted to a contact in this directory." },
+    { "type": "deal.created", "description": "Contact gets attached to a new deal." },
+    { "type": "deal.stage.changed", "description": "Contact stage may also advance when the related deal moves through The Journey." }
+  ],
+  "owners": ["sales", "communication", "operations"],
+  "related_resources": ["lead", "deal", "calendar-event", "voice-note", "sms-message", "email-event", "communication-thread"],
+  "ui_surfaces": [
+    "/suite/contacts (workspace-wide directory + search + filter)",
+    "/suite/contacts/[id] (detail + activity timeline)",
+    "/suite/contacts/new (create form)",
+    "/suite/map/[id] (contact nodes inside any deal's mindmap)"
+  ]
+}

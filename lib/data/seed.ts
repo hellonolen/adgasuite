@@ -1,13 +1,15 @@
 import { newId, nowIso } from "@/lib/server/id";
 
 export const PIPELINE_STAGES = [
-  { id: 'lead',         name: 'Lead',          dot: '#94a3b8', wip: 18 },
-  { id: 'qualifying',   name: 'Qualifying',    dot: '#67e8f9', wip: 12 },
-  { id: 'discovery',    name: 'Discovery',     dot: '#60a5fa', wip: 10 },
-  { id: 'proposal',     name: 'Proposal',      dot: '#a78bfa', wip: 8  },
-  { id: 'negotiation',  name: 'Negotiation',   dot: '#fbbf24', wip: 6  },
-  { id: 'closing',      name: 'Closing',       dot: '#f59e0b', wip: 4  },
-  { id: 'won',          name: 'Won',           dot: '#4ade80', wip: null },
+  { id: 'lead',     name: 'Lead',     dot: '#94a3b8', wip: 18 },
+  { id: 'qualify',  name: 'Qualify',  dot: '#67e8f9', wip: 12 },
+  { id: 'discover', name: 'Discover', dot: '#60a5fa', wip: 10 },
+  { id: 'scope',    name: 'Scope',    dot: '#a78bfa', wip: 8  },
+  { id: 'design',   name: 'Design',   dot: '#fbbf24', wip: 6  },
+  { id: 'close',    name: 'Close',    dot: '#f59e0b', wip: 5  },
+  { id: 'sign',     name: 'Sign',     dot: '#fb923c', wip: 4  },
+  { id: 'deliver',  name: 'Deliver',  dot: '#4ade80', wip: null },
+  { id: 'expand',   name: 'Expand',   dot: '#22c55e', wip: null },
 ];
 
 export const PEOPLE = [
@@ -52,24 +54,24 @@ export const COMPANIES = [
 function dealId(n: number) { return 'DEAL-' + String(n).padStart(4, '0'); }
 
 export const deals = [
-  { id: dealId(1207), name: 'Heliograph Industries — Series C extension', company: 'c1', type: 'Capital Raise', value: 42000000, currency: 'USD', stage: 'negotiation', prob: 75, owner: 'p1', team: ['p1','p2','p4'], close: '2026-07-12', updated: '6h ago', tags: ['cross-border'], priority: 'high', source: 'Inbound — Referral' },
-  { id: dealId(1208), name: 'Northbound Therapeutics — Licensing deal',   company: 'c2', type: 'Licensing',     value: 18500000, currency: 'USD', stage: 'discovery',   prob: 45, owner: 'p3', team: ['p3','p7'],     close: '2026-09-01', updated: '2d ago', tags: ['IP'], priority: 'med', source: 'Outbound' },
-  { id: dealId(1209), name: 'Larkfield Capital — Strategic partnership',  company: 'c3', type: 'Partnership',   value: 9750000,  currency: 'SGD', stage: 'proposal',    prob: 60, owner: 'p5', team: ['p5','p6'],     close: '2026-06-30', updated: '1d ago', tags: ['APAC'], priority: 'high', source: 'Event' },
-  { id: dealId(1210), name: 'Meridian Cold Chain — Acquisition',          company: 'c4', type: 'Acquisition',   value: 215000000,currency: 'USD', stage: 'closing',     prob: 92, owner: 'p1', team: ['p1','p2','p4','p7'], close: '2026-06-04', updated: '3h ago', tags: ['carve-out'], priority: 'high', source: 'Banker' },
-  { id: dealId(1211), name: 'Vellum & Atlas — Catalog licensing',         company: 'c5', type: 'Licensing',     value: 1200000,  currency: 'USD', stage: 'qualifying',  prob: 30, owner: 'p6', team: ['p6'],          close: '2026-08-22', updated: '5d ago', tags: [], priority: 'low', source: 'Inbound' },
-  { id: dealId(1212), name: 'Sondercast — Reseller agreement',            company: 'c6', type: 'Reseller',      value: 480000,   currency: 'USD', stage: 'discovery',   prob: 55, owner: 'p2', team: ['p2','p6'],     close: '2026-07-01', updated: '11h ago', tags: ['MRR'], priority: 'med', source: 'Outbound' },
-  { id: dealId(1213), name: 'Quorum Energy — Joint venture',              company: 'c7', type: 'JV',            value: 88000000, currency: 'USD', stage: 'proposal',    prob: 50, owner: 'p3', team: ['p3','p1','p7'], close: '2026-10-15', updated: '4d ago', tags: ['regulated'], priority: 'high', source: 'Outbound' },
-  { id: dealId(1214), name: 'Kestrel Defense — Procurement contract',     company: 'c8', type: 'Procurement',   value: 27500000, currency: 'USD', stage: 'negotiation', prob: 70, owner: 'p5', team: ['p5','p4'],     close: '2026-06-20', updated: '20h ago', tags: ['ITAR'], priority: 'high', source: 'RFP' },
-  { id: dealId(1215), name: 'Ostern Foods — Brand acquisition',           company: 'c9', type: 'Acquisition',   value: 64000000, currency: 'EUR', stage: 'discovery',   prob: 40, owner: 'p1', team: ['p1','p3'],     close: '2026-09-18', updated: '1d ago', tags: ['EU'], priority: 'med', source: 'Banker' },
-  { id: dealId(1216), name: 'Albatross Bio — Co-development',             company: 'c10',type: 'Partnership',   value: 15000000, currency: 'USD', stage: 'qualifying',  prob: 25, owner: 'p7', team: ['p7','p3'],     close: '2026-11-05', updated: '3d ago', tags: ['R&D'], priority: 'low', source: 'Inbound' },
+  { id: dealId(1207), name: 'Heliograph Industries — Series C extension', company: 'c1', type: 'Capital Raise', value: 42000000, currency: 'USD', stage: 'design', prob: 75, owner: 'p1', team: ['p1','p2','p4'], close: '2026-07-12', updated: '6h ago', tags: ['cross-border'], priority: 'high', source: 'Inbound — Referral' },
+  { id: dealId(1208), name: 'Northbound Therapeutics — Licensing deal',   company: 'c2', type: 'Licensing',     value: 18500000, currency: 'USD', stage: 'discover',   prob: 45, owner: 'p3', team: ['p3','p7'],     close: '2026-09-01', updated: '2d ago', tags: ['IP'], priority: 'med', source: 'Outbound' },
+  { id: dealId(1209), name: 'Larkfield Capital — Strategic partnership',  company: 'c3', type: 'Partnership',   value: 9750000,  currency: 'SGD', stage: 'scope',    prob: 60, owner: 'p5', team: ['p5','p6'],     close: '2026-06-30', updated: '1d ago', tags: ['APAC'], priority: 'high', source: 'Event' },
+  { id: dealId(1210), name: 'Meridian Cold Chain — Acquisition',          company: 'c4', type: 'Acquisition',   value: 215000000,currency: 'USD', stage: 'close',     prob: 92, owner: 'p1', team: ['p1','p2','p4','p7'], close: '2026-06-04', updated: '3h ago', tags: ['carve-out'], priority: 'high', source: 'Banker' },
+  { id: dealId(1211), name: 'Vellum & Atlas — Catalog licensing',         company: 'c5', type: 'Licensing',     value: 1200000,  currency: 'USD', stage: 'qualify',  prob: 30, owner: 'p6', team: ['p6'],          close: '2026-08-22', updated: '5d ago', tags: [], priority: 'low', source: 'Inbound' },
+  { id: dealId(1212), name: 'Sondercast — Reseller agreement',            company: 'c6', type: 'Reseller',      value: 480000,   currency: 'USD', stage: 'discover',   prob: 55, owner: 'p2', team: ['p2','p6'],     close: '2026-07-01', updated: '11h ago', tags: ['MRR'], priority: 'med', source: 'Outbound' },
+  { id: dealId(1213), name: 'Quorum Energy — Joint venture',              company: 'c7', type: 'JV',            value: 88000000, currency: 'USD', stage: 'scope',    prob: 50, owner: 'p3', team: ['p3','p1','p7'], close: '2026-10-15', updated: '4d ago', tags: ['regulated'], priority: 'high', source: 'Outbound' },
+  { id: dealId(1214), name: 'Kestrel Defense — Procurement contract',     company: 'c8', type: 'Procurement',   value: 27500000, currency: 'USD', stage: 'design', prob: 70, owner: 'p5', team: ['p5','p4'],     close: '2026-06-20', updated: '20h ago', tags: ['ITAR'], priority: 'high', source: 'RFP' },
+  { id: dealId(1215), name: 'Ostern Foods — Brand acquisition',           company: 'c9', type: 'Acquisition',   value: 64000000, currency: 'EUR', stage: 'discover',   prob: 40, owner: 'p1', team: ['p1','p3'],     close: '2026-09-18', updated: '1d ago', tags: ['EU'], priority: 'med', source: 'Banker' },
+  { id: dealId(1216), name: 'Albatross Bio — Co-development',             company: 'c10',type: 'Partnership',   value: 15000000, currency: 'USD', stage: 'qualify',  prob: 25, owner: 'p7', team: ['p7','p3'],     close: '2026-11-05', updated: '3d ago', tags: ['R&D'], priority: 'low', source: 'Inbound' },
   { id: dealId(1217), name: 'Polaris Grain — Off-take agreement',         company: 'c11',type: 'Procurement',   value: 6300000,  currency: 'CAD', stage: 'lead',        prob: 15, owner: 'p4', team: ['p4'],          close: '2026-12-01', updated: '6d ago', tags: [], priority: 'low', source: 'Cold outreach' },
-  { id: dealId(1218), name: 'Tessellate Robotics — Series B participation',company: 'c12',type: 'Capital Raise',value: 24000000, currency: 'USD', stage: 'negotiation', prob: 80, owner: 'p1', team: ['p1','p4'],     close: '2026-06-28', updated: '9h ago', tags: ['follow-on'], priority: 'high', source: 'Existing portfolio' },
-  { id: dealId(1219), name: 'Halcyon Payments — Buyout',                  company: 'c13',type: 'Buyout',        value: 110000000,currency: 'GBP', stage: 'proposal',    prob: 65, owner: 'p3', team: ['p3','p5','p7'], close: '2026-08-09', updated: '2d ago', tags: ['LBO'], priority: 'high', source: 'Banker' },
-  { id: dealId(1220), name: 'Driftless Studios — Catalog rights',         company: 'c14',type: 'Licensing',     value: 850000,   currency: 'USD', stage: 'won',         prob: 100,owner: 'p6', team: ['p6'],          close: '2026-05-12', updated: '8d ago', tags: ['closed'], priority: 'low', source: 'Inbound' },
-  { id: dealId(1221), name: 'Bramble & Co. — Growth equity',              company: 'c15',type: 'Capital Raise', value: 12000000, currency: 'USD', stage: 'closing',     prob: 88, owner: 'p2', team: ['p2','p1'],     close: '2026-06-11', updated: '4h ago', tags: ['minority'], priority: 'high', source: 'Inbound' },
-  { id: dealId(1222), name: 'Heliograph Industries — Bolt-on Tessellate', company: 'c1', type: 'Acquisition',   value: 38000000, currency: 'USD', stage: 'discovery',   prob: 38, owner: 'p2', team: ['p2','p4'],     close: '2026-10-30', updated: '7d ago', tags: ['add-on'], priority: 'med', source: 'Portfolio synergy' },
+  { id: dealId(1218), name: 'Tessellate Robotics — Series B participation',company: 'c12',type: 'Capital Raise',value: 24000000, currency: 'USD', stage: 'design', prob: 80, owner: 'p1', team: ['p1','p4'],     close: '2026-06-28', updated: '9h ago', tags: ['follow-on'], priority: 'high', source: 'Existing portfolio' },
+  { id: dealId(1219), name: 'Halcyon Payments — Buyout',                  company: 'c13',type: 'Buyout',        value: 110000000,currency: 'GBP', stage: 'scope',    prob: 65, owner: 'p3', team: ['p3','p5','p7'], close: '2026-08-09', updated: '2d ago', tags: ['LBO'], priority: 'high', source: 'Banker' },
+  { id: dealId(1220), name: 'Driftless Studios — Catalog rights',         company: 'c14',type: 'Licensing',     value: 850000,   currency: 'USD', stage: 'deliver',         prob: 100,owner: 'p6', team: ['p6'],          close: '2026-05-12', updated: '8d ago', tags: ['closed'], priority: 'low', source: 'Inbound' },
+  { id: dealId(1221), name: 'Bramble & Co. — Growth equity',              company: 'c15',type: 'Capital Raise', value: 12000000, currency: 'USD', stage: 'close',     prob: 88, owner: 'p2', team: ['p2','p1'],     close: '2026-06-11', updated: '4h ago', tags: ['minority'], priority: 'high', source: 'Inbound' },
+  { id: dealId(1222), name: 'Heliograph Industries — Bolt-on Tessellate', company: 'c1', type: 'Acquisition',   value: 38000000, currency: 'USD', stage: 'discover',   prob: 38, owner: 'p2', team: ['p2','p4'],     close: '2026-10-30', updated: '7d ago', tags: ['add-on'], priority: 'med', source: 'Portfolio synergy' },
   { id: dealId(1223), name: 'Larkfield Capital — APAC fund LP',           company: 'c3', type: 'Capital Raise', value: 5000000,  currency: 'USD', stage: 'lead',        prob: 10, owner: 'p5', team: ['p5'],          close: '2026-12-15', updated: '2w ago', tags: [], priority: 'low', source: 'Network' },
-  { id: dealId(1224), name: 'Quorum Energy — Carbon credits partnership', company: 'c7', type: 'Partnership',   value: 3400000,  currency: 'USD', stage: 'qualifying',  prob: 35, owner: 'p4', team: ['p4','p3'],     close: '2026-09-09', updated: '3d ago', tags: ['ESG'], priority: 'med', source: 'Inbound' },
+  { id: dealId(1224), name: 'Quorum Energy — Carbon credits partnership', company: 'c7', type: 'Partnership',   value: 3400000,  currency: 'USD', stage: 'qualify',  prob: 35, owner: 'p4', team: ['p4','p3'],     close: '2026-09-09', updated: '3d ago', tags: ['ESG'], priority: 'med', source: 'Inbound' },
 ];
 
 export const leads = [

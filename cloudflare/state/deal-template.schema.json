@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/deal-template.schema.json",
+  "title": "Deal Template",
+  "description": "Pre-populated mindmap structure that opens into a working Map when selected. A template is the operator playbook for a deal type — Acquire, Series A, M&A, Fix & Flip, Services / Agency, etc. Operations agent owns this surface; Conductor routes template selection events to Operations.",
+  "type": "object",
+  "required": ["id", "name", "description", "deal_type", "category", "nodes", "edges"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable identifier (kebab-case). Example: acquire, series-a, fix-and-flip, m-and-a, services-agency."
+    },
+    "name": { "type": "string", "description": "Display name for the template card." },
+    "description": { "type": "string", "description": "One-line operator description shown on the gallery card." },
+    "deal_type": {
+      "type": "string",
+      "description": "Maps to the deal_type on the resulting deal record. Free-form so any operator can spin a new category later."
+    },
+    "category": {
+      "type": "string",
+      "enum": ["Capital", "M&A", "Real Estate", "Commercial", "Sales", "Other"],
+      "description": "Visual grouping in the gallery."
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "label"],
+        "properties": {
+          "id": { "type": "string" },
+          "kind": {
+            "type": "string",
+            "enum": ["contact", "company", "document", "task", "call", "meeting", "action"]
+          },
+          "label": { "type": "string" },
+          "sublabel": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["neutral", "active", "warning", "overdue", "done"]
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source", "target"],
+        "properties": {
+          "source": { "type": "string" },
+          "target": { "type": "string" },
+          "label": { "type": "string" }
+        }
+      }
+    }
+  },
+  "events_emitted": [
+    {
+      "type": "template.selected",
+      "description": "User picks a template on /suite/maps/new. Conductor routes to Operations agent to provision the new map."
+    },
+    {
+      "type": "template.applied",
+      "description": "Operations agent creates the map + nodes + edges from the template and emits this on success. Sales agent may pick this up to schedule the first qualifying / discovery action based on the deal_type."
+    }
+  ],
+  "owners": ["operations", "conductor"],
+  "related_resources": ["map", "deal", "agent-job"]
+}

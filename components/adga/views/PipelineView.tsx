@@ -24,7 +24,7 @@ export function PipelineView({ deals, onOpenDeal }: any) {
       </div>
 
       <div className="kanban">
-        {PIPELINE_STAGES.filter(s => s.id !== 'won').map(stage => {
+        {PIPELINE_STAGES.filter(s => s.id !== 'deliver' && s.id !== 'expand').map(stage => {
           const stageDeals = deals.filter((d: any) => d.stage === stage.id);
           const stageValue = stageDeals.reduce((sum: number, d: any) => sum + d.value, 0);
 

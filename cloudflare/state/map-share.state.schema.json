@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/map-share.state.schema.json",
+  "title": "Map Share",
+  "description": "Per-map share token contract. One active token per map. Token is 32-byte random base64url stored raw (tradeoff: convenience for owner GETs vs. hash storage). Public read-only view at /share/map/[token]. Signed-in org members are redirected to authenticated /suite/map/[id]. Documents agent owns audit logging; Operations agent owns share UX.",
+  "type": "object",
+  "required": ["token", "map_id", "permission", "created_at"],
+  "properties": {
+    "token": { "type": "string", "description": "32-byte random base64url. 256-bit entropy." },
+    "map_id": { "type": "string" },
+    "permission": { "type": "string", "enum": ["view", "comment", "edit"], "default": "view" },
+    "created_by_user_id": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": ["string", "null"], "format": "date-time" },
+    "revoked_at": { "type": ["string", "null"], "format": "date-time" }
+  },
+  "events_emitted": [
+    { "type": "map.share.created", "description": "Owner generates a new share link. Replaces any prior token (one active per map)." },
+    { "type": "map.share.viewed", "description": "Public visitor opens /share/map/[token]. Logged (anonymized — IP hash only)." },
+    { "type": "map.share.revoked", "description": "Owner revokes the active token. All subsequent visits return 404." }
+  ],
+  "rate_limits": {
+    "public_view": { "window_seconds": 60, "max_per_ip": 5 }
+  },
+  "security": {
+    "redact_in_public": ["organization_id", "owner_user_id", "created_by_user_id", "private_node_data"],
+    "redirect_org_members": true,
+    "404_on_revoked_or_expired": true
+  },
+  "owners": ["operations", "documents", "conductor"],
+  "related_resources": ["map", "audit-log"]
+}

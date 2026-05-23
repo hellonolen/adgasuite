@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Icon, companyOf } from "@/components/adga/shared/Primitives";
+import { usePathname } from "next/navigation";
+import { companyOf } from "@/components/adga/shared/Primitives";
 
 const SAMPLE_HISTORY = [
   { id: 'c-201', title: 'Meridian Cold Chain — closing memo',  when: '09:14', active: true },
@@ -15,13 +16,22 @@ const SAMPLE_HISTORY = [
   { id: 'c-193', title: 'Customer references for Halcyon',      when: 'Apr 22' },
 ];
 
-const VOICE_TRANSCRIPT = [
-  { who: 'agent', text: 'Morning Maren. You have 3 deals advancing today — Bramble entered Closing, Tessellate has a signature request open, and Meridian needs your sign-off on the working capital memo.' },
-  { who: 'user',  text: 'What\'s the total weighted pipeline this quarter?' },
-  { who: 'agent', text: '$284.6M weighted across 17 active deals. That\'s up 11% from last week, mostly from Meridian moving to Closing. Want me to pull the breakdown by stage?', cite: 'forecast/Q2-2026' },
-  { who: 'user',  text: 'No — flag anything that\'s slipping.' },
-  { who: 'agent', text: 'Two flags: Northbound Therapeutics has been in Discovery for 41 days with no activity in 9. And Quorum Energy hasn\'t responded to the JV term sheet sent April 28th. Want me to draft outreach?' },
-];
+type ChatRole = "user" | "assistant" | "system";
+
+interface ChatAction {
+  type: string;
+  kind?: string;
+  label?: string;
+  sublabel?: string;
+  [key: string]: unknown;
+}
+
+interface ChatMessage {
+  role: ChatRole;
+  content: string;
+  actions?: ChatAction[];
+  cite?: string;
+}
 
 function parseWorkflow(text: string, deals: any[]) {
   const t = text.toLowerCase();
@@ -69,123 +79,124 @@ function parseWorkflow(text: string, deals: any[]) {
   return null;
 }
 
-function routeAgentKey(text: string) {
-  const t = (text || '').toLowerCase();
-  if (t.includes('invoice') || t.includes('payment') || t.includes('payout') || t.includes('bank') || t.includes('subscription')) return 'payments';
-  if (t.includes('sms') || t.includes('email') || t.includes('message') || t.includes('call') || t.includes('voice') || t.includes('meeting') || t.includes('invite')) return 'communication';
-  if (t.includes('document') || t.includes('proposal') || t.includes('contract') || t.includes('memo') || t.includes('file')) return 'documents';
-  if (t.includes('risk') || t.includes('market') || t.includes('battlecard') || t.includes('research') || t.includes('forecast')) return 'intelligence';
-  if (t.includes('lead') || t.includes('follow') || t.includes('deal') || t.includes('pipeline')) return 'sales';
-  if (t.includes('calendar') || t.includes('task') || t.includes('setup') || t.includes('remind')) return 'operations';
-  return 'conductor';
+function deriveContext(pathname: string | null): { kind: "deal" | "pipeline" | "workspace"; id?: string } {
+  if (!pathname) return { kind: "workspace" };
+  const dealMatch = pathname.match(/\/suite\/map\/([^/?#]+)/);
+  if (dealMatch) return { kind: "deal", id: decodeURIComponent(dealMatch[1]) };
+  if (pathname.includes("/suite/pipeline")) return { kind: "pipeline" };
+  return { kind: "workspace" };
 }
 
-function routeAgentLabel(agent: string) {
-  const labels: Record<string, string> = {
-    conductor: 'Conductor',
-    sales: 'Sales',
-    intelligence: 'Intelligence',
-    documents: 'Documents',
-    operations: 'Operations',
-    communication: 'Communication',
-    payments: 'Payments',
-  };
-  return labels[agent] || 'Conductor';
+// Lightweight, safe markdown subset: **bold**, *italic*, `code`, line breaks.
+function renderMarkdown(text: string): React.ReactNode {
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  const html = escaped
+    .replace(/`([^`]+)`/g, '<code style="background:var(--surface);padding:1px 5px;border-radius:3px;font-family:var(--font-mono);font-size:0.92em">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>")
+    .replace(/\n/g, "<br/>");
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 export function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals }: any) {
+  const pathname = usePathname();
   const bodyRef = React.useRef<HTMLDivElement>(null);
   const taRef = React.useRef<HTMLTextAreaElement>(null);
   const fileRef = React.useRef<HTMLInputElement>(null);
 
-  const [draft, setDraft] = React.useState('');
+  const [draft, setDraft] = React.useState("");
   const [attachments, setAttachments] = React.useState<any[]>([]);
   const [historyOpen, setHistoryOpen] = React.useState(false);
   const [activeChat, setActiveChat] = React.useState(SAMPLE_HISTORY[0].id);
-  const [messages, setMessages] = React.useState(VOICE_TRANSCRIPT);
+  const [messages, setMessages] = React.useState<ChatMessage[]>([]);
+  const [sending, setSending] = React.useState(false);
 
   React.useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-  }, [messages, state]);
+  }, [messages, state, sending]);
 
   const autosize = () => {
     if (!taRef.current) return;
-    taRef.current.style.height = 'auto';
-    taRef.current.style.height = Math.min(220, taRef.current.scrollHeight) + 'px';
+    taRef.current.style.height = "auto";
+    taRef.current.style.height = Math.min(220, taRef.current.scrollHeight) + "px";
   };
   React.useEffect(() => { autosize(); }, [draft]);
 
   const send = async () => {
     const text = draft.trim();
     if (!text && attachments.length === 0) return;
-    const userMsg = { who: 'user', text: text || '[attachments]' };
-    setMessages(m => [...m, userMsg]);
-    setDraft('');
-    setAttachments([]);
-    setState('working');
+    if (sending) return;
 
-    const action = parseWorkflow(text, deals || []);
-    let agentReply: any;
-    if (action?.type === 'open-deal') {
-      agentReply = { who: 'agent', text: `Opening “${(action.deal as any).name.split(' — ')[0]}.” Loading the file on your desk now.`, cite: (action.deal as any).id };
-    } else if (action?.type === 'story') {
-      const d = (deals || []).find((x: any) => x.id === action.dealId);
-      agentReply = { who: 'agent', text: `Pulling the full story for ${d?.name.split(' — ')[0]}. Every touch, in order.`, cite: action.dealId };
-    } else if (action?.type === 'route') {
-      agentReply = { who: 'agent', text: `Bringing up ${action.route} for you.`, cite: 'workflow/route' };
-    } else {
-      agentReply = { who: 'agent', text: 'Working on that — pulling the relevant deals and surfacing context now.', cite: 'context/active-pipeline' };
-    }
+    const userMsg: ChatMessage = { role: "user", content: text || "[attachments]" };
+    const nextHistory = [...messages, userMsg];
+    setMessages(nextHistory);
+    setDraft("");
+    setAttachments([]);
+    setSending(true);
+    setState("working");
+
+    const workflowAction = parseWorkflow(text, deals || []);
+    const ctx = deriveContext(pathname);
 
     try {
-      const response = await fetch('/api/agent/jobs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/agent/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          agent: routeAgentKey(text),
-          job_type: 'suite.agent_command',
-          prompt: text || 'Process attached files.',
-          context: {
-            workflow_action: action,
-            attachment_count: attachments.length,
-          },
+          messages: nextHistory.map((m) => ({ role: m.role, content: m.content })),
+          context: ctx,
         }),
       });
-      const result = await response.json();
-      const summary = result?.output?.summary || result?.job?.output?.summary;
-      if (summary) {
-        agentReply = {
-          who: 'agent',
-          text: summary,
-          cite: result?.job?.id || agentReply.cite || 'agent/job',
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data?.message?.content) {
+        const errMsg = data?.error || "I could not reach the AI service. Please retry.";
+        setMessages((m) => [...m, { role: "assistant", content: errMsg, cite: "system/error" }]);
+      } else {
+        const reply: ChatMessage = {
+          role: "assistant",
+          content: String(data.message.content),
+          actions: Array.isArray(data.actions) ? (data.actions as ChatAction[]) : [],
+          cite: data?.meta?.source === "cloudflare-worker-ai" ? `Kimi · ${data.meta.model}` : "local-fallback",
         };
+        setMessages((m) => [...m, reply]);
       }
     } catch (e) {
-      agentReply = {
-        ...agentReply,
-        cite: agentReply.cite || 'local/workflow',
-      };
+      setMessages((m) => [
+        ...m,
+        {
+          role: "assistant",
+          content: e instanceof Error ? `Network error: ${e.message}` : "Network error.",
+          cite: "system/network",
+        },
+      ]);
+    } finally {
+      setSending(false);
+      setState("idle");
+      if (workflowAction && onWorkflow) onWorkflow(workflowAction);
     }
-
-    setTimeout(() => {
-      setMessages(m => [...m, agentReply]);
-      setState('idle');
-      if (action && onWorkflow) onWorkflow(action);
-    }, 450);
   };
 
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   };
 
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setAttachments(a => [...a, ...files.map(f => ({ name: f.name, size: f.size }))]);
-    e.target.value = '';
+    setAttachments((a) => [...a, ...files.map((f) => ({ name: f.name, size: f.size }))]);
+    e.target.value = "";
   };
 
   const toggleMic = () => {
-    setState((s: string) => s === 'listening' ? 'idle' : 'listening');
+    setState((s: string) => (s === "listening" ? "idle" : "listening"));
+  };
+
+  const applyAction = (action: ChatAction) => {
+    if (onWorkflow) onWorkflow({ type: "agent-action", action });
   };
 
   if (collapsed) {
@@ -198,18 +209,19 @@ export function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow
         <div className="voice-orb" aria-hidden="true"></div>
         <div className="voice-title">
           <span>ADGA</span>
-          {state !== 'idle' && (
+          {state !== "idle" && (
             <span className="state">
-              {state === 'listening' && '• Listening'}
-              {state === 'talking' && '• Speaking'}
+              {state === "listening" && "• Listening"}
+              {state === "talking" && "• Speaking"}
+              {state === "working" && "• Thinking"}
             </span>
           )}
         </div>
         <div className="voice-tools">
           <button
-            className={'composer-tool' + (historyOpen ? ' active' : '')}
+            className={"composer-tool" + (historyOpen ? " active" : "")}
             type="button"
-            onClick={() => setHistoryOpen(o => !o)}
+            onClick={() => setHistoryOpen((o) => !o)}
             title="Chat history"
             aria-label="Toggle history"
           >
@@ -220,7 +232,7 @@ export function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow
           <button
             className="composer-tool"
             type="button"
-            onClick={() => { setMessages([]); setDraft(''); }}
+            onClick={() => { setMessages([]); setDraft(""); }}
             title="New chat"
             aria-label="New chat"
           >
@@ -245,21 +257,21 @@ export function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow
       <div className="voice-command">
         <div className="voice-command-kicker">
           <span>AI command</span>
-          <span>{routeAgentLabel(routeAgentKey(draft))} agent</span>
+          <span>{deriveContext(pathname).kind} context</span>
         </div>
         <div className="composer-box command-first">
           {attachments.length > 0 && (
             <div className="composer-attachments">
               {attachments.map((a, i) => (
                 <div key={i} className="composer-chip">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{color:'var(--text-3)'}}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{color:"var(--text-3)"}}>
                     <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
                     <path d="M14 3v5h5"/>
                   </svg>
                   <span>{a.name}</span>
                   <span
                     className="x"
-                    onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
+                    onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))}
                     role="button"
                     aria-label="Remove attachment"
                   >
@@ -276,9 +288,10 @@ export function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow
             className="composer-textarea"
             placeholder="Tell ADGA what to do across leads, deals, meetings, invoices, documents, or follow-up."
             value={draft}
-            onChange={e => setDraft(e.target.value)}
+            onChange={(e) => setDraft(e.target.value)}
             onKeyDown={onKey}
             rows={3}
+            disabled={sending}
           />
           <div className="composer-bar">
             <button className="composer-tool" type="button" onClick={() => fileRef.current?.click()} title="Attach files" aria-label="Attach files">
@@ -286,13 +299,19 @@ export function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow
                 <path d="M21 12 12 21a6 6 0 1 1-8.5-8.5L13 3a4 4 0 0 1 5.7 5.7L9.4 18a2 2 0 1 1-2.8-2.8L15 7"/>
               </svg>
             </button>
-            <button className={'composer-tool mic' + (state === 'listening' ? ' live' : '')} type="button" onClick={toggleMic} title={state === 'listening' ? 'Stop voice input' : 'Start voice input'} aria-label="Voice input">
+            <button className={"composer-tool mic" + (state === "listening" ? " live" : "")} type="button" onClick={toggleMic} title={state === "listening" ? "Stop voice input" : "Start voice input"} aria-label="Voice input">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="9" y="3" width="6" height="12" rx="3"/>
                 <path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>
               </svg>
             </button>
-            <button className="composer-send" type="button" onClick={send} disabled={!draft.trim() && attachments.length === 0} aria-label="Send">
+            <button
+              className="composer-send"
+              type="button"
+              onClick={send}
+              disabled={sending || (!draft.trim() && attachments.length === 0)}
+              aria-label="Send"
+            >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 19V5M5 12l7-7 7 7"/>
               </svg>
@@ -302,18 +321,18 @@ export function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow
         </div>
       </div>
 
-      <div className={'voice-history ' + (historyOpen ? 'open' : '')}>
+      <div className={"voice-history " + (historyOpen ? "open" : "")}>
         <div className="vh-head">
           <span>Recent chats</span>
-          <button type="button" style={{fontSize:10,color:'var(--accent)',background:'none',border:0,padding:0,cursor:'pointer',textTransform:'uppercase',letterSpacing:'0.08em',fontWeight:500}}>View all</button>
+          <button type="button" style={{fontSize:10,color:"var(--accent)",background:"none",border:0,padding:0,cursor:"pointer",textTransform:"uppercase",letterSpacing:"0.08em",fontWeight:500}}>View all</button>
         </div>
-        {SAMPLE_HISTORY.map(c => (
+        {SAMPLE_HISTORY.map((c) => (
           <div
             key={c.id}
-            className={'vh-item ' + (c.id === activeChat ? 'active' : '')}
+            className={"vh-item " + (c.id === activeChat ? "active" : "")}
             onClick={() => { setActiveChat(c.id); setHistoryOpen(false); }}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{color:'var(--text-3)',flexShrink:0}}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{color:"var(--text-3)",flexShrink:0}}>
               <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/>
             </svg>
             <span className="ttl">{c.title}</span>
@@ -323,26 +342,53 @@ export function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow
       </div>
 
       <div className="voice-body" ref={bodyRef}>
-        {messages.length === 0 ? (
-          <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:14,padding:'24px 16px',textAlign:'center'}}>
-            <div style={{width:48,height:48,borderRadius:'50%',background:'var(--accent-soft)',display:'grid',placeItems:'center'}}>
-              <div style={{width:18,height:18,borderRadius:'50%',background:'var(--accent)'}}/>
+        {messages.length === 0 && !sending ? (
+          <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:14,padding:"24px 16px",textAlign:"center"}}>
+            <div style={{width:48,height:48,borderRadius:"50%",background:"var(--accent-soft)",display:"grid",placeItems:"center"}}>
+              <div style={{width:18,height:18,borderRadius:"50%",background:"var(--accent)"}}/>
             </div>
             <div>
-              <div style={{fontSize:15,fontWeight:600,letterSpacing:'-0.01em'}}>How can I help, Maren?</div>
-              <div style={{fontSize:12.5,color:'var(--text-3)',marginTop:4,lineHeight:1.5,maxWidth:260}}>
+              <div style={{fontSize:15,fontWeight:600,letterSpacing:"-0.01em"}}>How can I help, Maren?</div>
+              <div style={{fontSize:12.5,color:"var(--text-3)",marginTop:4,lineHeight:1.5,maxWidth:260}}>
                 Ask about deals, draft outreach, pull reports, or run actions across your pipeline.
               </div>
             </div>
           </div>
         ) : (
           <>
-            <div className="voice-meta">Session · 09:14 · {messages.length} messages</div>
+            <div className="voice-meta">Session · {messages.length} messages</div>
             {messages.map((m, i) => (
-              <div key={i} className={'voice-msg ' + m.who}>
-                <span className="who">{m.who === 'user' ? 'You' : 'ADGA'}</span>
+              <div key={i} className={"voice-msg " + (m.role === "user" ? "user" : "agent")}>
+                <span className="who">{m.role === "user" ? "You" : "ADGA"}</span>
                 <div className="what">
-                  {m.text}
+                  {renderMarkdown(m.content)}
+                  {m.actions && m.actions.length > 0 && (
+                    <div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:6}}>
+                      {m.actions.map((action, ai) => (
+                        <button
+                          key={ai}
+                          type="button"
+                          onClick={() => applyAction(action)}
+                          style={{
+                            display:"inline-flex",
+                            alignItems:"center",
+                            gap:6,
+                            padding:"5px 10px",
+                            fontSize:11.5,
+                            border:"1px solid var(--border)",
+                            background:"var(--surface)",
+                            borderRadius:9999,
+                            cursor:"pointer",
+                            color:"var(--text)",
+                          }}
+                        >
+                          <span style={{fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",color:"var(--text-3)"}}>{action.type}</span>
+                          <span style={{fontWeight:500}}>{action.label || action.kind || "Apply"}</span>
+                          {action.sublabel && <span style={{color:"var(--text-3)"}}>· {action.sublabel}</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   {m.cite && (
                     <div className="cite">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -354,14 +400,14 @@ export function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow
                 </div>
               </div>
             ))}
-            {state === 'talking' && (
+            {sending && (
               <div className="voice-msg agent">
                 <span className="who">ADGA</span>
                 <div className="what">
-                  <span style={{display:'inline-flex',gap:4,alignItems:'center'}}>
+                  <span style={{display:"inline-flex",gap:4,alignItems:"center"}}>
                     <span className="dot-typing"/>
-                    <span className="dot-typing" style={{animationDelay:'0.15s'}}/>
-                    <span className="dot-typing" style={{animationDelay:'0.3s'}}/>
+                    <span className="dot-typing" style={{animationDelay:"0.15s"}}/>
+                    <span className="dot-typing" style={{animationDelay:"0.3s"}}/>
                   </span>
                 </div>
               </div>
@@ -370,11 +416,11 @@ export function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow
         )}
       </div>
 
-      {state === 'listening' && (
-        <div className="voice-live" style={{borderTop:'1px solid var(--border)'}}>
+      {state === "listening" && (
+        <div className="voice-live" style={{borderTop:"1px solid var(--border)"}}>
           <div className="voice-live-wave" aria-hidden="true">
             {Array.from({length: 28}).map((_, i) => (
-              <i key={i} style={{animationDelay: (i * 0.04) + 's'}}/>
+              <i key={i} style={{animationDelay: (i * 0.04) + "s"}}/>
             ))}
           </div>
         </div>

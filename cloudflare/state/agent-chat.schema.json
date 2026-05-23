@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/agent-chat.schema.json",
+  "title": "Agent Chat Turn",
+  "description": "Conductor-owned chat surface. Every user message in the right rail flows through this contract. Conductor reads the route context (deal / pipeline / workspace), loads the relevant D1 slice, calls Worker AI Kimi 2.6, and optionally returns structured mutation actions that the canvas can apply when the user approves.",
+  "type": "object",
+  "required": ["messages"],
+  "properties": {
+    "messages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "required": ["role", "content"],
+        "properties": {
+          "role": { "type": "string", "enum": ["system", "user", "assistant"] },
+          "content": { "type": "string", "minLength": 1, "maxLength": 8000 }
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "enum": ["deal", "pipeline", "workspace"] },
+        "id": { "type": "string", "description": "Deal ID or Map ID when kind = deal." }
+      }
+    }
+  },
+  "response": {
+    "type": "object",
+    "required": ["ok", "message"],
+    "properties": {
+      "ok": { "type": "boolean" },
+      "message": {
+        "type": "object",
+        "required": ["role", "content"],
+        "properties": {
+          "role": { "type": "string", "const": "assistant" },
+          "content": { "type": "string" }
+        }
+      },
+      "actions": {
+        "type": "array",
+        "description": "Structured map mutations the user can approve. Conductor never applies these silently — they appear as Apply chips below the message.",
+        "items": {
+          "oneOf": [
+            { "type": "object", "required": ["type", "kind", "label"], "properties": { "type": { "const": "add_node" }, "kind": { "type": "string" }, "label": { "type": "string" }, "sublabel": { "type": "string" }, "status": { "type": "string" } } },
+            { "type": "object", "required": ["type", "source", "target"], "properties": { "type": { "const": "connect" }, "source": { "type": "string" }, "target": { "type": "string" }, "label": { "type": "string" } } },
+            { "type": "object", "required": ["type", "node_id", "status"], "properties": { "type": { "const": "set_status" }, "node_id": { "type": "string" }, "status": { "type": "string" } } },
+            { "type": "object", "required": ["type", "node_id"], "properties": { "type": { "const": "remove_node" }, "node_id": { "type": "string" } } },
+            { "type": "object", "required": ["type", "ref"], "properties": { "type": { "const": "schedule_meeting" }, "ref": { "type": "object" } } },
+            { "type": "object", "required": ["type", "ref"], "properties": { "type": { "const": "create_task" }, "ref": { "type": "object" } } },
+            { "type": "object", "required": ["type", "ref"], "properties": { "type": { "const": "draft_message" }, "ref": { "type": "object" } } }
+          ]
+        }
+      },
+      "meta": {
+        "type": "object",
+        "properties": {
+          "model": { "type": "string" },
+          "source": { "type": "string", "enum": ["worker-ai", "fallback"] }
+        }
+      }
+    }
+  },
+  "events_emitted": [
+    { "type": "agent.chat.turn.completed", "description": "After Kimi returns, Conductor logs the turn + token usage to the deal/workspace timeline." },
+    { "type": "agent.chat.action.proposed", "description": "When the response includes structured actions, each one is logged so the approval lane can pick them up." },
+    { "type": "agent.chat.action.applied", "description": "When the user clicks Apply on a proposed action and the canvas mutates the map / D1." }
+  ],
+  "events_consumed": [
+    { "type": "map.node.created", "description": "Chat context updates when the map changes underneath." },
+    { "type": "deal.stage.changed", "description": "Chat context updates when the deal moves through The Journey." }
+  ],
+  "rate_limit": { "window_seconds": 60, "max_messages": 10, "key": "session_email" },
+  "owners": ["conductor"],
+  "downstream_agents": ["sales", "communication", "documents", "operations", "intelligence", "payments", "voice"]
+}

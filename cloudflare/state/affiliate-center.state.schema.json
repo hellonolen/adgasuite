@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/affiliate-center.state.schema.json",
+  "title": "Affiliate Center",
+  "description": "Per-user affiliate program surface. Separate from Admin (admin is org-wide controls; affiliate is the per-user referral program any signed-in user can enroll in). Payments agent owns payout tracking, link attribution, fraud flags. Operations agent owns enrollment and workspace-side leaderboard. Conductor routes affiliate events to both.",
+  "type": "object",
+  "required": ["id", "user_id", "code", "status", "created_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "user_id": { "type": "string" },
+    "code": { "type": "string", "description": "Unique referral code used in the link." },
+    "status": { "type": "string", "enum": ["pending", "active", "paused", "rejected", "archived"], "default": "active" },
+    "commission_pct": { "type": "number", "description": "Percentage commission on referred revenue. Default 20." },
+    "lifetime_clicks": { "type": "integer" },
+    "lifetime_signups": { "type": "integer" },
+    "lifetime_paid_accounts": { "type": "integer" },
+    "lifetime_revenue_cents": { "type": "integer" },
+    "commission_owed_cents": { "type": "integer" },
+    "fraud_flag": { "type": ["string", "null"], "description": "Set when click-fraud or duplicate-account heuristics fire. Payments agent stops payout when flagged." },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "events_emitted": [
+    { "type": "affiliate.enrolled", "description": "User self-enrolls via /suite/affiliate." },
+    { "type": "affiliate.link.created", "description": "User generates a referral link with UTM params." },
+    { "type": "affiliate.click.recorded", "description": "Referral link click logged with source/campaign/content." },
+    { "type": "affiliate.signup.recorded", "description": "Click → signup attribution. Links to a new user." },
+    { "type": "affiliate.payment.recorded", "description": "Referred account becomes a paying customer." },
+    { "type": "affiliate.payout.scheduled", "description": "Payments agent schedules a payout to the affiliate." },
+    { "type": "affiliate.payout.paid", "description": "Payout completed via connector." },
+    { "type": "affiliate.payout.processing", "description": "Payout in transit." },
+    { "type": "affiliate.fraud.flagged", "description": "Heuristic fires (e.g., self-referral, duplicate IP, abnormal velocity). Payouts stop. Admin notified via approval lane." }
+  ],
+  "events_consumed": [
+    { "type": "user.created", "description": "If new user has a referral cookie, attribute the signup." },
+    { "type": "subscription.created", "description": "If subscribing user came through an affiliate link, record the payment." },
+    { "type": "subscription.canceled", "description": "Reverses earned commission if within clawback window." }
+  ],
+  "rate_limits": {
+    "enrollment": { "window_seconds": 86400, "max_per_user": 1 },
+    "link_creation": { "window_seconds": 60, "max_per_affiliate": 30 }
+  },
+  "owners": ["payments", "operations", "conductor"],
+  "related_resources": ["affiliate-events", "subscription", "user", "invoice-payment-route"],
+  "ui_surfaces": [
+    "/suite/affiliate (dashboard)",
+    "/suite/affiliate/links (referral links + UTM builder + QR)",
+    "/suite/affiliate/payouts (payout history)",
+    "/suite/affiliate/leaderboard (workspace top affiliates, privacy-masked)"
+  ]
+}

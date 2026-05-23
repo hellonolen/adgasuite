@@ -615,13 +615,15 @@ function TweakButton({ label, onClick, secondary = false }) {
 // Loaded as a Babel script, exposes everything on window.
 
 const PIPELINE_STAGES = [
-  { id: 'lead',         name: 'Lead',          dot: '#94a3b8', wip: 18 },
-  { id: 'qualifying',   name: 'Qualifying',    dot: '#67e8f9', wip: 12 },
-  { id: 'discovery',    name: 'Discovery',     dot: '#60a5fa', wip: 10 },
-  { id: 'proposal',     name: 'Proposal',      dot: '#a78bfa', wip: 8  },
-  { id: 'negotiation',  name: 'Negotiation',   dot: '#fbbf24', wip: 6  },
-  { id: 'closing',      name: 'Closing',       dot: '#f59e0b', wip: 4  },
-  { id: 'won',          name: 'Won',           dot: '#4ade80', wip: null },
+  { id: 'lead',     name: 'Lead',     dot: '#94a3b8', wip: 18 },
+  { id: 'qualify',  name: 'Qualify',  dot: '#67e8f9', wip: 12 },
+  { id: 'discover', name: 'Discover', dot: '#60a5fa', wip: 10 },
+  { id: 'scope',    name: 'Scope',    dot: '#a78bfa', wip: 8  },
+  { id: 'design',   name: 'Design',   dot: '#fbbf24', wip: 6  },
+  { id: 'close',    name: 'Close',    dot: '#f59e0b', wip: 5  },
+  { id: 'sign',     name: 'Sign',     dot: '#fb923c', wip: 4  },
+  { id: 'deliver',  name: 'Deliver',  dot: '#4ade80', wip: null },
+  { id: 'expand',   name: 'Expand',   dot: '#22c55e', wip: null },
 ];
 
 const PEOPLE = [
@@ -666,24 +668,24 @@ const COMPANIES = [
 function dealId(n) { return 'DEAL-' + String(n).padStart(4, '0'); }
 
 const DEALS = [
-  { id: dealId(1207), name: 'Heliograph Industries — Series C extension', company: 'c1', type: 'Capital Raise', value: 42000000, currency: 'USD', stage: 'negotiation', prob: 75, owner: 'p1', team: ['p1','p2','p4'], close: '2026-07-12', updated: '6h ago', tags: ['cross-border'], priority: 'high', source: 'Inbound — Referral' },
-  { id: dealId(1208), name: 'Northbound Therapeutics — Licensing deal',   company: 'c2', type: 'Licensing',     value: 18500000, currency: 'USD', stage: 'discovery',   prob: 45, owner: 'p3', team: ['p3','p7'],     close: '2026-09-01', updated: '2d ago', tags: ['IP'], priority: 'med', source: 'Outbound' },
-  { id: dealId(1209), name: 'Larkfield Capital — Strategic partnership',  company: 'c3', type: 'Partnership',   value: 9750000,  currency: 'SGD', stage: 'proposal',    prob: 60, owner: 'p5', team: ['p5','p6'],     close: '2026-06-30', updated: '1d ago', tags: ['APAC'], priority: 'high', source: 'Event' },
-  { id: dealId(1210), name: 'Meridian Cold Chain — Acquisition',          company: 'c4', type: 'Acquisition',   value: 215000000,currency: 'USD', stage: 'closing',     prob: 92, owner: 'p1', team: ['p1','p2','p4','p7'], close: '2026-06-04', updated: '3h ago', tags: ['carve-out'], priority: 'high', source: 'Banker' },
-  { id: dealId(1211), name: 'Vellum & Atlas — Catalog licensing',         company: 'c5', type: 'Licensing',     value: 1200000,  currency: 'USD', stage: 'qualifying',  prob: 30, owner: 'p6', team: ['p6'],          close: '2026-08-22', updated: '5d ago', tags: [], priority: 'low', source: 'Inbound' },
-  { id: dealId(1212), name: 'Sondercast — Reseller agreement',            company: 'c6', type: 'Reseller',      value: 480000,   currency: 'USD', stage: 'discovery',   prob: 55, owner: 'p2', team: ['p2','p6'],     close: '2026-07-01', updated: '11h ago', tags: ['MRR'], priority: 'med', source: 'Outbound' },
-  { id: dealId(1213), name: 'Quorum Energy — Joint venture',              company: 'c7', type: 'JV',            value: 88000000, currency: 'USD', stage: 'proposal',    prob: 50, owner: 'p3', team: ['p3','p1','p7'], close: '2026-10-15', updated: '4d ago', tags: ['regulated'], priority: 'high', source: 'Outbound' },
-  { id: dealId(1214), name: 'Kestrel Defense — Procurement contract',     company: 'c8', type: 'Procurement',   value: 27500000, currency: 'USD', stage: 'negotiation', prob: 70, owner: 'p5', team: ['p5','p4'],     close: '2026-06-20', updated: '20h ago', tags: ['ITAR'], priority: 'high', source: 'RFP' },
-  { id: dealId(1215), name: 'Ostern Foods — Brand acquisition',           company: 'c9', type: 'Acquisition',   value: 64000000, currency: 'EUR', stage: 'discovery',   prob: 40, owner: 'p1', team: ['p1','p3'],     close: '2026-09-18', updated: '1d ago', tags: ['EU'], priority: 'med', source: 'Banker' },
-  { id: dealId(1216), name: 'Albatross Bio — Co-development',             company: 'c10',type: 'Partnership',   value: 15000000, currency: 'USD', stage: 'qualifying',  prob: 25, owner: 'p7', team: ['p7','p3'],     close: '2026-11-05', updated: '3d ago', tags: ['R&D'], priority: 'low', source: 'Inbound' },
+  { id: dealId(1207), name: 'Heliograph Industries — Series C extension', company: 'c1', type: 'Capital Raise', value: 42000000, currency: 'USD', stage: 'design', prob: 75, owner: 'p1', team: ['p1','p2','p4'], close: '2026-07-12', updated: '6h ago', tags: ['cross-border'], priority: 'high', source: 'Inbound — Referral' },
+  { id: dealId(1208), name: 'Northbound Therapeutics — Licensing deal',   company: 'c2', type: 'Licensing',     value: 18500000, currency: 'USD', stage: 'discover',   prob: 45, owner: 'p3', team: ['p3','p7'],     close: '2026-09-01', updated: '2d ago', tags: ['IP'], priority: 'med', source: 'Outbound' },
+  { id: dealId(1209), name: 'Larkfield Capital — Strategic partnership',  company: 'c3', type: 'Partnership',   value: 9750000,  currency: 'SGD', stage: 'scope',    prob: 60, owner: 'p5', team: ['p5','p6'],     close: '2026-06-30', updated: '1d ago', tags: ['APAC'], priority: 'high', source: 'Event' },
+  { id: dealId(1210), name: 'Meridian Cold Chain — Acquisition',          company: 'c4', type: 'Acquisition',   value: 215000000,currency: 'USD', stage: 'close',     prob: 92, owner: 'p1', team: ['p1','p2','p4','p7'], close: '2026-06-04', updated: '3h ago', tags: ['carve-out'], priority: 'high', source: 'Banker' },
+  { id: dealId(1211), name: 'Vellum & Atlas — Catalog licensing',         company: 'c5', type: 'Licensing',     value: 1200000,  currency: 'USD', stage: 'qualify',  prob: 30, owner: 'p6', team: ['p6'],          close: '2026-08-22', updated: '5d ago', tags: [], priority: 'low', source: 'Inbound' },
+  { id: dealId(1212), name: 'Sondercast — Reseller agreement',            company: 'c6', type: 'Reseller',      value: 480000,   currency: 'USD', stage: 'discover',   prob: 55, owner: 'p2', team: ['p2','p6'],     close: '2026-07-01', updated: '11h ago', tags: ['MRR'], priority: 'med', source: 'Outbound' },
+  { id: dealId(1213), name: 'Quorum Energy — Joint venture',              company: 'c7', type: 'JV',            value: 88000000, currency: 'USD', stage: 'scope',    prob: 50, owner: 'p3', team: ['p3','p1','p7'], close: '2026-10-15', updated: '4d ago', tags: ['regulated'], priority: 'high', source: 'Outbound' },
+  { id: dealId(1214), name: 'Kestrel Defense — Procurement contract',     company: 'c8', type: 'Procurement',   value: 27500000, currency: 'USD', stage: 'design', prob: 70, owner: 'p5', team: ['p5','p4'],     close: '2026-06-20', updated: '20h ago', tags: ['ITAR'], priority: 'high', source: 'RFP' },
+  { id: dealId(1215), name: 'Ostern Foods — Brand acquisition',           company: 'c9', type: 'Acquisition',   value: 64000000, currency: 'EUR', stage: 'discover',   prob: 40, owner: 'p1', team: ['p1','p3'],     close: '2026-09-18', updated: '1d ago', tags: ['EU'], priority: 'med', source: 'Banker' },
+  { id: dealId(1216), name: 'Albatross Bio — Co-development',             company: 'c10',type: 'Partnership',   value: 15000000, currency: 'USD', stage: 'qualify',  prob: 25, owner: 'p7', team: ['p7','p3'],     close: '2026-11-05', updated: '3d ago', tags: ['R&D'], priority: 'low', source: 'Inbound' },
   { id: dealId(1217), name: 'Polaris Grain — Off-take agreement',         company: 'c11',type: 'Procurement',   value: 6300000,  currency: 'CAD', stage: 'lead',        prob: 15, owner: 'p4', team: ['p4'],          close: '2026-12-01', updated: '6d ago', tags: [], priority: 'low', source: 'Cold outreach' },
-  { id: dealId(1218), name: 'Tessellate Robotics — Series B participation',company: 'c12',type: 'Capital Raise',value: 24000000, currency: 'USD', stage: 'negotiation', prob: 80, owner: 'p1', team: ['p1','p4'],     close: '2026-06-28', updated: '9h ago', tags: ['follow-on'], priority: 'high', source: 'Existing portfolio' },
-  { id: dealId(1219), name: 'Halcyon Payments — Buyout',                  company: 'c13',type: 'Buyout',        value: 110000000,currency: 'GBP', stage: 'proposal',    prob: 65, owner: 'p3', team: ['p3','p5','p7'], close: '2026-08-09', updated: '2d ago', tags: ['LBO'], priority: 'high', source: 'Banker' },
-  { id: dealId(1220), name: 'Driftless Studios — Catalog rights',         company: 'c14',type: 'Licensing',     value: 850000,   currency: 'USD', stage: 'won',         prob: 100,owner: 'p6', team: ['p6'],          close: '2026-05-12', updated: '8d ago', tags: ['closed'], priority: 'low', source: 'Inbound' },
-  { id: dealId(1221), name: 'Bramble & Co. — Growth equity',              company: 'c15',type: 'Capital Raise', value: 12000000, currency: 'USD', stage: 'closing',     prob: 88, owner: 'p2', team: ['p2','p1'],     close: '2026-06-11', updated: '4h ago', tags: ['minority'], priority: 'high', source: 'Inbound' },
-  { id: dealId(1222), name: 'Heliograph Industries — Bolt-on Tessellate', company: 'c1', type: 'Acquisition',   value: 38000000, currency: 'USD', stage: 'discovery',   prob: 38, owner: 'p2', team: ['p2','p4'],     close: '2026-10-30', updated: '7d ago', tags: ['add-on'], priority: 'med', source: 'Portfolio synergy' },
+  { id: dealId(1218), name: 'Tessellate Robotics — Series B participation',company: 'c12',type: 'Capital Raise',value: 24000000, currency: 'USD', stage: 'design', prob: 80, owner: 'p1', team: ['p1','p4'],     close: '2026-06-28', updated: '9h ago', tags: ['follow-on'], priority: 'high', source: 'Existing portfolio' },
+  { id: dealId(1219), name: 'Halcyon Payments — Buyout',                  company: 'c13',type: 'Buyout',        value: 110000000,currency: 'GBP', stage: 'scope',    prob: 65, owner: 'p3', team: ['p3','p5','p7'], close: '2026-08-09', updated: '2d ago', tags: ['LBO'], priority: 'high', source: 'Banker' },
+  { id: dealId(1220), name: 'Driftless Studios — Catalog rights',         company: 'c14',type: 'Licensing',     value: 850000,   currency: 'USD', stage: 'deliver',         prob: 100,owner: 'p6', team: ['p6'],          close: '2026-05-12', updated: '8d ago', tags: ['closed'], priority: 'low', source: 'Inbound' },
+  { id: dealId(1221), name: 'Bramble & Co. — Growth equity',              company: 'c15',type: 'Capital Raise', value: 12000000, currency: 'USD', stage: 'close',     prob: 88, owner: 'p2', team: ['p2','p1'],     close: '2026-06-11', updated: '4h ago', tags: ['minority'], priority: 'high', source: 'Inbound' },
+  { id: dealId(1222), name: 'Heliograph Industries — Bolt-on Tessellate', company: 'c1', type: 'Acquisition',   value: 38000000, currency: 'USD', stage: 'discover',   prob: 38, owner: 'p2', team: ['p2','p4'],     close: '2026-10-30', updated: '7d ago', tags: ['add-on'], priority: 'med', source: 'Portfolio synergy' },
   { id: dealId(1223), name: 'Larkfield Capital — APAC fund LP',           company: 'c3', type: 'Capital Raise', value: 5000000,  currency: 'USD', stage: 'lead',        prob: 10, owner: 'p5', team: ['p5'],          close: '2026-12-15', updated: '2w ago', tags: [], priority: 'low', source: 'Network' },
-  { id: dealId(1224), name: 'Quorum Energy — Carbon credits partnership', company: 'c7', type: 'Partnership',   value: 3400000,  currency: 'USD', stage: 'qualifying',  prob: 35, owner: 'p4', team: ['p4','p3'],     close: '2026-09-09', updated: '3d ago', tags: ['ESG'], priority: 'med', source: 'Inbound' },
+  { id: dealId(1224), name: 'Quorum Energy — Carbon credits partnership', company: 'c7', type: 'Partnership',   value: 3400000,  currency: 'USD', stage: 'qualify',  prob: 35, owner: 'p4', team: ['p4','p3'],     close: '2026-09-09', updated: '3d ago', tags: ['ESG'], priority: 'med', source: 'Inbound' },
 ];
 
 const LEADS = [
@@ -980,35 +982,31 @@ Object.assign(window, {
 
 /* Sidebar — text-only, left-aligned, no icons */
 
+const CURRENT_USER = { id: 'p1', name: 'Maren Voss', role: 'owner' };
+
 const NAV = [
-  { section: 'WORKSPACE', items: [
+  { section: '', items: [
     { id: 'home',         label: 'Home' },
-    { id: 'pending',      label: 'Pending',         badge: 8, indicator: 'accent' },
-    { id: 'inbox',        label: 'Inbox',           badge: 7 },
-    { id: 'tasks',        label: 'Tasks',           badge: 12 },
-    { id: 'calendar',     label: 'Calendar',        badge: 3 },
-    { id: 'teams',        label: 'Teams',           badge: 5 },
-  ]},
-  { section: 'DEAL FLOW', items: [
-    { id: 'leads',        label: 'Leads' },
     { id: 'pipeline',     label: 'Pipeline' },
-    { id: 'story',        label: 'Story',                indicator: 'red' },
+    { id: 'maps',         label: 'Maps' },
+    { id: 'leads',        label: 'Leads' },
     { id: 'crm',          label: 'Contacts' },
     { id: 'documents',    label: 'Documents' },
+    { id: 'calendar',     label: 'Calendar',        badge: 3 },
+    { id: 'inbox',        label: 'Inbox',           badge: 7 },
+    { id: 'approvals',    label: 'Approvals',       badge: 8, indicator: 'accent' },
   ]},
-  { section: 'TOOLS', items: [
-    { id: 'knowledge',    label: 'Knowledge Hub' },
+  { section: 'LIBRARY', items: [
+    { id: 'templates',    label: 'Templates' },
     { id: 'intelligence', label: 'Intelligence' },
-    { id: 'voice-notes',  label: 'Voice Notes' },
-    { id: 'messaging',    label: 'Messaging' },
-    { id: 'reports',      label: 'Reports' },
   ]},
-  { section: 'ADMIN', items: [
+  { section: 'PERSONAL', items: [
+    { id: 'settings',     label: 'Settings' },
+  ]},
+  { section: 'OWNER', ownerOnly: true, items: [
     { id: 'admin',        label: 'Admin' },
     { id: 'affiliates',   label: 'Affiliate Center' },
     { id: 'invoicing',    label: 'Invoicing' },
-    { id: 'billing',      label: 'Billing' },
-    { id: 'settings',     label: 'Settings' },
   ]},
 ];
 
@@ -1091,15 +1089,24 @@ function Sidebar({ route, setRoute, collapsed, setCollapsed }) {
       </div>
 
       <nav className="sb-nav">
-        {NAV.map(sec => (
-          <React.Fragment key={sec.section}>
-            <div className="sb-section">{sec.section}</div>
+        {NAV.filter(sec => !sec.ownerOnly || CURRENT_USER.role === 'owner').map((sec, secIdx) => (
+          <React.Fragment key={sec.section || ('group-' + secIdx)}>
+            {sec.section && <div className="sb-section">{sec.section}</div>}
             {sec.items.map(it => (
               <button
                 key={it.id}
                 type="button"
-                className={'sb-item ' + (route === it.id ? 'active' : '')}
-                onClick={() => { setRoute(it.id); if (window.matchMedia('(max-width: 820px)').matches) setCollapsed(true); }}
+                className={'sb-item ' + (route === it.id || route === (SUITE_ROUTE_ALIASES && SUITE_ROUTE_ALIASES[it.id]) ? 'active' : '')}
+                onClick={() => {
+                  if (it.id === 'maps') {
+                    const seedDeal = (typeof window !== 'undefined' && window.__adgaDeals && window.__adgaDeals[0]) || null;
+                    const target = seedDeal ? seedDeal.id : 'DEAL-1210';
+                    window.location.href = '/suite/map/' + target;
+                    return;
+                  }
+                  setRoute(it.id);
+                  if (window.matchMedia('(max-width: 820px)').matches) setCollapsed(true);
+                }}
               >
                 <span className="sb-label">{it.label}</span>
                 {it.indicator && <span style={{width:6,height:6,borderRadius:'50%',background:'var(--accent)',marginRight:6}}/>}
@@ -1816,28 +1823,54 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
     }
 
     try {
-      const response = await fetch('/api/agent/jobs', {
+      // Prefer the live Kimi 2.6 chat endpoint when available; fall back to the
+      // jobs endpoint so older agent jobs surface still works.
+      const chatHistory = [
+        ...messages.slice(-12).map(m => ({
+          role: m.who === 'user' ? 'user' : 'assistant',
+          content: String(m.text || ''),
+        })),
+        { role: 'user', content: text || 'Process attached files.' },
+      ];
+      const chatResponse = await fetch('/api/agent/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          agent: routeAgentKey(text),
-          job_type: 'suite.agent_command',
-          prompt: text || 'Process attached files.',
-          context: {
-            workflow_action: action,
-            attachment_count: attachments.length,
-            platform_search: platformMatches.slice(0, 6).map(({ type, label, detail, ref }) => ({ type, label, detail, ref })),
-          },
+          messages: chatHistory,
+          context: { kind: 'workspace' },
         }),
       });
-      const result = await response.json();
-      const summary = result?.output?.summary || result?.job?.output?.summary;
-      if (summary) {
+      const chatJson = await chatResponse.json();
+      if (chatResponse.ok && chatJson?.message?.content) {
         agentReply = {
           who: 'agent',
-          text: summary,
-          cite: result?.job?.id || agentReply.cite || 'agent/job',
+          text: chatJson.message.content,
+          cite: chatJson?.meta?.model || agentReply.cite || 'kimi-2.6',
         };
+      } else {
+        const response = await fetch('/api/agent/jobs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agent: routeAgentKey(text),
+            job_type: 'suite.agent_command',
+            prompt: text || 'Process attached files.',
+            context: {
+              workflow_action: action,
+              attachment_count: attachments.length,
+              platform_search: platformMatches.slice(0, 6).map(({ type, label, detail, ref }) => ({ type, label, detail, ref })),
+            },
+          }),
+        });
+        const result = await response.json();
+        const summary = result?.output?.summary || result?.job?.output?.summary;
+        if (summary) {
+          agentReply = {
+            who: 'agent',
+            text: summary,
+            cite: result?.job?.id || agentReply.cite || 'agent/job',
+          };
+        }
       }
     } catch (e) {
       agentReply = {
@@ -2261,7 +2294,7 @@ function Kanban({ deals, onOpen, onMove }) {
                     className="deal-card"
                     draggable
                     onDragStart={() => setDragId(d.id)}
-                    onClick={() => onOpen(d)}
+                    onClick={() => { window.location.href = '/suite/map/' + d.id; }}
                   >
                     <div className="deal-row between">
                       <span className="tag">{d.type}</span>
@@ -2323,12 +2356,14 @@ function PipelineTable({ deals, onOpen }) {
             const co = companyOf(d.company);
             const owner = personOf(d.owner);
             const stage = stageOf(d.stage);
-            const tone = d.stage === 'won' ? 'green' :
-                         d.stage === 'closing' ? 'amber' :
-                         d.stage === 'negotiation' ? 'amber' :
-                         d.stage === 'proposal' ? 'violet' :
-                         d.stage === 'discovery' ? 'blue' :
-                         d.stage === 'qualifying' ? 'cyan' : 'gray';
+            const tone = d.stage === 'expand' ? 'green' :
+                         d.stage === 'deliver' ? 'green' :
+                         d.stage === 'sign' ? 'amber' :
+                         d.stage === 'close' ? 'amber' :
+                         d.stage === 'design' ? 'amber' :
+                         d.stage === 'scope' ? 'violet' :
+                         d.stage === 'discover' ? 'blue' :
+                         d.stage === 'qualify' ? 'cyan' : 'gray';
             return (
               <tr key={d.id} onClick={() => onOpen(d)} style={{cursor:'pointer'}}>
                 <td><input type="checkbox" onClick={e => e.stopPropagation()}/></td>
@@ -2386,7 +2421,7 @@ function PipelineTimeline({ deals, onOpen }) {
           const leftPct = (startOff / 12) * 100;
           const widthPct = (widthMonths / 12) * 100;
           const stage = stageOf(d.stage);
-          const muted = d.stage === 'lead' || d.stage === 'qualifying';
+          const muted = d.stage === 'lead' || d.stage === 'qualify';
           return (
             <div key={d.id} className="gantt-row" onClick={() => onOpen(d)} style={{cursor:'pointer'}}>
               <div className="gantt-name">
@@ -2440,12 +2475,14 @@ function DealDrawer({ deal, onClose }) {
   const co = companyOf(deal.company);
   const owner = personOf(deal.owner);
   const stage = stageOf(deal.stage);
-  const stageTone = deal.stage === 'won' ? 'green' :
-                    deal.stage === 'closing' ? 'amber' :
-                    deal.stage === 'negotiation' ? 'amber' :
-                    deal.stage === 'proposal' ? 'violet' :
-                    deal.stage === 'discovery' ? 'blue' :
-                    deal.stage === 'qualifying' ? 'cyan' : 'gray';
+  const stageTone = deal.stage === 'expand' ? 'green' :
+                    deal.stage === 'deliver' ? 'green' :
+                    deal.stage === 'sign' ? 'amber' :
+                    deal.stage === 'close' ? 'amber' :
+                    deal.stage === 'design' ? 'amber' :
+                    deal.stage === 'scope' ? 'violet' :
+                    deal.stage === 'discover' ? 'blue' :
+                    deal.stage === 'qualify' ? 'cyan' : 'gray';
 
   return (
     <>
@@ -2772,9 +2809,9 @@ function representedClientForDeal(deal, co) {
     email: deal.clientEmail || primary.clientEmail || '',
     phone: deal.clientPhone || primary.clientPhone || '',
     relationship: deal.relationshipType || 'Represented client',
-    portalStatus: deal.clientPortalStatus || (deal.stage === 'lead' || deal.stage === 'qualifying' ? 'Prepared' : 'Active'),
+    portalStatus: deal.clientPortalStatus || (deal.stage === 'lead' || deal.stage === 'qualify' ? 'Prepared' : 'Active'),
     accessLevel: 'Deal status, approved documents, meetings, visible updates',
-    nextVisibleUpdate: deal.stage === 'closing' ? 'Closing package and signature tracker' : 'Deal status and next milestone',
+    nextVisibleUpdate: deal.stage === 'close' ? 'Closing package and signature tracker' : 'Deal status and next milestone',
   };
 }
 
@@ -5036,7 +5073,7 @@ function HomePage({ deals, openDeal, setRoute }) {
   const active = deals.filter(d => d.stage !== 'won' && d.stage !== 'lost');
   const totalValue = active.reduce((s,d) => s + d.value, 0);
   const weighted = active.reduce((s,d) => s + d.value * d.prob / 100, 0);
-  const focusStages = new Set(['closing', 'negotiation', 'proposal']);
+  const focusStages = new Set(['close', 'sign', 'design', 'scope']);
   const periodTabs = [
     { id: 'day', label: 'Day', days: 1 },
     { id: 'week', label: 'Week', days: 7 },
@@ -5070,7 +5107,7 @@ function HomePage({ deals, openDeal, setRoute }) {
     .slice(0, period === 'day' ? 5 : 9);
   const periodValue = focusedDeals.reduce((s, d) => s + d.value, 0);
   const periodWeighted = focusedDeals.reduce((s, d) => s + d.value * d.prob / 100, 0);
-  const highUrgency = focusedDeals.filter(d => d.stage === 'closing' || d.priority === 'high').length;
+  const highUrgency = focusedDeals.filter(d => d.stage === 'close' || d.priority === 'high').length;
   const displayedDeals = focusedDeals.length ? focusedDeals : active
     .filter(d => focusStages.has(d.stage) || d.priority === 'high')
     .sort((a, b) => new Date(a.close) - new Date(b.close))
@@ -5146,7 +5183,7 @@ function HomePage({ deals, openDeal, setRoute }) {
                           <button className="btn ghost sm" type="button" onClick={(e) => { e.stopPropagation(); setRoute('crm'); }}>Contact record</button>
                         </div>
                       </td>
-                      <td><Pill tone={d.stage === 'closing' ? 'amber' : d.stage === 'negotiation' ? 'amber' : 'blue'}>{s.name}</Pill></td>
+                      <td><Pill tone={d.stage === 'close' ? 'amber' : d.stage === 'design' || d.stage === 'sign' ? 'amber' : 'blue'}>{s.name}</Pill></td>
                       <td><span className="deal-team-cell"><Avatar person={o}/> <span>{o.name.split(' ')[0]}</span><AvatarStack ids={team.slice(1).map(p => p.id)} max={3}/></span></td>
                       <td className="num">{fmtCurrency(d.value, d.currency)}</td>
                       <td className="mono">{d.close}</td>
@@ -6430,7 +6467,7 @@ function LeadConvertSheet({ lead, onClose, onDone }) {
 function LeadConvertForm({ lead, onDone, embedded }) {
   const [dealName, setDealName] = React.useState(lead.company + ' — opportunity');
   const [type, setType] = React.useState('Acquisition');
-  const [stage, setStage] = React.useState('qualifying');
+  const [stage, setStage] = React.useState('qualify');
   const [value, setValue] = React.useState(String(lead.value));
 
   return (
@@ -7687,6 +7724,8 @@ const SUITE_ROUTE_ALIASES = {
   companies: 'crm',
   files: 'documents',
   docs: 'documents',
+  approvals: 'pending',
+  templates: 'knowledge',
 };
 
 function normalizeSuiteRoute(value) {
@@ -7802,6 +7841,10 @@ function App() {
       })
       .catch(() => {});
   }, []);
+
+  React.useEffect(() => {
+    window.__adgaDeals = deals;
+  }, [deals]);
 
   React.useEffect(() => {
     fetch('/api/leads')
@@ -7932,7 +7975,7 @@ function App() {
               type: 'Acquisition',
               value: Math.round((record.value_cents || 0) / 100),
               currency: 'USD',
-              stage: 'qualifying',
+              stage: 'qualify',
               prob: record.probability || 10,
               owner: 'p1',
               team: ['p1'],

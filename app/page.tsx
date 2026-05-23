@@ -60,9 +60,9 @@ const SUITE_FEATURES = [
 ];
 
 const USE_CASES = [
-  { label: "Real estate closing team", body: "Coordinate agents, brokers, attorneys, lenders, inspections, and closing docs against a single deal record." },
+  { label: "Acquisition", body: "Keep buyer, seller, advisors, documents, approvals, meetings, and terms attached to one deal record." },
   { label: "Capital raise", body: "Track investor contacts, diligence files, commitments, follow-up cadence, and closing timeline in one place." },
-  { label: "Acquisition", body: "Keep buyer, seller, advisors, documents, approvals, meetings, and terms attached to the deal." },
+  { label: "M&A", body: "Move NDA → CIM → IOI → LOI → diligence → SPA → close → 100-day integration with every party visible." },
   { label: "Partnership", body: "Move introductions, stakeholders, commercial terms, documents, and launch steps forward." },
   { label: "Licensing", body: "Manage rights, counterparties, term sheets, review cycles, signatures, and renewal paths." },
   { label: "High-ticket sales", body: "Turn qualified interest into calls, proposals, follow-up, close, delivery, and expansion." },
@@ -80,7 +80,7 @@ const IMPORT_SOURCES = [
 const FAQ_ITEMS = [
   {
     q: "Who is ADGA for?",
-    a: "Operators running real deals: solo closers, real estate closing teams, capital raisers, M&A advisors, partnership leads, and high-ticket sales teams. If money moves and stakes are real, ADGA is the workspace.",
+    a: "Operators running real deals: solo closers, deal teams, capital raisers, M&A advisors, partnership leads, procurement, licensing, and high-ticket sales. If money moves and stakes are real, ADGA is the workspace.",
   },
   {
     q: "Can I bring existing deals over?",
@@ -104,20 +104,76 @@ export default function HomePage() {
   return (
     <MarketingLayout>
       <div className="wrap">
-        <section className="hero">
-          <div className="hero-grid">
-            <div>
-              <h1>Built to close deals.</h1>
-              <p className="lede">
-                ADGA is the deal flow platform that keeps every contact, call, document, and next action tied to the deal record — so closes happen on schedule, not by accident.
-              </p>
-              <div className="ctas">
-                <a href="/pricing" className="btn primary lg">Start closing deals</a>
+        <section className="hero hero-center">
+          <div className="hero-pill">
+            <span className="hero-pill-dot" /> Built for closing teams
+          </div>
+          <h1 className="hero-display">Built to close deals.</h1>
+          <p className="hero-lede-center">
+            ADGA is the deal flow platform that keeps every contact, call, document, and next action tied to the deal — so closes happen on schedule, not by accident.
+          </p>
+          <div className="hero-ctas">
+            <a href="/pricing" className="btn primary lg">Start closing deals</a>
+          </div>
+
+          <div className="hero-mocks" aria-hidden="true">
+            <div className="hero-mock hero-mock-left">
+              <div className="hero-mock-head">
+                <span className="hero-mock-badge hero-mock-badge-dark">Deal</span>
+                <span className="hero-mock-id">DEAL-1224</span>
+              </div>
+              <div className="hero-mock-title">Capital raise — Series B</div>
+              <div className="hero-mock-meta">
+                <span>Closing</span>
+                <span className="dot">·</span>
+                <span>$24M</span>
+                <span className="dot">·</span>
+                <span>3 stakeholders</span>
+              </div>
+              <div className="hero-mock-row">
+                <span className="hero-mock-icon">·</span>
+                <span>Term sheet · sent</span>
+                <span className="hero-mock-tag">Signed</span>
+              </div>
+              <div className="hero-mock-row">
+                <span className="hero-mock-icon">·</span>
+                <span>Diligence call · Thu 3:00pm</span>
+                <span className="hero-mock-tag">Confirmed</span>
+              </div>
+              <div className="hero-mock-row hero-mock-row-active">
+                <span className="hero-mock-icon">→</span>
+                <span>Counter offer · draft ready</span>
+                <span className="hero-mock-tag hero-mock-tag-accent">Next</span>
               </div>
             </div>
-            <div className="hero-photo visual-card">
-              <img src="/adga/visual-deal-desk.svg" alt="ADGA deal record showing pipeline, contacts, files, and timeline" />
-              <div className="ph-meta">LEAD · CONTACT · DEAL</div>
+
+            <div className="hero-mock hero-mock-right">
+              <div className="hero-mock-head">
+                <span className="hero-mock-badge">Contact</span>
+                <span className="hero-mock-id">+12 More</span>
+              </div>
+              <div className="hero-mock-title">Aurore Chastain</div>
+              <div className="hero-mock-meta">
+                <span>Head of Corp Dev</span>
+                <span className="dot">·</span>
+                <span>Sutter Maritime</span>
+              </div>
+              <div className="hero-mock-row">
+                <span className="hero-mock-label">Stage</span>
+                <span>Negotiation</span>
+              </div>
+              <div className="hero-mock-row">
+                <span className="hero-mock-label">Value</span>
+                <span>$22M weighted</span>
+              </div>
+              <div className="hero-mock-row">
+                <span className="hero-mock-label">Owner</span>
+                <span>Maren Voss</span>
+              </div>
+              <div className="hero-mock-row">
+                <span className="hero-mock-label">Next</span>
+                <span className="hero-mock-next">Send counter · 5 min</span>
+              </div>
             </div>
           </div>
         </section>

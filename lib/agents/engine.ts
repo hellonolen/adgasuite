@@ -1,9 +1,139 @@
 import fs from 'fs';
 import path from 'path';
-import { runAgentModel } from "@/lib/ai/cloudflare-worker-ai";
+import { runAgentModel, type CloudflareAI } from "@/lib/ai/cloudflare-worker-ai";
 import type { AgentJob, AgentName } from "@/lib/server/repository";
 
 const AGENTS_DIR = path.join(process.cwd(), 'agents');
+
+export type ChatRole = "system" | "user" | "assistant";
+
+export interface ChatMessage {
+  role: ChatRole;
+  content: string;
+}
+
+export interface ChatAction {
+  type: string;
+  [key: string]: unknown;
+}
+
+export interface ChatRunInput {
+  systemPrompt: string;
+  messages: ChatMessage[];
+}
+
+export interface ChatRunResult {
+  message: ChatMessage;
+  actions: ChatAction[];
+  model: string;
+  source: "cloudflare-worker-ai" | "local-fallback";
+}
+
+export async function runChatTurn(
+  env: { AI?: CloudflareAI; ADGA_AI_MODEL?: string },
+  input: ChatRunInput,
+): Promise<ChatRunResult> {
+  if (!env.AI) {
+    return {
+      message: {
+        role: "assistant",
+        content:
+          "AI is unavailable in local dev. The Cloudflare Worker AI binding is only attached in deployed environments. Once shipped, Kimi 2.6 will respond here with full context awareness.",
+      },
+      actions: [],
+      model: env.ADGA_AI_MODEL || "@cf/moonshotai/kimi-k2.6",
+      source: "local-fallback",
+    };
+  }
+
+  const model = env.ADGA_AI_MODEL || "@cf/moonshotai/kimi-k2.6";
+  const messages: ChatMessage[] = [
+    { role: "system", content: input.systemPrompt },
+    ...input.messages,
+  ];
+
+  try {
+    const raw = (await env.AI.run(model, { messages })) as unknown;
+    const content = extractAssistantContent(raw);
+    const { reply, actions } = splitReplyAndActions(content);
+
+    return {
+      message: { role: "assistant", content: reply },
+      actions,
+      model,
+      source: "cloudflare-worker-ai",
+    };
+  } catch (error) {
+    return {
+      message: {
+        role: "assistant",
+        content:
+          error instanceof Error
+            ? `I hit an AI runtime error: ${error.message}. Please retry in a moment.`
+            : "I hit an unknown AI runtime error. Please retry in a moment.",
+      },
+      actions: [],
+      model,
+      source: "local-fallback",
+    };
+  }
+}
+
+function extractAssistantContent(output: unknown): string {
+  if (typeof output === "string") return output.trim();
+  if (!output || typeof output !== "object") return "";
+
+  const direct = (output as { response?: string }).response;
+  if (typeof direct === "string" && direct.trim()) return direct.trim();
+
+  const choices = (output as { choices?: Array<{ message?: { content?: string } }> }).choices;
+  const choiceContent = choices?.[0]?.message?.content;
+  if (typeof choiceContent === "string" && choiceContent.trim()) return choiceContent.trim();
+
+  const message = (output as { message?: { content?: string } }).message;
+  if (typeof message?.content === "string" && message.content.trim()) return message.content.trim();
+
+  return "";
+}
+
+function splitReplyAndActions(content: string): { reply: string; actions: ChatAction[] } {
+  if (!content) return { reply: "I did not produce a response. Please retry.", actions: [] };
+
+  // Look for a fenced ```json ACTIONS block or a trailing JSON line with {"actions":[...]}.
+  const fenceMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenceMatch) {
+    const parsed = tryParseActions(fenceMatch[1]);
+    if (parsed) {
+      const reply = content.replace(fenceMatch[0], "").trim();
+      return { reply: reply || "Done.", actions: parsed };
+    }
+  }
+
+  const jsonLineMatch = content.match(/\{\s*"actions"\s*:\s*\[[\s\S]*?\]\s*\}\s*$/);
+  if (jsonLineMatch) {
+    const parsed = tryParseActions(jsonLineMatch[0]);
+    if (parsed) {
+      const reply = content.replace(jsonLineMatch[0], "").trim();
+      return { reply: reply || "Done.", actions: parsed };
+    }
+  }
+
+  return { reply: content, actions: [] };
+}
+
+function tryParseActions(raw: string): ChatAction[] | null {
+  try {
+    const parsed = JSON.parse(raw.trim());
+    if (Array.isArray(parsed?.actions)) {
+      return parsed.actions.filter(
+        (a: unknown): a is ChatAction => Boolean(a) && typeof a === "object" && typeof (a as { type?: unknown }).type === "string",
+      );
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
 
 function getAgentSystemPrompt(agent: AgentName): string {
   try {
