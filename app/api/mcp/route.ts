@@ -8,15 +8,17 @@ import { inspectHandlers, publish } from "@/lib/events/bus";
 /**
  * MCP transport — HTTP-based discovery and dispatch surface.
  *
- *   GET  /api/mcp                       → full capability inventory + bus handler stats
- *   POST /api/mcp  { tool, arguments }  → discover/dispatch a tool call (admin-gated)
+ *   GET  /api/mcp                       → PUBLIC capability inventory (contracts only)
+ *   POST /api/mcp  { tool, arguments }  → ADMIN-GATED dispatch
  *
- * The inventory is generated from the contracts — no hand-maintained tool list. External
- * orchestrators (Claude Code, OpenAI assistants, custom agents) call GET to learn what the
- * suite exposes; POST is the dispatch path. Dispatch today is intentionally minimal —
- * known tools resolve to bus event publication so the platform's own agents react. Direct
- * action handlers (e.g. "deal.update_stage" wired to the deal mutation API) land in a
- * follow-up once each WorkspaceAction has its handler reference.
+ * Security model: GET is public by design. The inventory is contracts — route capabilities,
+ * workspace actions, skills — same shape published in code. External orchestrators (Claude
+ * Code, OpenAI assistants, custom agents) need to discover this without auth. No customer
+ * data, no PII, no event payloads exposed by GET.
+ *
+ * POST is admin-gated because it can fire actions. Actions with approval_required policy
+ * return 202 and direct the caller through /api/agent/approvals. owner_only returns 403.
+ * auto policy fans through the bus so internal agents handle the work.
  */
 
 interface McpToolCallBody {
@@ -24,15 +26,9 @@ interface McpToolCallBody {
   arguments?: Record<string, unknown>;
 }
 
-export async function GET(request: Request) {
-  const context = getRuntimeContext(request);
-  try {
-    requireAdmin(context);
-  } catch (response) {
-    if (response instanceof Response) return response;
-    return errorJson("Forbidden", 403);
-  }
-
+// Bus handler stats include only counts (handlers per event_type), no payloads. Safe to
+// expose so external orchestration can verify subscribers are attached before dispatching.
+export async function GET(_request: Request) {
   const tools = listMcpTools();
   const actions = listAllActions();
 
