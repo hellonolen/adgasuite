@@ -6,8 +6,11 @@ import {
   Background,
   BackgroundVariant,
   Controls,
+  MiniMap,
   Handle,
   Position,
+  SelectionMode,
+  MarkerType,
   useNodesState,
   useEdgesState,
   addEdge,
@@ -581,6 +584,43 @@ export function DealMindmap({
     if (params.nodes.length === 1) setSelectedId(params.nodes[0].id);
   }, []);
 
+  // Keyboard navigation — J/K walk between nodes, E expands the detail panel,
+  // Enter drills into a selected node, Escape clears selection. Skip when the
+  // user is typing in any input/textarea/contenteditable.
+  React.useEffect(() => {
+    if (readOnly) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (target?.isContentEditable || tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (nodes.length === 0) return;
+
+      if (e.key === "j" || e.key === "k") {
+        e.preventDefault();
+        const sorted = [...nodes].sort((a, b) => (a.position.y - b.position.y) || (a.position.x - b.position.x));
+        const currentIdx = selectedId ? sorted.findIndex((n) => n.id === selectedId) : -1;
+        const dir = e.key === "j" ? 1 : -1;
+        const nextIdx = currentIdx === -1
+          ? (dir === 1 ? 0 : sorted.length - 1)
+          : (currentIdx + dir + sorted.length) % sorted.length;
+        setSelectedId(sorted[nextIdx].id);
+        return;
+      }
+      if ((e.key === "e" || e.key === "Enter") && selectedId) {
+        e.preventDefault();
+        setEditingLabel(true);
+        return;
+      }
+      if (e.key === "Escape") {
+        setSelectedId(null);
+        setEditingLabel(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [nodes, selectedId, readOnly]);
+
   const addNode = (kind: DealMindmapEntityKind) => {
     const id = `mnode_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
     const label = `New ${KIND_META[kind].label}`;
@@ -984,16 +1024,54 @@ export function DealMindmap({
           nodesConnectable={!readOnly}
           elementsSelectable
           fitView
-          fitViewOptions={{ padding: 0.2 }}
+          fitViewOptions={{ padding: 0.22 }}
           proOptions={{ hideAttribution: true }}
           minZoom={0.3}
-          maxZoom={1.5}
-          panOnDrag
-          selectionOnDrag={false}
+          maxZoom={1.6}
+          panOnDrag={[1, 2]}
+          panOnScroll
+          selectionOnDrag={!readOnly}
+          selectionMode={SelectionMode.Partial}
+          snapToGrid
+          snapGrid={[16, 16]}
           deleteKeyCode={readOnly ? [] : ["Backspace", "Delete"]}
+          defaultEdgeOptions={{
+            type: "smoothstep",
+            animated: false,
+            style: { stroke: "rgba(15, 23, 42, 0.32)", strokeWidth: 1.25 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(15, 23, 42, 0.4)", width: 14, height: 14 },
+          }}
         >
-          <Background variant={BackgroundVariant.Dots} gap={24} size={1.2} color="rgba(86, 36, 199, 0.18)" />
+          <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="rgba(15, 23, 42, 0.08)" />
           <Controls position="bottom-right" showInteractive={false} />
+          <MiniMap
+            position="bottom-left"
+            pannable
+            zoomable
+            ariaLabel="Map overview"
+            maskColor="rgba(249, 247, 244, 0.72)"
+            style={{
+              border: "1px solid rgba(15, 23, 42, 0.08)",
+              borderRadius: 10,
+              background: "#ffffff",
+              boxShadow: "0 4px 16px -8px rgba(15, 23, 42, 0.18)",
+            }}
+            nodeColor={(n) => {
+              const kind = (n.data as { kind?: string } | undefined)?.kind || n.type;
+              const colors: Record<string, string> = {
+                deal: "#5d2cd6",
+                contact: "#16a34a",
+                company: "#0ea5e9",
+                document: "#f59e0b",
+                task: "#a855f7",
+                call: "#ef4444",
+                meeting: "#3b82f6",
+                action: "#5d2cd6",
+              };
+              return colors[kind || ""] || "#94a3b8";
+            }}
+            nodeStrokeWidth={0}
+          />
         </ReactFlow>
       </div>
 
