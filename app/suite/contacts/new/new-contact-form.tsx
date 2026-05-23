@@ -116,7 +116,7 @@ export default function NewContactForm() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f9f7f4]">
+    <div className="bg-[#f9f7f4]">
       <header className="border-b border-[#e8e4de] bg-white">
         <div className="mx-auto flex max-w-3xl items-center gap-4 px-6 py-5">
           <Link
@@ -191,6 +191,6 @@ export default function NewContactForm() {
           </div>
         </form>
       </section>
-    </main>
+    </div>
   );
 }

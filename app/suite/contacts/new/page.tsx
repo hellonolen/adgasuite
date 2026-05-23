@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
-import NewContactForm from "./new-contact-form";
+import NewContactFormClient from "@/components/suite/workspaces/NewContactFormClient";
 
 export const dynamic = "force-dynamic";
 
@@ -15,5 +15,5 @@ export default async function NewContactPage() {
   if (!sessionUser && !context.user.isLocalAdminBypass) {
     redirect("/login?redirect=/suite/contacts/new");
   }
-  return <NewContactForm />;
+  return <NewContactFormClient />;
 }

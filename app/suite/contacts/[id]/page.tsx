@@ -1,9 +1,10 @@
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import ContactDetail, {
+import {
   type ContactDetailData,
   type ContactEvent,
 } from "@/components/suite/ContactDetail";
+import ContactDetailClient from "@/components/suite/workspaces/ContactDetailClient";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 
@@ -30,14 +31,14 @@ export default async function ContactDetailPage({ params }: PageProps) {
 
   if (!db) {
     return (
-      <main className="min-h-screen bg-[#f9f7f4] p-8">
+      <div className="bg-[#f9f7f4] p-8">
         <div className="mx-auto max-w-3xl rounded-2xl border border-[#e8e4de] bg-white p-8">
           <h1 className="text-xl font-semibold text-[#0d0c0a]">Database not configured</h1>
           <p className="mt-2 text-sm text-[#6b6760]">
             Contact detail pages require a Cloudflare D1 binding. Configure DB in your environment.
           </p>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -59,5 +60,5 @@ export default async function ContactDetailPage({ params }: PageProps) {
     .bind(id)
     .all<ContactEvent>();
 
-  return <ContactDetail contact={contact} events={events.results || []} />;
+  return <ContactDetailClient contact={contact} events={events.results || []} />;
 }

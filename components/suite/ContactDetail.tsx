@@ -140,7 +140,7 @@ export default function ContactDetail({
   const location = [contact.city, contact.state_region, contact.country].filter(Boolean).join(", ");
 
   return (
-    <main className="min-h-screen bg-[#f9f7f4]">
+    <div className="bg-[#f9f7f4]">
       <header className="border-b border-[#e8e4de] bg-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-5 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
@@ -322,7 +322,7 @@ export default function ContactDetail({
           )}
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 
