@@ -6,6 +6,22 @@ export default function StoriesPage() {
   return (
     <MarketingLayout>
       <div className="wrap">
+        <section className="hero hero-center" style={{ paddingBottom: 24 }}>
+          <div className="hero-pill">
+            <span className="hero-pill-dot" /> Stories
+          </div>
+          <h1 className="hero-display">What operators are closing.</h1>
+          <p className="hero-lede-center">
+            Real names, real deals, real outcomes. In their own words.
+          </p>
+          <div className="hero-ctas" style={{ gap: 12, display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
+            <a href="/pricing" className="btn primary lg">See pricing</a>
+            <a href="#stories" className="btn lg" style={{ background: "transparent", border: "1px solid var(--rule, #e8e4de)" }}>
+              Read more
+            </a>
+          </div>
+        </section>
+
         <section className="page-hero">
           <div>
             <div className="eyebrow">
@@ -30,7 +46,7 @@ export default function StoriesPage() {
         </section>
 
         {/* Story 1 */}
-        <section className="story-spread">
+        <section id="stories" className="story-spread">
           <div>
             <span className="label"><span className="dot" />Story · 01 · Mid-market M&amp;A</span>
             <h3>Concorde Group — <em>fourteen deals,</em> one operating system.</h3>

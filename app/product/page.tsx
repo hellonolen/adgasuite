@@ -146,7 +146,23 @@ export default function ProductPage() {
   return (
     <MarketingLayout>
       <div className="wrap">
-        <section className="section" style={{ borderTop: 0, paddingTop: 64 }}>
+        <section className="hero hero-center" style={{ paddingBottom: 24 }}>
+          <div className="hero-pill">
+            <span className="hero-pill-dot" /> Platform
+          </div>
+          <h1 className="hero-display">The deal flow platform, end to end.</h1>
+          <p className="hero-lede-center">
+            Every contact, file, call, and next action attached to one deal record — across every stage from first signal to repeat purchase.
+          </p>
+          <div className="hero-ctas" style={{ gap: 12, display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
+            <a href="/pricing" className="btn primary lg">See pricing</a>
+            <a href="#anatomy" className="btn lg" style={{ background: "transparent", border: "1px solid var(--rule, #e8e4de)" }}>
+              Inside a deal
+            </a>
+          </div>
+        </section>
+
+        <section id="anatomy" className="section" style={{ borderTop: 0, paddingTop: 64 }}>
           <span className="ed-label">Platform</span>
           <h2 className="title">Every move on <em>one record.</em></h2>
           <p style={{ maxWidth: "60ch", marginTop: 12, color: "var(--ink-2)" }}>

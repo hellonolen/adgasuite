@@ -110,7 +110,23 @@ export default function ProcessPage() {
   return (
     <MarketingLayout>
       <div className="wrap">
-        <section className="section" style={{ borderTop: 0, paddingTop: 64 }}>
+        <section className="hero hero-center" style={{ paddingBottom: 24 }}>
+          <div className="hero-pill">
+            <span className="hero-pill-dot" /> Process
+          </div>
+          <h1 className="hero-display">The eight-stage deal spine.</h1>
+          <p className="hero-lede-center">
+            Signal, capture, qualify, shape, advance, close, deliver, expand. Built into every record. No setup.
+          </p>
+          <div className="hero-ctas" style={{ gap: 12, display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
+            <a href="/pricing" className="btn primary lg">Start closing deals</a>
+            <a href="#stages" className="btn lg" style={{ background: "transparent", border: "1px solid var(--rule, #e8e4de)" }}>
+              See the stages
+            </a>
+          </div>
+        </section>
+
+        <section id="stages" className="section" style={{ borderTop: 0, paddingTop: 64 }}>
           <span className="ed-label">Deal process</span>
           <h2 className="title">From first signal to <em>repeat purchase.</em></h2>
           <p style={{ maxWidth: "60ch", marginTop: 12, color: "var(--ink-2)" }}>

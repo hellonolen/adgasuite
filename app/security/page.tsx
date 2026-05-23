@@ -6,6 +6,22 @@ export default function SecurityPage() {
   return (
     <MarketingLayout>
       <div className="wrap">
+        <section className="hero hero-center" style={{ paddingBottom: 24 }}>
+          <div className="hero-pill">
+            <span className="hero-pill-dot" /> Security
+          </div>
+          <h1 className="hero-display">Your deal data, your tenant.</h1>
+          <p className="hero-lede-center">
+            Cloudflare D1 and R2, encrypted in transit and at rest. Role-based access. Immutable audit log. No shared storage.
+          </p>
+          <div className="hero-ctas" style={{ gap: 12, display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
+            <a href="#controls" className="btn primary lg">Read the controls</a>
+            <a href="/pricing" className="btn lg" style={{ background: "transparent", border: "1px solid var(--rule, #e8e4de)" }}>
+              See pricing
+            </a>
+          </div>
+        </section>
+
         <section className="page-hero">
           <div>
             <div className="eyebrow">

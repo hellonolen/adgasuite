@@ -118,7 +118,23 @@ export default function CasesPage() {
   return (
     <MarketingLayout>
       <div className="wrap">
-        <section className="section" style={{ borderTop: 0, paddingTop: 64 }}>
+        <section className="hero hero-center" style={{ paddingBottom: 24 }}>
+          <div className="hero-pill">
+            <span className="hero-pill-dot" /> Use cases
+          </div>
+          <h1 className="hero-display">One platform. Every deal type.</h1>
+          <p className="hero-lede-center">
+            Acquisitions, capital raises, M&amp;A, partnerships, licensing, and high-ticket sales — same operating spine, configured per vertical.
+          </p>
+          <div className="hero-ctas" style={{ gap: 12, display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
+            <a href="/pricing" className="btn primary lg">See pricing</a>
+            <a href="#cases" className="btn lg" style={{ background: "transparent", border: "1px solid var(--rule, #e8e4de)" }}>
+              Browse use cases
+            </a>
+          </div>
+        </section>
+
+        <section id="cases" className="section" style={{ borderTop: 0, paddingTop: 64 }}>
           <span className="ed-label">Use cases</span>
           <h2 className="title">Different deals. <em>One operating path.</em></h2>
           <p style={{ maxWidth: "60ch", marginTop: 12, color: "var(--ink-2)" }}>
