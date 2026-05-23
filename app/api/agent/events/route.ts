@@ -2,6 +2,11 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
 
+// IMMUTABLE AUDIT LOG — this route only appends. Never add PATCH/PUT/DELETE handlers here.
+// The events table is the immutable audit trail surfaced under Enterprise pricing; any future
+// mutation path would break that contract. State changes belong on the resource tables (deals,
+// agent_jobs, agent_approvals) which always emit a forward-only event recording the transition.
+
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
   requireAdmin(context);
