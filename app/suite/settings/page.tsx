@@ -1,9 +1,3 @@
-import SuiteClient from "@/app/suite/suite-client";
-
-export default function SettingsPage() {
-  return (
-    <main className="suite-shell adga-font-product adga-presence-crisp">
-      <SuiteClient bootstrap={{ route: "settings" }} />
-    </main>
-  );
+export default function SuiteSettingsPage() {
+  return null;
 }

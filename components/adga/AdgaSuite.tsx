@@ -3,6 +3,15 @@
 
 import React from "react";
 import Script from "next/script";
+import { usePathname } from "next/navigation";
+import {
+  SUITE_ROUTES,
+  SUITE_ROUTE_IDS as REGISTRY_ROUTE_IDS,
+  ROUTE_PATHS as REGISTRY_ROUTE_PATHS,
+  ROUTE_LABELS as REGISTRY_ROUTE_LABELS,
+  getSidebarGroups as registryGetSidebarGroups,
+  resolveSuitePathname,
+} from "@/app/suite/routes";
 
 declare global {
   interface Window {
@@ -988,31 +997,16 @@ Object.assign(window, {
 
 const CURRENT_USER = { id: 'p1', name: 'Maren Voss', role: 'owner' };
 
-const NAV = [
-  { section: '', items: [
-    { id: 'home',         label: 'Home' },
-    { id: 'pipeline',     label: 'Pipeline' },
-    { id: 'maps',         label: 'Maps' },
-    { id: 'leads',        label: 'Leads' },
-    { id: 'crm',          label: 'Contacts' },
-    { id: 'documents',    label: 'Documents' },
-    { id: 'calendar',     label: 'Calendar',        badge: 3 },
-    { id: 'inbox',        label: 'Inbox',           badge: 7 },
-    { id: 'approvals',    label: 'Approvals',       badge: 8, indicator: 'accent' },
-  ]},
-  { section: 'LIBRARY', items: [
-    { id: 'templates',    label: 'Templates' },
-    { id: 'intelligence', label: 'Intelligence' },
-  ]},
-  { section: 'PERSONAL', items: [
-    { id: 'settings',     label: 'Settings' },
-  ]},
-  { section: 'OWNER', ownerOnly: true, items: [
-    { id: 'admin',        label: 'Admin' },
-    { id: 'affiliates',   label: 'Affiliate Center' },
-    { id: 'invoicing',    label: 'Invoicing' },
-  ]},
-];
+// Sidebar groups are generated from the route contract — never hand-maintained here.
+// `getSidebarGroups({ ownerView })` reads app/suite/routes.ts and returns ordered groups.
+// To add a sidebar entry, declare it in routes.ts (section: "" | "LIBRARY" | "PERSONAL" | "OWNER").
+function getNav(ownerView) {
+  return registryGetSidebarGroups({ ownerView }).map((group) => ({
+    section: group.section,
+    ownerOnly: group.section === 'OWNER',
+    items: group.items,
+  }));
+}
 
 function Sidebar({ route, setRoute, collapsed, setCollapsed }) {
   const [wsOpen, setWsOpen] = React.useState(false);
@@ -1093,7 +1087,7 @@ function Sidebar({ route, setRoute, collapsed, setCollapsed }) {
       </div>
 
       <nav className="sb-nav">
-        {NAV.filter(sec => !sec.ownerOnly || CURRENT_USER.role === 'owner').map((sec, secIdx) => (
+        {getNav(CURRENT_USER.role === 'owner').map((sec, secIdx) => (
           <React.Fragment key={sec.section || ('group-' + secIdx)}>
             {sec.section && <div className="sb-section">{sec.section}</div>}
             {sec.items.map(it => (
@@ -1108,7 +1102,7 @@ function Sidebar({ route, setRoute, collapsed, setCollapsed }) {
                   if (typeof window !== 'undefined') {
                     try {
                       window.localStorage.setItem('adga-suite-route', it.id);
-                      const path = ROUTE_PATHS[it.id] || ('/suite/' + it.id);
+                      const path = it.path || ROUTE_PATHS[it.id] || ('/suite/' + it.id);
                       window.history.pushState({ route: it.id }, '', path);
                     } catch (e) {}
                   }
@@ -7777,13 +7771,11 @@ function applyTweaks(t) {
   root.style.setProperty('--adga-accent-fg', getAccentFg(accent));
 }
 
-const SUITE_ROUTE_IDS = [
-  'home', 'pending', 'inbox', 'tasks', 'calendar', 'teams',
-  'leads', 'pipeline', 'story', 'crm', 'documents', 'knowledge',
-  'intelligence', 'voice-notes', 'messaging', 'reports',
-  'admin', 'affiliates', 'invoicing', 'billing', 'settings',
-  'map', 'maps',
-];
+// Suite routes are sourced from the contract at app/suite/routes.ts — single source of truth.
+// SUITE_ROUTE_ALIASES are *URL aliases* — incoming paths that should normalize to a real route id
+// (e.g. /suite/contacts → crm). They are NOT a route list; routes themselves live in the registry.
+const SUITE_ROUTE_IDS = REGISTRY_ROUTE_IDS;
+const ROUTE_PATHS = REGISTRY_ROUTE_PATHS;
 
 const SUITE_ROUTE_ALIASES = {
   contacts: 'crm',
@@ -7793,33 +7785,6 @@ const SUITE_ROUTE_ALIASES = {
   docs: 'documents',
   approvals: 'pending',
   templates: 'knowledge',
-};
-
-// Clean URL paths per route — the sidebar pushes these instead of query strings so /suite/<route>
-// always resolves to a real URL that a user can bookmark, share, or hit on refresh.
-const ROUTE_PATHS = {
-  home: '/suite',
-  pipeline: '/suite/pipeline',
-  leads: '/suite/leads',
-  pending: '/suite/pending',
-  inbox: '/suite/inbox',
-  tasks: '/suite/tasks',
-  calendar: '/suite/calendar',
-  teams: '/suite/teams',
-  story: '/suite/story',
-  crm: '/suite/contacts',
-  documents: '/suite/documents',
-  knowledge: '/suite/templates',
-  intelligence: '/suite/intelligence',
-  'voice-notes': '/suite/voice-notes',
-  messaging: '/suite/messaging',
-  reports: '/suite/reports',
-  admin: '/suite/admin',
-  affiliates: '/suite/affiliate',
-  invoicing: '/suite/invoicing',
-  billing: '/suite/billing',
-  settings: '/suite/settings',
-  maps: '/suite/maps',
 };
 
 function normalizeSuiteRoute(value) {
@@ -7966,7 +7931,7 @@ const MapsIndexWorkspace = React.lazy(() =>
   })),
 );
 
-function App({ bootstrap = null }: { bootstrap?: any } = {}) {
+function App({ bootstrap = null, children = null }: { bootstrap?: any; children?: React.ReactNode } = {}) {
   const [tweaks, setTweaks] = React.useState(() => {
     if (typeof window === 'undefined') return TWEAK_DEFAULTS;
     return {
@@ -8015,10 +7980,20 @@ function App({ bootstrap = null }: { bootstrap?: any } = {}) {
     return () => window.removeEventListener('resize', syncRails);
   }, []);
 
+  // URL is the source of truth — read pathname via Next.js hook so client-side nav stays in sync.
+  const pathname = usePathname();
+  const resolved = pathname ? resolveSuitePathname(pathname) : null;
+  const pathRoute = resolved?.route?.id;
+  const pathSection = resolved?.section?.id;
   const [route, setRoute] = React.useState(() => {
     if (bootstrap?.route) return bootstrap.route;
+    if (pathRoute) return pathRoute;
     return getInitialSuiteRoute();
   });
+  React.useEffect(() => {
+    if (pathRoute && pathRoute !== route) setRoute(pathRoute);
+  }, [pathRoute]);
+  const sectionFromUrl = pathSection || bootstrap?.section;
   const mapData = bootstrap?.mapData || null;
   const mapsData = bootstrap?.mapsData || null;
   const [deals, setDeals] = React.useState(DEALS);
@@ -8193,11 +8168,11 @@ function App({ bootstrap = null }: { bootstrap?: any } = {}) {
           {route === 'voice-notes' && <VoiceNotesPage/>}
           {route === 'messaging' && <MessagingPage/>}
           {route === 'reports'   && <ReportsPage/>}
-          {route === 'admin'     && <AdminPage initialSection={bootstrap?.section}/>}
-          {route === 'affiliates' && <AffiliateCenterPage initialSection={bootstrap?.section}/>}
+          {route === 'admin'     && <AdminPage initialSection={sectionFromUrl}/>}
+          {route === 'affiliates' && <AffiliateCenterPage initialSection={sectionFromUrl}/>}
           {route === 'invoicing'  && <InvoicingCenterPage/>}
           {route === 'billing'   && <BillingPage/>}
-          {route === 'settings'  && <SettingsPage tweaks={tweaks} setTweak={setTweak} initialSection={bootstrap?.section}/>}
+          {route === 'settings'  && <SettingsPage tweaks={tweaks} setTweak={setTweak} initialSection={sectionFromUrl}/>}
           {route === 'map'       && (
             <React.Suspense fallback={<div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>Loading map…</div>}>
               <MapWorkspace mapData={mapData}/>
@@ -8273,15 +8248,9 @@ function App({ bootstrap = null }: { bootstrap?: any } = {}) {
   );
 }
 
-const ROUTE_LABELS = {
-  home: 'Home', pending: 'Pending', inbox: 'Inbox', tasks: 'Tasks', calendar: 'Calendar', teams: 'Teams',
-  leads: 'Leads', pipeline: 'Pipeline', story: 'Story', crm: 'Contacts',
-  documents: 'Documents', knowledge: 'Knowledge Hub',
-  intelligence: 'Intelligence', 'voice-notes': 'Voice Notes', messaging: 'Messaging', reports: 'Reports',
-  admin: 'Admin', affiliates: 'Affiliate Center', invoicing: 'Invoicing', billing: 'Billing', settings: 'Settings',
-  map: 'Map',
-  maps: 'Maps',
-};
+// Labels mirror the registry. Sourced through the import so adding a route in routes.ts updates
+// crumb + sidebar labels in one place.
+const ROUTE_LABELS = REGISTRY_ROUTE_LABELS;
 
 function Topbar({ crumb, setCmdk, tweaks, setTweak, setRoute, setQuickCreate }) {
   return (
@@ -8465,11 +8434,14 @@ function ADGATweaks({ tweaks, setTweak }) {
 
 
 
-export default function AdgaSuite({ bootstrap = null }: { bootstrap?: any } = {}) {
+export default function AdgaSuite({
+  bootstrap = null,
+  children = null,
+}: { bootstrap?: any; children?: React.ReactNode } = {}) {
   return (
     <>
       <Script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" strategy="afterInteractive" />
-      <App bootstrap={bootstrap} />
+      <App bootstrap={bootstrap}>{children}</App>
     </>
   );
 }

@@ -1,9 +1,3 @@
-import SuiteClient from "@/app/suite/suite-client";
-
-export default function DocumentsPage() {
-  return (
-    <main className="suite-shell adga-font-product adga-presence-crisp">
-      <SuiteClient bootstrap={{ route: "documents" }} />
-    </main>
-  );
+export default function SuiteDocumentsPage() {
+  return null;
 }

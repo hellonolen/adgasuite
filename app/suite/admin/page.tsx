@@ -1,9 +1,3 @@
-import SuiteClient from "@/app/suite/suite-client";
-
-export default function AdminPage() {
-  return (
-    <main className="suite-shell adga-font-product adga-presence-crisp">
-      <SuiteClient bootstrap={{ route: "admin" }} />
-    </main>
-  );
+export default function SuiteAdminPage() {
+  return null;
 }

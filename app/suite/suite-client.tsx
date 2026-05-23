@@ -2,10 +2,9 @@
 
 import dynamic from "next/dynamic";
 
-// Static shell skeleton rendered during the initial JS load so users see the platform structure
-// (left nav rail, top bar shape, right AI panel placeholder) instead of a blank page on every
-// /suite/<route> navigation. AdgaSuite uses window/localStorage on mount, so SSR stays off — but
-// at least the chrome is visible until hydration.
+// Shell skeleton rendered ONCE on the first /suite/* visit while the suite bundle loads.
+// After hydration, the shell is persistent across child route changes, so subsequent
+// navigations don't re-trigger this loading state.
 function SuiteShellSkeleton() {
   return (
     <div
@@ -92,6 +91,11 @@ const AdgaSuite = dynamic(() => import("@/components/adga/AdgaSuite"), {
   loading: () => <SuiteShellSkeleton />,
 });
 
-export default function SuiteClient({ bootstrap = null }: { bootstrap?: any }) {
-  return <AdgaSuite bootstrap={bootstrap} />;
+interface SuiteClientProps {
+  children?: React.ReactNode;
+  bootstrap?: any;
+}
+
+export default function SuiteClient({ children, bootstrap = null }: SuiteClientProps) {
+  return <AdgaSuite bootstrap={bootstrap}>{children}</AdgaSuite>;
 }

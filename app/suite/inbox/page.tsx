@@ -1,9 +1,3 @@
-import SuiteClient from "@/app/suite/suite-client";
-
-export default function InboxPage() {
-  return (
-    <main className="suite-shell adga-font-product adga-presence-crisp">
-      <SuiteClient bootstrap={{ route: "inbox" }} />
-    </main>
-  );
+export default function SuiteInboxPage() {
+  return null;
 }
