@@ -1102,11 +1102,16 @@ function Sidebar({ route, setRoute, collapsed, setCollapsed }) {
                 type="button"
                 className={'sb-item ' + (route === it.id || route === (SUITE_ROUTE_ALIASES && SUITE_ROUTE_ALIASES[it.id]) ? 'active' : '')}
                 onClick={() => {
-                  if (it.id === 'maps') {
-                    window.location.href = '/suite/maps';
-                    return;
-                  }
+                  // Clean-URL navigation — push the canonical /suite/<route> path so the URL bar
+                  // reflects where the user is. Internal route also updates so the workspace re-renders.
                   setRoute(it.id);
+                  if (typeof window !== 'undefined') {
+                    try {
+                      window.localStorage.setItem('adga-suite-route', it.id);
+                      const path = ROUTE_PATHS[it.id] || ('/suite/' + it.id);
+                      window.history.pushState({ route: it.id }, '', path);
+                    } catch (e) {}
+                  }
                   if (window.matchMedia('(max-width: 820px)').matches) setCollapsed(true);
                 }}
               >
@@ -4028,8 +4033,8 @@ function ReportsPage() {
 
 /* Admin, Billing, Settings */
 
-function AdminPage() {
-  const [section, setSection] = React.useState('users');
+function AdminPage({ initialSection }: { initialSection?: string } = {}) {
+  const [section, setSection] = React.useState(initialSection || 'users');
   return (
     <>
       <div className="page-h">
@@ -4505,7 +4510,7 @@ function BillingPage() {
   );
 }
 
-function AffiliateCenterPage() {
+function AffiliateCenterPage({ initialSection: _initialSection }: { initialSection?: string } = {}) {
   const rows = [
     ['AFF-001', 'Northstar Partners', 'NORTHSTAR', 'Approved', '42', '8', '$18,420', '$1,842'],
     ['AFF-002', 'DealDesk Media', 'DEALDESK', 'Pending', '19', '3', '$6,970', '$697'],
@@ -4852,8 +4857,8 @@ function UsageRow({ label, v, max, unit }) {
   );
 }
 
-function SettingsPage({ tweaks, setTweak }) {
-  const [section, setSection] = React.useState('profile');
+function SettingsPage({ tweaks, setTweak, initialSection }) {
+  const [section, setSection] = React.useState(initialSection || 'profile');
   return (
     <>
       <div className="page-h">
@@ -7790,6 +7795,33 @@ const SUITE_ROUTE_ALIASES = {
   templates: 'knowledge',
 };
 
+// Clean URL paths per route — the sidebar pushes these instead of query strings so /suite/<route>
+// always resolves to a real URL that a user can bookmark, share, or hit on refresh.
+const ROUTE_PATHS = {
+  home: '/suite',
+  pipeline: '/suite/pipeline',
+  leads: '/suite/leads',
+  pending: '/suite/pending',
+  inbox: '/suite/inbox',
+  tasks: '/suite/tasks',
+  calendar: '/suite/calendar',
+  teams: '/suite/teams',
+  story: '/suite/story',
+  crm: '/suite/contacts',
+  documents: '/suite/documents',
+  knowledge: '/suite/templates',
+  intelligence: '/suite/intelligence',
+  'voice-notes': '/suite/voice-notes',
+  messaging: '/suite/messaging',
+  reports: '/suite/reports',
+  admin: '/suite/admin',
+  affiliates: '/suite/affiliate',
+  invoicing: '/suite/invoicing',
+  billing: '/suite/billing',
+  settings: '/suite/settings',
+  maps: '/suite/maps',
+};
+
 function normalizeSuiteRoute(value) {
   const route = SUITE_ROUTE_ALIASES[value] || value;
   return SUITE_ROUTE_IDS.includes(route) ? route : null;
@@ -7797,6 +7829,12 @@ function normalizeSuiteRoute(value) {
 
 function getInitialSuiteRoute() {
   if (typeof window === 'undefined') return 'home';
+  // Prefer the URL pathname so /suite/<route> resolves cleanly on refresh + share + bookmark.
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/');
+  if (path[0] === 'suite' && path[1]) {
+    const fromPath = normalizeSuiteRoute(path[1]);
+    if (fromPath) return fromPath;
+  }
   const params = new URLSearchParams(window.location.search);
   const fromQuery = normalizeSuiteRoute(params.get('view') || params.get('route'));
   if (fromQuery) return fromQuery;
@@ -8000,10 +8038,8 @@ function App({ bootstrap = null }: { bootstrap?: any } = {}) {
     if (typeof window !== 'undefined') {
       try {
         window.localStorage.setItem('adga-suite-route', normalized);
-        const url = new URL(window.location.href);
-        url.pathname = '/suite';
-        url.searchParams.set('view', normalized);
-        window.history.pushState({ route: normalized }, '', url.toString());
+        const path = ROUTE_PATHS[normalized] || ('/suite/' + normalized);
+        window.history.pushState({ route: normalized }, '', path);
       } catch (e) {}
     }
   }, []);
@@ -8157,11 +8193,11 @@ function App({ bootstrap = null }: { bootstrap?: any } = {}) {
           {route === 'voice-notes' && <VoiceNotesPage/>}
           {route === 'messaging' && <MessagingPage/>}
           {route === 'reports'   && <ReportsPage/>}
-          {route === 'admin'     && <AdminPage/>}
-          {route === 'affiliates' && <AffiliateCenterPage/>}
+          {route === 'admin'     && <AdminPage initialSection={bootstrap?.section}/>}
+          {route === 'affiliates' && <AffiliateCenterPage initialSection={bootstrap?.section}/>}
           {route === 'invoicing'  && <InvoicingCenterPage/>}
           {route === 'billing'   && <BillingPage/>}
-          {route === 'settings'  && <SettingsPage tweaks={tweaks} setTweak={setTweak}/>}
+          {route === 'settings'  && <SettingsPage tweaks={tweaks} setTweak={setTweak} initialSection={bootstrap?.section}/>}
           {route === 'map'       && (
             <React.Suspense fallback={<div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>Loading map…</div>}>
               <MapWorkspace mapData={mapData}/>

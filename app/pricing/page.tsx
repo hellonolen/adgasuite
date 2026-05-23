@@ -26,8 +26,106 @@ function annualize(monthly: number) {
   return monthly * ANNUAL_MONTHS_BILLED;
 }
 
+const EVERY_PLAN = [
+  { label: "Unlimited deals", body: "No record caps, no archive limits." },
+  { label: "Unlimited documents", body: "Files, term sheets, voice notes, transcripts." },
+  { label: "Unlimited contacts", body: "Every person on every deal, no per-record fees." },
+  { label: "Magic-link sign in", body: "No password resets, no SSO setup tax." },
+  { label: "Voice notes + transcription", body: "Talk through a deal, get text instantly." },
+  { label: "Eight-stage deal process", body: "Signal → Capture → Qualify → Shape → Advance → Close → Deliver → Expand." },
+  { label: "Live deal map per deal", body: "Every contact, file, call, task on one canvas." },
+  { label: "Auto-saved every keystroke", body: "Nothing lost when a tab closes." },
+];
+
+const COMPARISON_GROUPS: Array<{ section: string; rows: Array<[string, string | true, string | true, string | true]> }> = [
+  {
+    section: "Deal execution",
+    rows: [
+      ["Active deals", "Unlimited", "Unlimited", "Unlimited"],
+      ["Contacts and companies", "Unlimited", "Unlimited", "Unlimited"],
+      ["Files in storage (R2)", "20 GB", "200 GB", "Custom"],
+      ["Eight-stage deal process", true, true, true],
+      ["Live deal map per deal", true, true, true],
+      ["Voice notes with transcription", true, true, true],
+      ["Deal templates", "13", "13", "13 + custom"],
+    ],
+  },
+  {
+    section: "Team and collaboration",
+    rows: [
+      ["Seats", "1", `${TEAM_INCLUDED_SEATS}–${TEAM_MAX_SEATS}`, `${ENTERPRISE_INCLUDED_SEATS}+`],
+      ["Shared pipeline and calendar", "—", true, true],
+      ["Invoicing with Stripe payouts", "—", true, true],
+      ["Approval queue with audit trail", "—", true, true],
+      ["Shareable deal maps for clients", "—", true, true],
+      ["Watermarked client shares", "—", "—", true],
+    ],
+  },
+  {
+    section: "Intelligence and AI",
+    rows: [
+      ["ADGA AI assistant (Kimi 2.6)", true, true, true],
+      ["AI agents (8 specialists)", true, true, true],
+      ["Forecast and weighted pipeline", true, true, true],
+      ["Approval-gated actions", true, true, true],
+      ["Custom agent skills", "—", "—", true],
+    ],
+  },
+  {
+    section: "Security and compliance",
+    rows: [
+      ["Magic-link sign in", true, true, true],
+      ["Cloudflare D1 + R2 storage", true, true, true],
+      ["Role-based permissions", "—", true, true],
+      ["Immutable audit logs", "—", "—", true],
+      ["Revocable client access", "—", true, true],
+      ["Dedicated onboarding", "—", "—", true],
+      ["Priority support", "—", "Standard", "Priority"],
+    ],
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    q: "How is this structured?",
+    a: `Pro is one operator. Team includes ${TEAM_INCLUDED_SEATS} seats with additional seats at $${TEAM_SEAT_ADD}/mo up to ${TEAM_MAX_SEATS} total. Enterprise includes ${ENTERPRISE_INCLUDED_SEATS} seats with additional seats at $${ENTERPRISE_SEAT_ADD}/mo, no cap, and adds role permissions, immutable audit logs, and watermarked client shares.`,
+  },
+  {
+    q: "What does annual save?",
+    a: `Annual billing is ${ANNUAL_MONTHS_BILLED} months at the monthly rate. One month free, billed yearly.`,
+  },
+  {
+    q: "Can I add seats later?",
+    a: "Yes. Add seats from workspace settings any time. Billing prorates and the next invoice reflects the new seat count.",
+  },
+  {
+    q: "What happens after checkout?",
+    a: "Stripe processes the payment, ADGA provisions the workspace, and the magic-link email lands in your inbox. Click it and you are inside the suite.",
+  },
+  {
+    q: "Can I move between plans?",
+    a: "Yes. Upgrade or downgrade without rebuilding records. Deals, contacts, documents, and history carry over.",
+  },
+  {
+    q: "Is my data secure?",
+    a: "Workspace data lives on Cloudflare D1 (encrypted at rest and in transit). Documents and voice notes sit in your dedicated Cloudflare R2 bucket. No shared tenants, no co-mingled storage.",
+  },
+];
+
+function Check() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5d2cd6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M5 13l4 4L19 7"/>
+    </svg>
+  );
+}
+
+function Dash() {
+  return <span style={{ color: "var(--adga-text-2, #6b6760)", fontSize: 14 }}>—</span>;
+}
+
 export default function PricingPage() {
-  const [cadence, setCadence] = React.useState<Cadence>("month");
+  const [cadence, setCadence] = React.useState<Cadence>("year");
   const [teamSeats, setTeamSeats] = React.useState(TEAM_INCLUDED_SEATS);
   const [enterpriseSeats, setEnterpriseSeats] = React.useState(ENTERPRISE_INCLUDED_SEATS);
 
@@ -72,10 +170,23 @@ export default function PricingPage() {
     </button>
   );
 
+  const renderCell = (v: string | true) =>
+    v === true ? <Check /> : typeof v === "string" && v === "—" ? <Dash /> : <span style={{ fontSize: 14, color: "var(--adga-text, #0d0c0a)" }}>{v}</span>;
+
   return (
     <MarketingLayout>
       <div className="wrap">
-        <section style={{ padding: "64px 0 24px", textAlign: "center" }}>
+        {/* HERO */}
+        <section style={{ padding: "72px 0 32px", textAlign: "center" }}>
+          <div className="hero-pill" style={{ marginBottom: 18 }}>
+            <span className="hero-pill-dot" /> Pricing
+          </div>
+          <h1 style={{ fontSize: "clamp(40px, 6vw, 64px)", lineHeight: 1.05, letterSpacing: "-0.02em", margin: "0 auto 16px", maxWidth: "16ch" }}>
+            Pricing that scales with the deal.
+          </h1>
+          <p style={{ fontSize: 17, lineHeight: 1.55, color: "var(--adga-text-2, #6b6760)", maxWidth: "60ch", margin: "0 auto 28px" }}>
+            One operator, a closing team, or a whole firm. Same deal flow platform. No record caps, no per-contact fees, no AI add-ons. Move money, keep the wheel.
+          </p>
           <div
             role="tablist"
             aria-label="Billing cadence"
@@ -93,8 +204,9 @@ export default function PricingPage() {
           </div>
         </section>
 
-        <section style={{ paddingBottom: 64 }}>
-          <div className="pricing" style={{ maxWidth: 1080, marginLeft: "auto", marginRight: "auto" }}>
+        {/* PLAN CARDS */}
+        <section style={{ paddingBottom: 48 }}>
+          <div className="pricing" style={{ maxWidth: 1120, marginLeft: "auto", marginRight: "auto" }}>
             <div className="tier">
               <div>
                 <div className="name">Pro</div>
@@ -105,11 +217,11 @@ export default function PricingPage() {
                 <small>{cadenceLabel}</small>
               </div>
               <ul>
-                <li>1 user</li>
-                <li>Unlimited deals, contacts, documents</li>
-                <li>Eight-stage deal process built in</li>
+                <li>1 user · everything in every plan</li>
+                <li>20 GB document storage</li>
                 <li>Voice notes with auto-transcription</li>
-                <li>Magic-link sign in</li>
+                <li>ADGA AI assistant + 8 agents</li>
+                <li>Live deal map per deal</li>
               </ul>
               <a href={proHref} className="btn">Start closing deals</a>
             </div>
@@ -155,11 +267,11 @@ export default function PricingPage() {
               </div>
 
               <ul>
-                <li>Everything in Pro</li>
                 <li>{TEAM_INCLUDED_SEATS} seats included, +${TEAM_SEAT_ADD}/seat up to {TEAM_MAX_SEATS}</li>
+                <li>200 GB document storage</li>
                 <li>Shared deals, calendar, invoicing</li>
-                <li>Approval queue with full audit trail</li>
-                <li>Shareable deal maps for clients and counterparties</li>
+                <li>Approval queue with audit trail</li>
+                <li>Shareable deal maps for clients</li>
               </ul>
               <a href={teamHref} className="btn primary">Start closing deals</a>
             </div>
@@ -204,9 +316,9 @@ export default function PricingPage() {
               </div>
 
               <ul>
-                <li>Everything in Team</li>
-                <li>Starts at {ENTERPRISE_INCLUDED_SEATS} seats · add unlimited seats at ${ENTERPRISE_SEAT_ADD} each</li>
-                <li>Role-based permissions and immutable audit logs</li>
+                <li>Starts at {ENTERPRISE_INCLUDED_SEATS} seats · add seats at ${ENTERPRISE_SEAT_ADD} each</li>
+                <li>Custom document storage</li>
+                <li>Role-based permissions + immutable audit logs</li>
                 <li>Watermarked client shares with revocable access</li>
                 <li>Dedicated onboarding and priority support</li>
               </ul>
@@ -215,45 +327,156 @@ export default function PricingPage() {
           </div>
         </section>
 
-        <section className="section">
+        {/* EVERY PLAN — trust strip */}
+        <section className="section" style={{ paddingTop: 56 }}>
+          <div style={{ textAlign: "center", marginBottom: 36 }}>
+            <span className="ed-label">In every plan</span>
+            <h2 className="title" style={{ marginTop: 10 }}>Everything you need to close, in every plan.</h2>
+            <p style={{ maxWidth: "60ch", margin: "12px auto 0", color: "var(--adga-text-2)" }}>
+              No "starter" gotchas. The features below ship on Pro, Team, and Enterprise.
+            </p>
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 18,
+              maxWidth: 1080,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            {EVERY_PLAN.map((item) => (
+              <div
+                key={item.label}
+                style={{
+                  padding: 20,
+                  borderRadius: 14,
+                  border: "1px solid var(--rule, #e8e4de)",
+                  background: "#fff",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <Check />
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "var(--adga-text, #0d0c0a)" }}>{item.label}</div>
+                </div>
+                <p style={{ fontSize: 14, lineHeight: 1.5, color: "var(--adga-text-2, #6b6760)", margin: 0 }}>{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* COMPARISON TABLE */}
+        <section className="section" style={{ paddingTop: 80 }}>
+          <div style={{ textAlign: "center", marginBottom: 36 }}>
+            <span className="ed-label">Compare plans</span>
+            <h2 className="title" style={{ marginTop: 10 }}>Pick the shape of your deal flow.</h2>
+          </div>
+          <div style={{ maxWidth: 1120, marginLeft: "auto", marginRight: "auto", overflowX: "auto" }}>
+            <table
+              style={{
+                width: "100%",
+                minWidth: 760,
+                borderCollapse: "separate",
+                borderSpacing: 0,
+                background: "#fff",
+                border: "1px solid var(--rule, #e8e4de)",
+                borderRadius: 16,
+                overflow: "hidden",
+              }}
+            >
+              <thead>
+                <tr style={{ background: "var(--surface, #f1ede8)" }}>
+                  <th style={{ textAlign: "left", padding: "16px 20px", fontSize: 11, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--adga-text-2, #6b6760)" }}>Feature</th>
+                  <th style={{ textAlign: "center", padding: "16px 20px", fontSize: 13, fontWeight: 600 }}>Pro</th>
+                  <th style={{ textAlign: "center", padding: "16px 20px", fontSize: 13, fontWeight: 600, background: "rgba(86, 36, 199, 0.05)" }}>Team</th>
+                  <th style={{ textAlign: "center", padding: "16px 20px", fontSize: 13, fontWeight: 600 }}>Enterprise</th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARISON_GROUPS.map((group) => (
+                  <React.Fragment key={group.section}>
+                    <tr>
+                      <td colSpan={4} style={{ padding: "20px 20px 8px", fontSize: 11, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--adga-accent, #5d2cd6)", borderTop: "1px solid var(--rule, #e8e4de)" }}>
+                        {group.section}
+                      </td>
+                    </tr>
+                    {group.rows.map(([label, pro, team, ent], idx) => (
+                      <tr key={`${group.section}-${idx}`} style={{ borderTop: "1px solid var(--rule, #e8e4de)" }}>
+                        <td style={{ padding: "14px 20px", fontSize: 14, color: "var(--adga-text, #0d0c0a)" }}>{label}</td>
+                        <td style={{ padding: "14px 20px", textAlign: "center" }}>{renderCell(pro)}</td>
+                        <td style={{ padding: "14px 20px", textAlign: "center", background: "rgba(86, 36, 199, 0.04)" }}>{renderCell(team)}</td>
+                        <td style={{ padding: "14px 20px", textAlign: "center" }}>{renderCell(ent)}</td>
+                      </tr>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* TRUST STRIP */}
+        <section className="section" style={{ paddingTop: 80 }}>
+          <div
+            style={{
+              maxWidth: 1080,
+              margin: "0 auto",
+              padding: "36px 32px",
+              borderRadius: 18,
+              background: "linear-gradient(180deg, rgba(86, 36, 199, 0.03), rgba(86, 36, 199, 0.07))",
+              border: "1px solid rgba(86, 36, 199, 0.12)",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 28,
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--adga-accent, #5d2cd6)", marginBottom: 6 }}>Hosted on Cloudflare</div>
+              <p style={{ margin: 0, fontSize: 14, color: "var(--adga-text-2)" }}>Workers, D1, R2. Your data, your bucket, edge-fast everywhere.</p>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--adga-accent, #5d2cd6)", marginBottom: 6 }}>Approval-gated AI</div>
+              <p style={{ margin: 0, fontSize: 14, color: "var(--adga-text-2)" }}>Every customer-facing action waits for your sign-off. You keep the wheel.</p>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--adga-accent, #5d2cd6)", marginBottom: 6 }}>Immutable audit log</div>
+              <p style={{ margin: 0, fontSize: 14, color: "var(--adga-text-2)" }}>Every state change recorded forward-only. Compliance-ready out of the box.</p>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--adga-accent, #5d2cd6)", marginBottom: 6 }}>Migrate in a day</div>
+              <p style={{ margin: 0, fontSize: 14, color: "var(--adga-text-2)" }}>Import CSV, another CRM, email threads, calendar history, or a folder.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="section" style={{ paddingTop: 80 }}>
           <div className="faq">
             <div>
               <span className="ed-label">FAQ</span>
               <h2>Plan questions.</h2>
             </div>
             <div className="faq-list">
-              <details className="faq-item" open>
-                <summary>How is this structured?</summary>
-                <p>
-                  Pro is one operator. Team includes {TEAM_INCLUDED_SEATS} seats with additional seats at ${TEAM_SEAT_ADD}/mo up to {TEAM_MAX_SEATS} total. Enterprise includes {ENTERPRISE_INCLUDED_SEATS} seats with additional seats at ${ENTERPRISE_SEAT_ADD}/mo, no cap, and adds SSO, audit logs, and a branded client portal.
-                </p>
-              </details>
-              <details className="faq-item">
-                <summary>What does annual save?</summary>
-                <p>
-                  Annual billing is {ANNUAL_MONTHS_BILLED} months at the monthly rate. One month free, billed yearly.
-                </p>
-              </details>
-              <details className="faq-item">
-                <summary>Can I add seats later?</summary>
-                <p>
-                  Yes. Add seats from workspace settings any time. Billing prorates and the next invoice reflects the new seat count.
-                </p>
-              </details>
-              <details className="faq-item">
-                <summary>What happens after checkout?</summary>
-                <p>
-                  Stripe processes the payment, ADGA provisions the workspace, and the magic-link email lands in your inbox. Click it and you are inside the suite.
-                </p>
-              </details>
-              <details className="faq-item">
-                <summary>Can I move between plans?</summary>
-                <p>
-                  Yes. Upgrade or downgrade without rebuilding records. Deals, contacts, documents, and history carry over.
-                </p>
-              </details>
+              {FAQ_ITEMS.map((item, i) => (
+                <details key={item.q} className="faq-item" open={i === 0}>
+                  <summary>{item.q}</summary>
+                  <p>{item.a}</p>
+                </details>
+              ))}
             </div>
           </div>
+        </section>
+
+        {/* FINAL CTA */}
+        <section className="section" style={{ paddingTop: 64, paddingBottom: 96, textAlign: "center" }}>
+          <h2 style={{ fontSize: "clamp(32px, 4vw, 44px)", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 auto 12px", maxWidth: "20ch" }}>
+            Ready to close more deals?
+          </h2>
+          <p style={{ fontSize: 16, color: "var(--adga-text-2)", maxWidth: "50ch", margin: "0 auto 24px" }}>
+            Start with the plan that fits today. Move up when the team grows. Move down if you change your mind. No record loss.
+          </p>
+          <a href={proHref} className="btn primary lg">Start closing deals</a>
         </section>
       </div>
     </MarketingLayout>

@@ -1,5 +1,9 @@
-import { redirect } from "next/navigation";
+import SuiteClient from "@/app/suite/suite-client";
 
-export default function TemplatesRedirectPage() {
-  redirect("/suite?view=knowledge");
+export default function TemplatesPage() {
+  return (
+    <main className="suite-shell adga-font-product adga-presence-crisp">
+      <SuiteClient bootstrap={{ route: "knowledge" }} />
+    </main>
+  );
 }

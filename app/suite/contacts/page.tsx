@@ -1,5 +1,9 @@
-import { redirect } from "next/navigation";
+import SuiteClient from "@/app/suite/suite-client";
 
-export default function ContactsRedirectPage() {
-  redirect("/suite?view=crm");
+export default function ContactsPage() {
+  return (
+    <main className="suite-shell adga-font-product adga-presence-crisp">
+      <SuiteClient bootstrap={{ route: "crm" }} />
+    </main>
+  );
 }

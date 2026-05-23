@@ -1,5 +1,9 @@
-import { redirect } from "next/navigation";
+import SuiteClient from "@/app/suite/suite-client";
 
-export default function SettingsNotificationsRedirect() {
-  redirect("/suite?view=settings");
+export default function SettingsNotificationsPage() {
+  return (
+    <main className="suite-shell adga-font-product adga-presence-crisp">
+      <SuiteClient bootstrap={{ route: "settings", section: "notif" }} />
+    </main>
+  );
 }
