@@ -8013,6 +8013,16 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
     router.push(path);
   }, [router]);
 
+  // Opening a deal IS opening its map — the deal record and the map are the same primitive.
+  // Drawer state below is retained for legacy programmatic open paths (workflow actions) but
+  // every user click flows through this and lands on /suite/map/<dealId>.
+  const openDealInMap = React.useCallback((deal) => {
+    if (!deal) return;
+    const id = typeof deal === 'string' ? deal : deal.id;
+    if (!id) return;
+    router.push('/suite/map/' + encodeURIComponent(id));
+  }, [router]);
+
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     const onPopState = () => {
@@ -8143,7 +8153,7 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
     user: { id: CURRENT_USER.id, name: CURRENT_USER.name, role: (CURRENT_USER.role as any) || 'member' },
     deals,
     leads,
-    openDeal: setOpenDeal,
+    openDeal: openDealInMap,
     tweaks,
     setTweak,
     navigate,
@@ -8162,17 +8172,22 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
       <div className="main">
         <Topbar crumb={crumb} setCmdk={setCmdkOpen} tweaks={tweaks} setTweak={setTweak} setRoute={navigate} setQuickCreate={setQuickCreate}/>
         <div className="workspace" data-route={route} style={route === 'map' ? { position: 'relative', overflow: 'hidden', padding: 0 } : undefined}>
-          {/* If the active page injected workspace content as children, render it. Otherwise
-              fall back to the legacy in-monolith route switch below. As workspaces extract
-              into their own page.tsx files, more routes flow through children and the switch
-              shrinks until it can be deleted. */}
-          {children}
-          {!children && (<>
-          {route === 'home'      && <HomePage deals={deals} openDeal={setOpenDeal} setRoute={navigate}/>}
-          {route === 'pending'   && <PendingPage deals={deals} openDeal={setOpenDeal}/>}
-          {route === 'inbox'     && <InboxPage openDeal={setOpenDeal} deals={deals} meetingInbox={meetingInbox}/>}
-          {route === 'tasks'     && <TasksPage openDeal={setOpenDeal} deals={deals} setQuickCreate={setQuickCreate}/>}
-          {route === 'calendar'  && <CalendarPage openDeal={setOpenDeal} deals={deals} onMeetingCreated={(event, deliveries) => {
+          {/* Routes that inject workspace content via page.tsx (map / maps) render that
+              content as children. Every other route falls back to the in-monolith route
+              switch below. Using a route-id allowlist instead of `!children` because Next.js
+              wraps even a `return null` page in a non-null React node — naive truthy check
+              would skip the fallback and leave the workspace empty. As more workspaces
+              extract into their own page.tsx files, add their route ids to CHILDREN_ROUTES. */}
+          {(() => {
+            const CHILDREN_ROUTES = new Set(['map', 'maps']);
+            return CHILDREN_ROUTES.has(route) ? children : null;
+          })()}
+          {!(new Set(['map', 'maps']).has(route)) && (<>
+          {route === 'home'      && <HomePage deals={deals} openDeal={openDealInMap} setRoute={navigate}/>}
+          {route === 'pending'   && <PendingPage deals={deals} openDeal={openDealInMap}/>}
+          {route === 'inbox'     && <InboxPage openDeal={openDealInMap} deals={deals} meetingInbox={meetingInbox}/>}
+          {route === 'tasks'     && <TasksPage openDeal={openDealInMap} deals={deals} setQuickCreate={setQuickCreate}/>}
+          {route === 'calendar'  && <CalendarPage openDeal={openDealInMap} deals={deals} onMeetingCreated={(event, deliveries) => {
             setMeetingInbox(prev => [{
               id: 'cal-inbox-' + event.id,
               from: 'Calendar',
@@ -8184,12 +8199,12 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
               tag: 'Calendar',
             }, ...prev]);
           }}/>}
-          {route === 'teams'     && <TeamsPage deals={deals} openDeal={setOpenDeal} setRoute={navigate}/>}
-          {route === 'leads'     && <LeadsPage openDeal={setOpenDeal} setQuickCreate={setQuickCreate} leads={leads} selectedLead={selectedLead} setSelectedLead={setSelectedLead}/>}
-          {route === 'pipeline'  && <PipelinePage view={tweaks.pipelineView} setView={v => setTweak('pipelineView', v)} deals={deals} setDeals={setDeals} openDeal={setOpenDeal} setQuickCreate={setQuickCreate}/> }
-          {route === 'story'     && <StoryPage deals={deals} openDeal={setOpenDeal} focusDealId={focusDealId}/>}
-          {route === 'crm'       && <CRMPage openDeal={setOpenDeal} deals={deals}/>}
-          {route === 'documents' && <DocumentsPage deals={deals} openDeal={setOpenDeal}/>}
+          {route === 'teams'     && <TeamsPage deals={deals} openDeal={openDealInMap} setRoute={navigate}/>}
+          {route === 'leads'     && <LeadsPage openDeal={openDealInMap} setQuickCreate={setQuickCreate} leads={leads} selectedLead={selectedLead} setSelectedLead={setSelectedLead}/>}
+          {route === 'pipeline'  && <PipelinePage view={tweaks.pipelineView} setView={v => setTweak('pipelineView', v)} deals={deals} setDeals={setDeals} openDeal={openDealInMap} setQuickCreate={setQuickCreate}/> }
+          {route === 'story'     && <StoryPage deals={deals} openDeal={openDealInMap} focusDealId={focusDealId}/>}
+          {route === 'crm'       && <CRMPage openDeal={openDealInMap} deals={deals}/>}
+          {route === 'documents' && <DocumentsPage deals={deals} openDeal={openDealInMap}/>}
           {route === 'knowledge' && (
             CONTRACT_WORKSPACE_RENDERERS.knowledge ? (
               <React.Suspense fallback={<div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>Loading…</div>}>
@@ -8243,7 +8258,7 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
       />
 
       {openDeal && <DealDrawer deal={openDeal} onClose={() => setOpenDeal(null)}/>}
-      {cmdkOpen && <CommandBar deals={deals} setRoute={navigate} openDeal={setOpenDeal} close={() => setCmdkOpen(false)}/>}
+      {cmdkOpen && <CommandBar deals={deals} setRoute={navigate} openDeal={openDealInMap} close={() => setCmdkOpen(false)}/>}
       {shareSubject && <ShareModal subject={shareSubject} onClose={() => setShareSubject(null)}/>}
       {handoffDeal && <HandoffModal deal={handoffDeal} onClose={() => setHandoffDeal(null)} onConfirm={(payload) => { console.log('Handoff:', payload); }}/>}
       <QuickCreateModal
