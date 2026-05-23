@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { type WorkspaceContact, type WorkspaceDeal } from "@/components/suite/WorkspaceMindmap";
 import { getAdminRuntime, resolveAdminSession } from "@/lib/server/admin-session";
-import SuiteClient from "@/app/suite/suite-client";
+import MapsGalleryClient from "@/components/suite/workspaces/MapsGalleryClient";
 
 export const dynamic = "force-dynamic";
 
@@ -154,20 +154,7 @@ export default async function MapsGalleryPage() {
   const { context } = await getAdminRuntime();
   const { dealsForMap, contacts, gallery } = await loadGraph(context.env.DB);
 
-  return (
-    <main className="suite-shell adga-font-product adga-presence-crisp">
-      <SuiteClient
-        bootstrap={{
-          route: "maps",
-          mapsData: {
-            dealsForMap,
-            contacts,
-            gallery,
-          },
-        }}
-      />
-    </main>
-  );
+  return <MapsGalleryClient data={{ dealsForMap, contacts, gallery }} />;
 }
 
 function seededWorkspaceDeals(): WorkspaceDeal[] {

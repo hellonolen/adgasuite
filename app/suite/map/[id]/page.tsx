@@ -9,7 +9,7 @@ import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { redirect } from "next/navigation";
 import { getMap, getMapEdges, getMapNodes } from "@/lib/server/repository";
-import SuiteClient from "@/app/suite/suite-client";
+import DealMapClient from "@/components/suite/workspaces/DealMapClient";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -275,20 +275,11 @@ export default async function DealDetailPage({ params }: PageProps) {
   return renderPage(deal, entities, dealRow);
 }
 
+// Each render function returns the workspace content for the suite layout to compose
+// inside its shell. No <main>, no <SuiteClient> — the layout already provided both.
+
 function renderSample(_id: string, _banner: string) {
-  return (
-    <main className="suite-shell adga-font-product adga-presence-crisp">
-      <SuiteClient
-        bootstrap={{
-          route: "map",
-          mapData: {
-            deal: SAMPLE_DEAL,
-            entities: SAMPLE_ENTITIES,
-          },
-        }}
-      />
-    </main>
-  );
+  return <DealMapClient deal={SAMPLE_DEAL} entities={SAMPLE_ENTITIES} />;
 }
 
 function renderMap(
@@ -298,36 +289,17 @@ function renderMap(
   mapId: string,
 ) {
   return (
-    <main className="suite-shell adga-font-product adga-presence-crisp">
-      <SuiteClient
-        bootstrap={{
-          route: "map",
-          mapData: {
-            deal,
-            entities: [],
-            mapId,
-            initialNodes,
-            initialEdges,
-            persistApiBase: `/api/maps/${encodeURIComponent(mapId)}`,
-          },
-        }}
-      />
-    </main>
+    <DealMapClient
+      deal={deal}
+      entities={[]}
+      mapId={mapId}
+      initialNodes={initialNodes}
+      initialEdges={initialEdges}
+      persistApiBase={`/api/maps/${encodeURIComponent(mapId)}`}
+    />
   );
 }
 
 function renderPage(deal: DealMindmapDeal, entities: DealMindmapEntity[], _dealRow: DealRow) {
-  return (
-    <main className="suite-shell adga-font-product adga-presence-crisp">
-      <SuiteClient
-        bootstrap={{
-          route: "map",
-          mapData: {
-            deal,
-            entities,
-          },
-        }}
-      />
-    </main>
-  );
+  return <DealMapClient deal={deal} entities={entities} />;
 }

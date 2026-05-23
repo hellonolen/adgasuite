@@ -8162,6 +8162,12 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
       <div className="main">
         <Topbar crumb={crumb} setCmdk={setCmdkOpen} tweaks={tweaks} setTweak={setTweak} setRoute={navigate} setQuickCreate={setQuickCreate}/>
         <div className="workspace" data-route={route} style={route === 'map' ? { position: 'relative', overflow: 'hidden', padding: 0 } : undefined}>
+          {/* If the active page injected workspace content as children, render it. Otherwise
+              fall back to the legacy in-monolith route switch below. As workspaces extract
+              into their own page.tsx files, more routes flow through children and the switch
+              shrinks until it can be deleted. */}
+          {children}
+          {!children && (<>
           {route === 'home'      && <HomePage deals={deals} openDeal={setOpenDeal} setRoute={navigate}/>}
           {route === 'pending'   && <PendingPage deals={deals} openDeal={setOpenDeal}/>}
           {route === 'inbox'     && <InboxPage openDeal={setOpenDeal} deals={deals} meetingInbox={meetingInbox}/>}
@@ -8210,6 +8216,7 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
               <MapsIndexWorkspace mapsData={mapsData}/>
             </React.Suspense>
           )}
+          </>)}
         </div>
       </div>
       <VoicePanel
