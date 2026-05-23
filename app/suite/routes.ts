@@ -17,7 +17,7 @@
  *   - capabilities: declared agentic capabilities the page surfaces; consumed by mcp-server.ts
  */
 
-export type RouteSection = "" | "LIBRARY" | "PERSONAL" | "OWNER" | "HIDDEN";
+export type RouteSection = "" | "VIEWS" | "LIBRARY" | "PERSONAL" | "OWNER" | "HIDDEN";
 
 export interface SuiteSubSection {
   /** Internal section key the workspace component reads (e.g. SettingsPage's `section` state). */
@@ -41,15 +41,18 @@ export interface SuiteRoute {
 }
 
 export const SUITE_ROUTES: SuiteRoute[] = [
+  // Top — the platform's primitives. A deal IS a map; Home is the dashboard for them.
   { id: "home",         path: "/suite",             label: "Home",         section: "",          capabilities: ["deal.read", "task.read"] },
-  { id: "pipeline",     path: "/suite/pipeline",    label: "Pipeline",     section: "",          capabilities: ["deal.read", "deal.update_stage"] },
   { id: "maps",         path: "/suite/maps",        label: "Maps",         section: "",          capabilities: ["map.read", "map.create"] },
-  { id: "leads",        path: "/suite/leads",       label: "Leads",        section: "",          capabilities: ["lead.read", "lead.qualify"] },
-  { id: "crm",          path: "/suite/contacts",    label: "Contacts",     section: "",          capabilities: ["contact.read", "contact.create"] },
-  { id: "documents",    path: "/suite/documents",   label: "Documents",    section: "",          capabilities: ["document.read", "document.upload"] },
-  { id: "calendar",     path: "/suite/calendar",    label: "Calendar",     section: "",          badge: 3, capabilities: ["calendar.read", "meeting.schedule"] },
-  { id: "inbox",        path: "/suite/inbox",       label: "Inbox",        section: "",          badge: 7, capabilities: ["message.read"] },
-  { id: "pending",      path: "/suite/pending",     label: "Approvals",    section: "",          badge: 8, indicator: "accent", capabilities: ["approval.read", "approval.decide"] },
+
+  // Lens views — every entry below is a projection of the same map data.
+  { id: "pipeline",     path: "/suite/pipeline",    label: "Pipeline",     section: "VIEWS",     capabilities: ["deal.read", "deal.update_stage"] },
+  { id: "leads",        path: "/suite/leads",       label: "Leads",        section: "VIEWS",     capabilities: ["lead.read", "lead.qualify"] },
+  { id: "crm",          path: "/suite/contacts",    label: "Contacts",     section: "VIEWS",     capabilities: ["contact.read", "contact.create"] },
+  { id: "documents",    path: "/suite/documents",   label: "Documents",    section: "VIEWS",     capabilities: ["document.read", "document.upload"] },
+  { id: "calendar",     path: "/suite/calendar",    label: "Calendar",     section: "VIEWS",     badge: 3, capabilities: ["calendar.read", "meeting.schedule"] },
+  { id: "inbox",        path: "/suite/inbox",       label: "Inbox",        section: "VIEWS",     badge: 7, capabilities: ["message.read"] },
+  { id: "pending",      path: "/suite/pending",     label: "Approvals",    section: "VIEWS",     badge: 8, indicator: "accent", capabilities: ["approval.read", "approval.decide"] },
 
   { id: "knowledge",    path: "/suite/templates",   label: "Templates",    section: "LIBRARY",   capabilities: ["template.read"] },
   { id: "intelligence", path: "/suite/intelligence",label: "Intelligence", section: "LIBRARY",   capabilities: ["forecast.read", "analytics.read"] },
@@ -157,7 +160,7 @@ export function getSuiteRouteById(id: string): SuiteRoute | undefined {
 
 /** Sidebar groups, ordered for rendering. */
 export function getSidebarGroups(opts: { ownerView: boolean } = { ownerView: true }) {
-  const sections: RouteSection[] = ["", "LIBRARY", "PERSONAL", "OWNER"];
+  const sections: RouteSection[] = ["", "VIEWS", "LIBRARY", "PERSONAL", "OWNER"];
   return sections
     .map((section) => ({
       section,
