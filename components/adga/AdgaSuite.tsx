@@ -851,12 +851,16 @@ const KNOWLEDGE = [
   { tag: 'Reference',  title: 'Currency-weighted pipeline value',         desc: 'How forecast roll-ups handle FX as deals progress through stages.', readers: 6,  updated: 'Apr 03' },
 ];
 
+// Demo conversation shown to unauthenticated previews only. A real signed-in user gets a clean
+// chat (see the real-user bootstrap effect in App). Keeping it specific but not making up exact
+// company dollar figures — claims like "$284M weighted" presented in a real workspace look like
+// the platform is lying.
 const VOICE_TRANSCRIPT = [
-  { who: 'agent', text: 'Morning Maren. You have 3 deals advancing today — Bramble entered Closing, Tessellate has a signature request open, and Meridian needs your sign-off on the working capital memo.' },
+  { who: 'agent', text: 'Morning. Three deals are advancing today — one entered Closing, one has a signature request open, and one needs sign-off on the working capital memo.' },
   { who: 'user',  text: 'What\'s the total weighted pipeline this quarter?' },
-  { who: 'agent', text: '$284.6M weighted across 17 active deals. That\'s up 11% from last week, mostly from Meridian moving to Closing. Want me to pull the breakdown by stage?', cite: 'forecast/Q2-2026' },
-  { who: 'user',  text: 'No — flag anything that\'s slipping.' },
-  { who: 'agent', text: 'Two flags: Northbound Therapeutics has been in Discovery for 41 days with no activity in 9. And Quorum Energy hasn\'t responded to the JV term sheet sent April 28th. Want me to draft outreach?' },
+  { who: 'agent', text: 'Pulling it now from the live deals on your board — I\'ll show weighted by stage, what moved this week, and where the gap to plan is.', cite: 'forecast/this-quarter' },
+  { who: 'user',  text: 'Flag anything that\'s slipping.' },
+  { who: 'agent', text: 'Two deals haven\'t had activity in over a week. One\'s waiting on counsel; the other never got the term sheet follow-up. Want me to draft outreach for both?' },
 ];
 
 Object.assign(window, {
@@ -1099,9 +1103,7 @@ function Sidebar({ route, setRoute, collapsed, setCollapsed }) {
                 className={'sb-item ' + (route === it.id || route === (SUITE_ROUTE_ALIASES && SUITE_ROUTE_ALIASES[it.id]) ? 'active' : '')}
                 onClick={() => {
                   if (it.id === 'maps') {
-                    const seedDeal = (typeof window !== 'undefined' && window.__adgaDeals && window.__adgaDeals[0]) || null;
-                    const target = seedDeal ? seedDeal.id : 'DEAL-1210';
-                    window.location.href = '/suite/map/' + target;
+                    window.location.href = '/suite/maps';
                     return;
                   }
                   setRoute(it.id);
@@ -1761,7 +1763,7 @@ function routeAgentLabel(agent) {
   }[agent] || 'Conductor';
 }
 
-function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals, leads }) {
+function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals, leads, activeContext = null }) {
   const bodyRef = React.useRef(null);
   const taRef = React.useRef(null);
   const fileRef = React.useRef(null);
@@ -1770,7 +1772,46 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
   const [attachments, setAttachments] = React.useState([]);
   const [panelTab, setPanelTab] = React.useState('chat');
   const [activeChat, setActiveChat] = React.useState(SAMPLE_HISTORY[0].id);
-  const [messages, setMessages] = React.useState(VOICE_TRANSCRIPT);
+  // Chat history is shared across every suite page — persist to localStorage so the
+  // conversation looks identical whether the user is on /suite, /suite/map/<id>, or any
+  // other route inside the platform. For real authenticated users we drop the demo seed.
+  const [messages, setMessages] = React.useState(() => {
+    if (typeof window === 'undefined') return VOICE_TRANSCRIPT;
+    try {
+      const raw = window.localStorage.getItem('adga-chat-messages');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      if (window.localStorage.getItem('adga-real-user-bootstrapped')) {
+        return [];
+      }
+    } catch (e) {}
+    return VOICE_TRANSCRIPT;
+  });
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem('adga-chat-messages', JSON.stringify(messages.slice(-60)));
+    } catch (e) {}
+  }, [messages]);
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== 'adga-chat-messages' || !e.newValue) return;
+      try {
+        const parsed = JSON.parse(e.newValue);
+        if (Array.isArray(parsed)) setMessages(parsed);
+      } catch (err) {}
+    };
+    const onRealUser = () => setMessages([]);
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('adga:real-user-bootstrap', onRealUser);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('adga:real-user-bootstrap', onRealUser);
+    };
+  }, []);
   const [chatSearch, setChatSearch] = React.useState('');
   const [historySearch, setHistorySearch] = React.useState('');
 
@@ -1837,7 +1878,7 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: chatHistory,
-          context: { kind: 'workspace' },
+          context: activeContext || { kind: 'workspace' },
         }),
       });
       const chatJson = await chatResponse.json();
@@ -1912,6 +1953,11 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         <div className="voice-orb" aria-hidden="true"></div>
         <div className="voice-title">
           <span>ADGA</span>
+          {activeContext?.kind === 'map' && activeContext.deal && (
+            <span className="state" title="ADGA is aware of this map">
+              · on {activeContext.deal.name?.split(' — ')[0] || 'map'}
+            </span>
+          )}
           {state !== 'idle' && (
             <span className="state">
               {state === 'listening' && '• Listening'}
@@ -2210,13 +2256,16 @@ function PipelineViewTabs({ view, setView }) {
   );
 }
 
-function PipelineHeader({ section, setSection, onAdd }) {
+function PipelineHeader({ section, setSection, onAdd, deals }) {
+  const active = (deals || []).filter(d => d.stage !== 'won' && d.stage !== 'lost');
+  const total = active.reduce((s, d) => s + (d.value || 0), 0);
+  const weighted = active.reduce((s, d) => s + (d.value || 0) * (d.prob || 0) / 100, 0);
   return (
     <>
       <div className="page-h">
         <div>
           <h1>Pipeline</h1>
-          <div className="sub">17 active deals · $832.4M total · $284.6M weighted</div>
+          <div className="sub">{active.length} active deal{active.length === 1 ? '' : 's'} · ${compactNum(total)} total · ${compactNum(weighted)} weighted</div>
         </div>
         <div className="page-actions">
           <button className="btn primary" type="button" onClick={onAdd}><Icon name="plus" size={13}/> New deal</button>
@@ -2452,7 +2501,7 @@ function PipelinePage({ view, setView, deals, setDeals, openDeal, setQuickCreate
   };
   return (
     <>
-      <PipelineHeader section={section} setSection={setSection} onAdd={() => setQuickCreate && setQuickCreate('deal')}/>
+      <PipelineHeader section={section} setSection={setSection} onAdd={() => setQuickCreate && setQuickCreate('deal')} deals={deals}/>
       {section === 'pipeline' && (
         <div className="pipeline-viewbar">
           <PipelineViewTabs view={view} setView={setView}/>
@@ -3746,12 +3795,24 @@ function IntelligencePage({ deals }) {
         </div>
       </div>
 
-      <div className="kpis">
-        <KPI label="Forecast (committed)" value="$324M" delta={<><Icon name="arrow-up" size={11}/> +$28M wk</>} deltaTone="up"/>
-        <KPI label="Best case" value="$612M" delta={<>Includes 8 high-prob</>} />
-        <KPI label="Weighted (probability)" value="$284.6M" delta={<><Icon name="arrow-up" size={11}/> +11.2%</>} deltaTone="up"/>
-        <KPI label="Win rate (TTM)" value="34.8%" delta={<><Icon name="arrow-up" size={11}/> +2.4 pp</>} deltaTone="up"/>
-      </div>
+      {(() => {
+        const active = (deals || []).filter(d => d.stage !== 'won' && d.stage !== 'lost');
+        const committed = active.filter(d => (d.prob || 0) >= 70).reduce((s, d) => s + (d.value || 0), 0);
+        const best = active.reduce((s, d) => s + (d.value || 0), 0);
+        const weighted = active.reduce((s, d) => s + (d.value || 0) * (d.prob || 0) / 100, 0);
+        const highProb = active.filter(d => (d.prob || 0) >= 60).length;
+        const closed = (deals || []).filter(d => d.stage === 'won').length;
+        const lost = (deals || []).filter(d => d.stage === 'lost').length;
+        const winRate = (closed + lost) > 0 ? Math.round((closed / (closed + lost)) * 1000) / 10 : 0;
+        return (
+          <div className="kpis">
+            <KPI label="Forecast (committed)" value={'$' + compactNum(committed)} delta={<>Probability ≥ 70%</>} deltaTone="up"/>
+            <KPI label="Best case" value={'$' + compactNum(best)} delta={<>{highProb} high-prob deal{highProb === 1 ? '' : 's'}</>} />
+            <KPI label="Weighted (probability)" value={'$' + compactNum(weighted)} delta={<>{active.length} active</>} deltaTone="up"/>
+            <KPI label="Win rate" value={winRate > 0 ? winRate + '%' : '—'} delta={<>{closed} won · {lost} lost</>} deltaTone={winRate >= 30 ? 'up' : undefined}/>
+          </div>
+        );
+      })()}
 
       <div style={{display:'grid',gridTemplateColumns:'minmax(0, 1.5fr) minmax(0, 1fr)',gap:14,padding:'0 32px 28px'}}>
         <div className="card">
@@ -7716,6 +7777,7 @@ const SUITE_ROUTE_IDS = [
   'leads', 'pipeline', 'story', 'crm', 'documents', 'knowledge',
   'intelligence', 'voice-notes', 'messaging', 'reports',
   'admin', 'affiliates', 'invoicing', 'billing', 'settings',
+  'map', 'maps',
 ];
 
 const SUITE_ROUTE_ALIASES = {
@@ -7747,7 +7809,126 @@ function getInitialSuiteRoute() {
   }
 }
 
-function App() {
+const MapWorkspace = React.lazy(() =>
+  import('@/components/suite/DealMindmap').then(mod => ({
+    default: function MapWorkspaceInner({ mapData }) {
+      if (!mapData?.deal) {
+        return (
+          <div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>
+            No map selected. Open a deal or pick a map from the sidebar.
+          </div>
+        );
+      }
+      return (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', minHeight: 0 }}>
+          <mod.DealMindmap
+            deal={mapData.deal}
+            entities={mapData.entities || []}
+            mapId={mapData.mapId}
+            initialNodes={mapData.initialNodes}
+            initialEdges={mapData.initialEdges}
+            persistApiBase={mapData.persistApiBase}
+          />
+        </div>
+      );
+    },
+  })),
+);
+
+const MapsIndexWorkspace = React.lazy(() =>
+  import('@/components/suite/WorkspaceMindmap').then(mod => ({
+    default: function MapsIndexInner({ mapsData }) {
+      const data = mapsData || { dealsForMap: [], contacts: [], gallery: [] };
+      const sharedCount = (data.contacts || []).filter((c) => (c.dealIds || []).length > 1).length;
+      function relTime(iso) {
+        if (!iso) return '—';
+        const t = new Date(iso).getTime();
+        if (!Number.isFinite(t)) return iso;
+        const delta = Date.now() - t;
+        const mins = Math.round(delta / 60000);
+        if (mins < 1) return 'just now';
+        if (mins < 60) return mins + 'm ago';
+        const hours = Math.round(mins / 60);
+        if (hours < 24) return hours + 'h ago';
+        const days = Math.round(hours / 24);
+        if (days < 30) return days + 'd ago';
+        return new Date(iso).toLocaleDateString();
+      }
+      return (
+        <div style={{ padding: '0 var(--suite-gutter, 32px) 48px', display: 'flex', flexDirection: 'column', gap: 28 }}>
+          <div className="page-h">
+            <div>
+              <h1>Maps.</h1>
+              <div className="sub">
+                Every active deal as a cluster · {data.dealsForMap.length} deals · {sharedCount} shared contact{sharedCount === 1 ? '' : 's'} connect across deals.
+              </div>
+            </div>
+            <div className="page-actions">
+              <a className="btn primary" href="/suite/maps/new">
+                <span style={{ fontWeight: 700, fontSize: 14, marginRight: 6 }}>+</span> New map
+              </a>
+            </div>
+          </div>
+
+          <section className="card" style={{ overflow: 'hidden' }}>
+            <div className="card-h">
+              <div>
+                <div className="ttl">Workspace map</div>
+                <div className="sub">All active deals and the contacts that connect them.</div>
+              </div>
+            </div>
+            <div style={{ height: 560, position: 'relative' }}>
+              <mod.WorkspaceMindmap deals={data.dealsForMap} contacts={data.contacts} />
+            </div>
+          </section>
+
+          <section>
+            <div className="card-h" style={{ padding: '0 0 12px' }}>
+              <div>
+                <div className="ttl">Deal maps</div>
+                <div className="sub">Open any map to see every person, file, call, and task attached to a deal.</div>
+              </div>
+              <span className="text-xs muted">{data.gallery.length} maps</span>
+            </div>
+            {data.gallery.length === 0 ? (
+              <div style={{ border: '1px dashed var(--rule, #e8e4de)', borderRadius: 16, background: '#ffffff', padding: 48, textAlign: 'center' }}>
+                <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text, #0d0c0a)' }}>No deal maps yet</div>
+                <div className="muted text-xs" style={{ marginTop: 4 }}>Create your first map from a template to start visualizing a deal.</div>
+                <a className="btn primary" style={{ marginTop: 16, display: 'inline-flex' }} href="/suite/maps/new">Create a map</a>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+                {data.gallery.map((m) => (
+                  <a
+                    key={m.id}
+                    href={'/suite/map/' + encodeURIComponent(m.id)}
+                    className="card"
+                    style={{ padding: 18, display: 'block', textDecoration: 'none', color: 'inherit', transition: 'box-shadow 160ms ease' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 12px 30px -16px rgba(15, 23, 42, 0.18)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '')}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                      <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '4px 8px', borderRadius: 999, background: 'rgba(86, 36, 199, 0.08)', color: 'var(--adga-accent, #5d2cd6)' }}>
+                        {m.stage}
+                      </span>
+                      <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a8a39c' }}>
+                        {m.nodeCount} nodes
+                      </span>
+                    </div>
+                    <div style={{ marginTop: 14, fontSize: 14, fontWeight: 600, lineHeight: 1.35, color: 'var(--text, #0d0c0a)' }}>{m.name}</div>
+                    <div className="muted text-xs" style={{ marginTop: 4 }}>Updated {relTime(m.updated)}</div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      );
+    },
+  })),
+);
+
+function App({ bootstrap = null }: { bootstrap?: any } = {}) {
   const [tweaks, setTweaks] = React.useState(() => {
     if (typeof window === 'undefined') return TWEAK_DEFAULTS;
     return {
@@ -7796,7 +7977,12 @@ function App() {
     return () => window.removeEventListener('resize', syncRails);
   }, []);
 
-  const [route, setRoute] = React.useState(getInitialSuiteRoute);
+  const [route, setRoute] = React.useState(() => {
+    if (bootstrap?.route) return bootstrap.route;
+    return getInitialSuiteRoute();
+  });
+  const mapData = bootstrap?.mapData || null;
+  const mapsData = bootstrap?.mapsData || null;
   const [deals, setDeals] = React.useState(DEALS);
   const [leads, setLeads] = React.useState(LEADS);
   const [selectedLead, setSelectedLead] = React.useState(null);
@@ -7833,11 +8019,44 @@ function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
+  // Seed-vs-real-user: the suite ships with demo seed data (impressive numbers, sample chat) so
+  // marketing/preview surfaces feel alive. As soon as a real authenticated user lands, swap in
+  // their real data — even when it's empty (which is the honest signal for a brand-new account).
   React.useEffect(() => {
-    fetch('/api/suite/state')
-      .then(r => r.json())
+    fetch('/api/suite/state', { credentials: 'include' })
+      .then(r => (r.ok ? r.json() : null))
       .then(data => {
+        if (!data) return;
         window.ADGA_RUNTIME_STATE = data;
+        const realUser = !!data.user?.email && !data.user?.isLocalAdminBypass;
+        if (!realUser) return;
+        // Real user signed in — trust the API response. Empty deals = empty pipeline; real ones replace seed.
+        if (Array.isArray(data.deals)) {
+          setDeals(data.deals.map((d) => ({
+            id: d.id,
+            name: d.name || d.id,
+            company: d.company || 'c1',
+            type: d.type || 'Acquisition',
+            value: Math.round((d.value_cents || 0) / 100),
+            currency: d.currency || 'USD',
+            stage: d.stage || 'qualify',
+            prob: d.probability || d.prob || 10,
+            owner: d.owner_user_id || 'p1',
+            team: d.team || ['p1'],
+            close: d.expected_close_at ? String(d.expected_close_at).slice(0, 10) : '',
+            updated: d.updated_at ? new Date(d.updated_at).toLocaleString() : 'Just now',
+            tags: d.tags || [],
+          })));
+        }
+        // First-time real user — wipe the demo chat seed so the persisted demo chat doesn't bleed
+        // into their workspace. We use a one-time flag so we don't blow away their actual chats.
+        try {
+          if (!window.localStorage.getItem('adga-real-user-bootstrapped')) {
+            window.localStorage.removeItem('adga-chat-messages');
+            window.localStorage.setItem('adga-real-user-bootstrapped', '1');
+            window.dispatchEvent(new CustomEvent('adga:real-user-bootstrap'));
+          }
+        } catch (e) {}
       })
       .catch(() => {});
   }, []);
@@ -7896,7 +8115,9 @@ function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const crumb = ROUTE_LABELS[route] || 'Home';
+  const crumb = route === 'map' && mapData?.deal
+    ? `Map · ${mapData.deal.name?.split(' — ')[0] || mapData.deal.name || ''}`.trim().replace(/·\s*$/, '')
+    : (ROUTE_LABELS[route] || 'Home');
 
   return (
     <div className={'app ' + (!tweaks.sidebarCollapsed ? 'sidebar-open ' : 'sidebar-closed ') + (!tweaks.voiceCollapsed ? 'voice-open' : 'voice-closed')}>
@@ -7908,7 +8129,7 @@ function App() {
       />
       <div className="main">
         <Topbar crumb={crumb} setCmdk={setCmdkOpen} tweaks={tweaks} setTweak={setTweak} setRoute={navigate} setQuickCreate={setQuickCreate}/>
-        <div className="workspace">
+        <div className="workspace" data-route={route} style={route === 'map' ? { position: 'relative', overflow: 'hidden', padding: 0 } : undefined}>
           {route === 'home'      && <HomePage deals={deals} openDeal={setOpenDeal} setRoute={navigate}/>}
           {route === 'pending'   && <PendingPage deals={deals} openDeal={setOpenDeal}/>}
           {route === 'inbox'     && <InboxPage openDeal={setOpenDeal} deals={deals} meetingInbox={meetingInbox}/>}
@@ -7927,7 +8148,7 @@ function App() {
           }}/>}
           {route === 'teams'     && <TeamsPage deals={deals} openDeal={setOpenDeal} setRoute={navigate}/>}
           {route === 'leads'     && <LeadsPage openDeal={setOpenDeal} setQuickCreate={setQuickCreate} leads={leads} selectedLead={selectedLead} setSelectedLead={setSelectedLead}/>}
-          {route === 'pipeline'  && <PipelinePage view={tweaks.pipelineView} setView={v => setTweak('pipelineView', v)} deals={deals} setDeals={setDeals} openDeal={setOpenDeal} setQuickCreate={setQuickCreate}/>}
+          {route === 'pipeline'  && <PipelinePage view={tweaks.pipelineView} setView={v => setTweak('pipelineView', v)} deals={deals} setDeals={setDeals} openDeal={setOpenDeal} setQuickCreate={setQuickCreate}/> }
           {route === 'story'     && <StoryPage deals={deals} openDeal={setOpenDeal} focusDealId={focusDealId}/>}
           {route === 'crm'       && <CRMPage openDeal={setOpenDeal} deals={deals}/>}
           {route === 'documents' && <DocumentsPage deals={deals} openDeal={setOpenDeal}/>}
@@ -7941,6 +8162,16 @@ function App() {
           {route === 'invoicing'  && <InvoicingCenterPage/>}
           {route === 'billing'   && <BillingPage/>}
           {route === 'settings'  && <SettingsPage tweaks={tweaks} setTweak={setTweak}/>}
+          {route === 'map'       && (
+            <React.Suspense fallback={<div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>Loading map…</div>}>
+              <MapWorkspace mapData={mapData}/>
+            </React.Suspense>
+          )}
+          {route === 'maps'      && (
+            <React.Suspense fallback={<div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>Loading maps…</div>}>
+              <MapsIndexWorkspace mapsData={mapsData}/>
+            </React.Suspense>
+          )}
         </div>
       </div>
       <VoicePanel
@@ -7951,6 +8182,13 @@ function App() {
         onWorkflow={handleWorkflow}
         deals={deals}
         leads={leads}
+        activeContext={route === 'map' && mapData ? {
+          kind: 'map',
+          mapId: mapData.mapId,
+          deal: mapData.deal,
+          nodeCount: (mapData.initialNodes || []).length,
+          edgeCount: (mapData.initialEdges || []).length,
+        } : { kind: 'workspace', route }}
       />
       <button
         className={'mobile-scrim ' + ((!tweaks.sidebarCollapsed || !tweaks.voiceCollapsed) ? 'on' : '')}
@@ -8005,6 +8243,8 @@ const ROUTE_LABELS = {
   documents: 'Documents', knowledge: 'Knowledge Hub',
   intelligence: 'Intelligence', 'voice-notes': 'Voice Notes', messaging: 'Messaging', reports: 'Reports',
   admin: 'Admin', affiliates: 'Affiliate Center', invoicing: 'Invoicing', billing: 'Billing', settings: 'Settings',
+  map: 'Map',
+  maps: 'Maps',
 };
 
 function Topbar({ crumb, setCmdk, tweaks, setTweak, setRoute, setQuickCreate }) {
@@ -8189,11 +8429,11 @@ function ADGATweaks({ tweaks, setTweak }) {
 
 
 
-export default function AdgaSuite() {
+export default function AdgaSuite({ bootstrap = null }: { bootstrap?: any } = {}) {
   return (
     <>
       <Script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" strategy="afterInteractive" />
-      <App />
+      <App bootstrap={bootstrap} />
     </>
   );
 }

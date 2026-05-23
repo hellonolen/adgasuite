@@ -1386,7 +1386,7 @@ body::before {
 .suite-shell .workspace {
   max-width: 100%;
   min-width: 0 !important;
-  contain: inline-size;
+  container-type: inline-size;
 }
 
 .suite-shell .kanban,
@@ -2973,6 +2973,90 @@ body {
   overflow-y: auto !important;
   padding-bottom: 0 !important;
   background: transparent !important;
+}
+
+/* Map workspace fills the area edge-to-edge with no scroll — DealMindmap manages its own pan/zoom. */
+.suite-shell .workspace[data-route="map"] {
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+/* Settings (and any future split-pane page) — left rail of section nav + content body. */
+.suite-shell .split {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 28px;
+  padding: 4px var(--suite-gutter, 32px) 48px;
+  align-items: start;
+  min-height: 0;
+}
+.suite-shell .split-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: 8px;
+  padding-top: 6px;
+}
+.suite-shell .split-nav .lbl {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted, #6b6760);
+  padding: 14px 10px 6px;
+}
+.suite-shell .split-nav .lbl:first-child {
+  padding-top: 4px;
+}
+.suite-shell .split-nav button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text, #0d0c0a);
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+.suite-shell .split-nav button:hover {
+  background: rgba(86, 36, 199, 0.06);
+}
+.suite-shell .split-nav button.active {
+  background: rgba(86, 36, 199, 0.10);
+  color: var(--adga-accent, #5d2cd6);
+  font-weight: 500;
+}
+.suite-shell .split-content {
+  min-width: 0;
+  padding-top: 6px;
+}
+
+/* Narrow workspace (sidebar + voice both open at midsize widths): collapse split to single column. */
+@container (max-width: 720px) {
+  .suite-shell .split {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .suite-shell .split-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    position: static;
+    gap: 4px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--rule, #e8e4de);
+  }
+  .suite-shell .split-nav .lbl {
+    width: 100%;
+    padding: 8px 4px 2px;
+  }
+  .suite-shell .split-nav button {
+    flex: 0 0 auto;
+  }
 }
 
 .suite-shell .card,

@@ -11,8 +11,21 @@ const MessageSchema = z.object({
 
 const ContextSchema = z
   .object({
-    kind: z.enum(["deal", "pipeline", "workspace"]),
+    kind: z.enum(["deal", "pipeline", "workspace", "map"]),
     id: z.string().min(1).max(120).optional(),
+    mapId: z.string().min(1).max(120).optional(),
+    route: z.string().min(1).max(60).optional(),
+    deal: z
+      .object({
+        id: z.string().min(1).max(120),
+        name: z.string().max(240).optional(),
+        stage: z.string().max(60).optional(),
+        value: z.string().max(60).optional(),
+        nextAction: z.string().max(240).optional(),
+      })
+      .optional(),
+    nodeCount: z.number().int().min(0).max(10_000).optional(),
+    edgeCount: z.number().int().min(0).max(10_000).optional(),
   })
   .optional();
 
@@ -59,11 +72,63 @@ interface EventRow {
 
 async function buildContextBlock(
   db: D1Database | undefined,
-  ctx: { kind: "deal" | "pipeline" | "workspace"; id?: string } | undefined,
+  ctx:
+    | {
+        kind: "deal" | "pipeline" | "workspace" | "map";
+        id?: string;
+        mapId?: string;
+        route?: string;
+        deal?: { id: string; name?: string; stage?: string; value?: string; nextAction?: string };
+        nodeCount?: number;
+        edgeCount?: number;
+      }
+    | undefined,
 ): Promise<string> {
-  if (!db) return "Live database is not bound in this environment. Respond using general business judgement.";
+  if (!db) {
+    if (ctx?.kind === "map" && ctx.deal) {
+      const lines = [
+        "ACTIVE MAP CONTEXT (no live DB bound):",
+        `- Map: ${ctx.deal.name || ctx.deal.id}`,
+        ctx.deal.stage ? `- Stage: ${ctx.deal.stage}` : null,
+        ctx.deal.value ? `- Value: ${ctx.deal.value}` : null,
+        ctx.deal.nextAction ? `- Next action: ${ctx.deal.nextAction}` : null,
+        ctx.nodeCount != null ? `- Nodes on canvas: ${ctx.nodeCount}` : null,
+        ctx.edgeCount != null ? `- Edges on canvas: ${ctx.edgeCount}` : null,
+      ].filter(Boolean);
+      return lines.join("\n");
+    }
+    return "Live database is not bound in this environment. Respond using general business judgement.";
+  }
 
   const kind = ctx?.kind ?? "workspace";
+
+  if (kind === "map") {
+    const headerLines: string[] = ["ACTIVE MAP CONTEXT:"];
+    if (ctx?.deal) {
+      headerLines.push(`- Map / deal: ${ctx.deal.name || ctx.deal.id}`);
+      if (ctx.deal.stage) headerLines.push(`- Stage: ${ctx.deal.stage}`);
+      if (ctx.deal.value) headerLines.push(`- Value: ${ctx.deal.value}`);
+      if (ctx.deal.nextAction) headerLines.push(`- Next action: ${ctx.deal.nextAction}`);
+    }
+    if (ctx?.mapId) headerLines.push(`- Map id: ${ctx.mapId}`);
+    if (ctx?.nodeCount != null) headerLines.push(`- Nodes on canvas: ${ctx.nodeCount}`);
+    if (ctx?.edgeCount != null) headerLines.push(`- Edges on canvas: ${ctx.edgeCount}`);
+
+    const dealId = ctx?.deal?.id;
+    if (dealId) {
+      const events = await db
+        .prepare(
+          "SELECT event_type, resource_type, resource_id, created_at FROM events WHERE resource_type = 'deal' AND resource_id = ? ORDER BY created_at DESC LIMIT 6",
+        )
+        .bind(dealId)
+        .all<EventRow>()
+        .catch(() => ({ results: [] as EventRow[] }));
+      const eventLines = (events.results || []).map((e) => `- ${e.created_at} ${e.event_type}`).join("\n");
+      if (eventLines) headerLines.push(`RECENT EVENTS:\n${eventLines}`);
+    }
+
+    return headerLines.join("\n");
+  }
 
   if (kind === "deal" && ctx?.id) {
     const deal = await db
@@ -127,10 +192,14 @@ async function buildContextBlock(
 }
 
 function buildSystemPrompt(contextBlock: string): string {
+  const onMap = contextBlock.startsWith("ACTIVE MAP CONTEXT");
   return [
     "You are ADGA, an autonomous deal-and-pipeline operator embedded inside the ADGA Suite for senior dealmakers.",
     "You speak with calm authority. You are direct, specific, and finish thoughts in one or two sentences.",
     "You never invent revenue, names, or commitments. If you do not know, say so and propose how to find out.",
+    onMap
+      ? "The user is currently looking at the deal map (canvas of people, files, calls, tasks, meetings). Reference what is on the canvas. Suggest the next node to add when the next move is obvious."
+      : "The user is in the suite workspace (lists, pipeline, inbox). Reference live data, not the map.",
     "When the user implies a structured map mutation (add a contact, link a company, create a task, advance a stage), append a fenced ```json``` code block at the end with shape: {\"actions\":[{\"type\":\"add_node\",\"kind\":\"contact\",\"label\":\"...\",\"sublabel\":\"...\"}]} or {\"type\":\"add_task\",\"label\":\"...\"} etc. Only include the block when an action is actually proposed.",
     "Keep the visible reply free of JSON. Use plain text with optional **bold** or *italic* for emphasis. Do not use headings or bullet lists unless explicitly asked.",
     "",

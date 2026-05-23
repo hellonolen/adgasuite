@@ -6,6 +6,6 @@ const AdgaSuite = dynamic(() => import("@/components/adga/AdgaSuite"), {
   ssr: false,
 });
 
-export default function SuiteClient() {
-  return <AdgaSuite />;
+export default function SuiteClient({ bootstrap = null }: { bootstrap?: any }) {
+  return <AdgaSuite bootstrap={bootstrap} />;
 }

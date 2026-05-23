@@ -1,10 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { WorkspaceMindmap, type WorkspaceContact, type WorkspaceDeal } from "@/components/suite/WorkspaceMindmap";
+import { type WorkspaceContact, type WorkspaceDeal } from "@/components/suite/WorkspaceMindmap";
 import { getAdminRuntime, resolveAdminSession } from "@/lib/server/admin-session";
+import SuiteClient from "@/app/suite/suite-client";
 
 export const dynamic = "force-dynamic";
 
@@ -50,21 +48,6 @@ function contactName(row: ContactRow) {
     `${row.first_name || ""} ${row.last_name || ""}`.trim() ||
     "Unnamed contact"
   );
-}
-
-function relTime(iso: string | null | undefined) {
-  if (!iso) return "—";
-  const t = new Date(iso).getTime();
-  if (!Number.isFinite(t)) return iso;
-  const delta = Date.now() - t;
-  const minutes = Math.round(delta / 60_000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString();
 }
 
 async function loadGraph(db: D1Database | undefined) {
@@ -171,81 +154,18 @@ export default async function MapsGalleryPage() {
   const { context } = await getAdminRuntime();
   const { dealsForMap, contacts, gallery } = await loadGraph(context.env.DB);
 
-  const sharedCount = contacts.filter((c) => c.dealIds.length > 1).length;
-
   return (
-    <main className="min-h-screen bg-[#f9f7f4]">
-      <header className="border-b border-[var(--rule,#e8e4de)] bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-          <div className="flex items-center gap-4">
-            <a href="/suite" className="text-xs font-medium uppercase tracking-[0.12em] text-[#6b6760] hover:text-[#0d0c0a]">
-              ← Suite
-            </a>
-            <div className="h-4 w-px bg-[var(--rule,#e8e4de)]" />
-            <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6b6760]">Workspace</div>
-              <div className="text-base font-semibold text-[#0d0c0a]">Maps</div>
-            </div>
-          </div>
-          <Button asChild className="bg-[#5d2cd6] hover:bg-[#4920b3]">
-            <Link href="/suite/maps/new">+ New map</Link>
-          </Button>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-7xl px-6 py-6 space-y-8">
-        <section>
-          <div className="mb-3 flex items-end justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-[#0d0c0a]">Workspace map</h2>
-              <p className="text-xs text-[#6b6760]">
-                Every active deal as a cluster · {dealsForMap.length} deals · {sharedCount} shared contact{sharedCount === 1 ? "" : "s"} connect across deals.
-              </p>
-            </div>
-          </div>
-          <div className="overflow-hidden rounded-2xl border border-[var(--rule,#e8e4de)] bg-white shadow-sm">
-            <div className="h-[560px]">
-              <WorkspaceMindmap deals={dealsForMap} contacts={contacts} />
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <div className="mb-3 flex items-end justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-[#0d0c0a]">Deal maps</h2>
-              <p className="text-xs text-[#6b6760]">Open any map to see every person, file, call, and task attached to a deal.</p>
-            </div>
-            <span className="text-xs text-[#6b6760]">{gallery.length} maps</span>
-          </div>
-          {gallery.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-[var(--rule,#e8e4de)] bg-white p-12 text-center">
-              <div className="text-sm font-medium text-[#0d0c0a]">No deal maps yet</div>
-              <p className="mx-auto mt-1 max-w-sm text-xs text-[#6b6760]">Create your first map from a template to start visualizing a deal.</p>
-              <Button asChild className="mt-4 bg-[#5d2cd6] hover:bg-[#4920b3]">
-                <Link href="/suite/maps/new">Create a map</Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {gallery.map((m) => (
-                <Link
-                  key={m.id}
-                  href={`/suite/map/${encodeURIComponent(m.id)}`}
-                  className="group block rounded-xl border border-[var(--rule,#e8e4de)] bg-white p-4 transition-shadow hover:shadow-md"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <Badge variant="outline" className="capitalize">{m.stage}</Badge>
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a8a39c]">{m.nodeCount} nodes</span>
-                  </div>
-                  <h3 className="mt-3 line-clamp-2 text-sm font-semibold text-[#0d0c0a] group-hover:text-[#5d2cd6]">{m.name}</h3>
-                  <p className="mt-1 text-xs text-[#6b6760]">Updated {relTime(m.updated)}</p>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
+    <main className="suite-shell adga-font-product adga-presence-crisp">
+      <SuiteClient
+        bootstrap={{
+          route: "maps",
+          mapsData: {
+            dealsForMap,
+            contacts,
+            gallery,
+          },
+        }}
+      />
     </main>
   );
 }

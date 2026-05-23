@@ -11,7 +11,7 @@ const TEAM_MAX_SEATS = 12;
 const ENTERPRISE_BASE_MONTHLY = 597;
 const ENTERPRISE_INCLUDED_SEATS = 12;
 const ENTERPRISE_SEAT_ADD = 20;
-const ANNUAL_MONTHS_BILLED = 10;
+const ANNUAL_MONTHS_BILLED = 11;
 
 const TEAM_SEAT_OPTIONS = [5, 6, 7, 8, 9, 10, 11, 12];
 const ENTERPRISE_SEAT_OPTIONS = [12, 15, 20, 25, 30, 50, 75, 100];
@@ -76,7 +76,6 @@ export default function PricingPage() {
     <MarketingLayout>
       <div className="wrap">
         <section style={{ padding: "64px 0 24px", textAlign: "center" }}>
-          <span className="ed-label">Pricing</span>
           <div
             role="tablist"
             aria-label="Billing cadence"
@@ -84,14 +83,13 @@ export default function PricingPage() {
               display: "inline-flex",
               gap: 4,
               padding: 4,
-              marginTop: 24,
               border: "1px solid var(--rule)",
               borderRadius: 999,
               background: "var(--surface)",
             }}
           >
             {toggleBtn(!isAnnual, "Monthly", () => setCadence("month"))}
-            {toggleBtn(isAnnual, "Annual · 2 months free", () => setCadence("year"))}
+            {toggleBtn(isAnnual, "Annual · 1 month free", () => setCadence("year"))}
           </div>
         </section>
 
@@ -123,7 +121,12 @@ export default function PricingPage() {
                 <div className="desc">Built for closing teams working the same deals.</div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
+              <div className="price">
+                ${format(teamShown)}
+                <small>{cadenceLabel}</small>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: -8, marginBottom: 4 }}>
                 <label
                   htmlFor="team-seats"
                   style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--adga-text-2)" }}
@@ -151,17 +154,12 @@ export default function PricingPage() {
                 </select>
               </div>
 
-              <div className="price">
-                ${format(teamShown)}
-                <small>{cadenceLabel}</small>
-              </div>
-
               <ul>
                 <li>Everything in Pro</li>
                 <li>{TEAM_INCLUDED_SEATS} seats included, +${TEAM_SEAT_ADD}/seat up to {TEAM_MAX_SEATS}</li>
                 <li>Shared deals, calendar, invoicing</li>
-                <li>Internal and client communication lanes</li>
-                <li>Represented-client portal</li>
+                <li>Approval queue with full audit trail</li>
+                <li>Shareable deal maps for clients and counterparties</li>
               </ul>
               <a href={teamHref} className="btn primary">Start closing deals</a>
             </div>
@@ -172,7 +170,12 @@ export default function PricingPage() {
                 <div className="desc">Brokerages, firms, anyone running real deal volume.</div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
+              <div className="price">
+                ${format(enterpriseShown)}
+                <small>{cadenceLabel}</small>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: -8, marginBottom: 4 }}>
                 <label
                   htmlFor="enterprise-seats"
                   style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--adga-text-2)" }}
@@ -200,16 +203,11 @@ export default function PricingPage() {
                 </select>
               </div>
 
-              <div className="price">
-                ${format(enterpriseShown)}
-                <small>{cadenceLabel}</small>
-              </div>
-
               <ul>
                 <li>Everything in Team</li>
-                <li>{ENTERPRISE_INCLUDED_SEATS} seats included, +${ENTERPRISE_SEAT_ADD}/seat unlimited</li>
-                <li>SSO, audit logs, role permissions</li>
-                <li>Branded client portal at your domain</li>
+                <li>Starts at {ENTERPRISE_INCLUDED_SEATS} seats · add unlimited seats at ${ENTERPRISE_SEAT_ADD} each</li>
+                <li>Role-based permissions and immutable audit logs</li>
+                <li>Watermarked client shares with revocable access</li>
                 <li>Dedicated onboarding and priority support</li>
               </ul>
               <a href={enterpriseHref} className="btn">Start closing deals</a>
@@ -233,7 +231,7 @@ export default function PricingPage() {
               <details className="faq-item">
                 <summary>What does annual save?</summary>
                 <p>
-                  Annual billing is {ANNUAL_MONTHS_BILLED} months at the monthly rate. Two months free, billed yearly.
+                  Annual billing is {ANNUAL_MONTHS_BILLED} months at the monthly rate. One month free, billed yearly.
                 </p>
               </details>
               <details className="faq-item">

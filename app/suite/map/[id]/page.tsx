@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import {
-  DealMindmap,
   type DealMindmapDeal,
   type DealMindmapEntity,
   type DealMindmapInitialEdge,
@@ -10,6 +9,7 @@ import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { redirect } from "next/navigation";
 import { getMap, getMapEdges, getMapNodes } from "@/lib/server/repository";
+import SuiteClient from "@/app/suite/suite-client";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -275,47 +275,18 @@ export default async function DealDetailPage({ params }: PageProps) {
   return renderPage(deal, entities, dealRow);
 }
 
-function renderSample(id: string, banner: string) {
+function renderSample(_id: string, _banner: string) {
   return (
-    <main className="min-h-screen bg-[#f9f7f4]">
-      <div className="border-b border-[var(--rule,#e8e4de)] bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-          <div className="flex items-center gap-4">
-            <a href="/suite" className="text-xs font-medium uppercase tracking-[0.12em] text-[#6b6760] hover:text-[#0d0c0a]">
-              ← Suite
-            </a>
-            <div className="h-4 w-px bg-[var(--rule,#e8e4de)]" />
-            <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6b6760]">
-                Deal · {SAMPLE_DEAL.stage}
-              </div>
-              <div className="text-base font-semibold text-[#0d0c0a]">{SAMPLE_DEAL.name}</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-[#6b6760]">
-            <span>
-              <span className="text-[10px] uppercase tracking-[0.12em]">Value</span>
-              <span className="ml-2 font-semibold text-[#0d0c0a]">{SAMPLE_DEAL.value}</span>
-            </span>
-          </div>
-        </div>
-      </div>
-      <div className="mx-auto max-w-7xl px-6 py-6">
-        <div className="mb-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2 text-xs text-amber-800">
-          {banner} · Requested id: <code className="font-mono">{id}</code>
-        </div>
-        <div className="rounded-2xl border border-[var(--rule,#e8e4de)] bg-white shadow-sm">
-          <div className="border-b border-[var(--rule,#e8e4de)] px-6 py-3">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6b6760]">Mindmap</div>
-            <div className="mt-0.5 text-sm text-[#0d0c0a]">
-              Every party, file, call, and next action attached to this deal.
-            </div>
-          </div>
-          <div style={{ height: "calc(100vh - 260px)", minHeight: 560 }}>
-            <DealMindmap deal={SAMPLE_DEAL} entities={SAMPLE_ENTITIES} />
-          </div>
-        </div>
-      </div>
+    <main className="suite-shell adga-font-product adga-presence-crisp">
+      <SuiteClient
+        bootstrap={{
+          route: "map",
+          mapData: {
+            deal: SAMPLE_DEAL,
+            entities: SAMPLE_ENTITIES,
+          },
+        }}
+      />
     </main>
   );
 }
@@ -327,103 +298,36 @@ function renderMap(
   mapId: string,
 ) {
   return (
-    <main className="min-h-screen bg-[#f9f7f4]">
-      <div className="border-b border-[var(--rule,#e8e4de)] bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-          <div className="flex items-center gap-4">
-            <a href="/suite" className="text-xs font-medium uppercase tracking-[0.12em] text-[#6b6760] hover:text-[#0d0c0a]">
-              ← Suite
-            </a>
-            <div className="h-4 w-px bg-[var(--rule,#e8e4de)]" />
-            <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6b6760]">
-                Map · {deal.stage}
-              </div>
-              <div className="text-base font-semibold text-[#0d0c0a]">{deal.name}</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-[#6b6760]">
-            <span className="text-[10px] uppercase tracking-[0.12em]">Auto-saves on change</span>
-          </div>
-        </div>
-      </div>
-      <div className="mx-auto max-w-7xl px-6 py-6">
-        <div className="rounded-2xl border border-[var(--rule,#e8e4de)] bg-white shadow-sm">
-          <div className="border-b border-[var(--rule,#e8e4de)] px-6 py-3">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6b6760]">Mindmap</div>
-            <div className="mt-0.5 text-sm text-[#0d0c0a]">
-              Every party, file, call, and next action attached to this map. Persists to D1.
-            </div>
-          </div>
-          <div style={{ height: "calc(100vh - 240px)", minHeight: 560 }}>
-            <DealMindmap
-              deal={deal}
-              entities={[]}
-              mapId={mapId}
-              initialNodes={initialNodes}
-              initialEdges={initialEdges}
-              persistApiBase={`/api/maps/${encodeURIComponent(mapId)}`}
-            />
-          </div>
-        </div>
-      </div>
+    <main className="suite-shell adga-font-product adga-presence-crisp">
+      <SuiteClient
+        bootstrap={{
+          route: "map",
+          mapData: {
+            deal,
+            entities: [],
+            mapId,
+            initialNodes,
+            initialEdges,
+            persistApiBase: `/api/maps/${encodeURIComponent(mapId)}`,
+          },
+        }}
+      />
     </main>
   );
 }
 
-function renderPage(deal: DealMindmapDeal, entities: DealMindmapEntity[], dealRow: DealRow) {
+function renderPage(deal: DealMindmapDeal, entities: DealMindmapEntity[], _dealRow: DealRow) {
   return (
-    <main className="min-h-screen bg-[#f9f7f4]">
-      <div className="border-b border-[var(--rule,#e8e4de)] bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-          <div className="flex items-center gap-4">
-            <a href="/suite" className="text-xs font-medium uppercase tracking-[0.12em] text-[#6b6760] hover:text-[#0d0c0a]">
-              ← Suite
-            </a>
-            <div className="h-4 w-px bg-[var(--rule,#e8e4de)]" />
-            <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6b6760]">
-                Deal · {dealRow.stage || "Lead"}
-              </div>
-              <div className="text-base font-semibold text-[#0d0c0a]">{dealRow.name}</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-[#6b6760]">
-            {deal.value && (
-              <span>
-                <span className="text-[10px] uppercase tracking-[0.12em]">Value</span>
-                <span className="ml-2 font-semibold text-[#0d0c0a]">{deal.value}</span>
-              </span>
-            )}
-            {dealRow.expected_close_at && (
-              <span>
-                <span className="text-[10px] uppercase tracking-[0.12em]">Close</span>
-                <span className="ml-2 font-semibold text-[#0d0c0a]">
-                  {new Date(dealRow.expected_close_at).toLocaleDateString()}
-                </span>
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="mx-auto max-w-7xl px-6 py-6">
-        <div className="rounded-2xl border border-[var(--rule,#e8e4de)] bg-white shadow-sm">
-          <div className="border-b border-[var(--rule,#e8e4de)] px-6 py-3">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6b6760]">Mindmap</div>
-            <div className="mt-0.5 text-sm text-[#0d0c0a]">
-              Every party, file, call, and next action attached to this deal.
-            </div>
-          </div>
-          <div style={{ height: "calc(100vh - 240px)", minHeight: 560 }}>
-            <DealMindmap deal={deal} entities={entities} />
-          </div>
-        </div>
-        {entities.length === 0 && (
-          <div className="mt-4 rounded-2xl border border-dashed border-[var(--rule,#e8e4de)] bg-white p-6 text-center text-sm text-[#6b6760]">
-            No people, files, calls, or tasks attached to this deal yet. The mindmap fills in as the deal moves.
-          </div>
-        )}
-      </div>
+    <main className="suite-shell adga-font-product adga-presence-crisp">
+      <SuiteClient
+        bootstrap={{
+          route: "map",
+          mapData: {
+            deal,
+            entities,
+          },
+        }}
+      />
     </main>
   );
 }

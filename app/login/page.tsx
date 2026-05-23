@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { z } from "zod";
-import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 
 const emailSchema = z.string().email("Enter a valid work email.");
 
@@ -13,6 +12,7 @@ type Status =
   | { kind: "error"; message: string };
 
 export default function LoginPage() {
+  const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
 
@@ -26,13 +26,15 @@ export default function LoginPage() {
     }
 
     setStatus({ kind: "sending" });
-    const next = new URLSearchParams(window.location.search).get("next") || "/suite";
+    const next = typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("next") || "/suite"
+      : "/suite";
 
     try {
       const response = await fetch("/api/auth/magic/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: parsed.data, redirect: next }),
+        body: JSON.stringify({ email: parsed.data, first_name: firstName.trim() || undefined, redirect: next }),
       });
       const data = (await response.json().catch(() => ({}))) as { error?: string; previewUrl?: string };
 
@@ -50,78 +52,182 @@ export default function LoginPage() {
   const isSending = status.kind === "sending";
 
   return (
-    <MarketingLayout>
-      <div className="auth-page auth-two-panel wrap">
-        <section className="auth-brand">
-          <span className="auth-kicker">ADGA</span>
-          <h1>Sign in to the room where deals close.</h1>
-          <p>
-            One verified email gets you back into your pipeline, documents, and follow-up. No passwords. No friction.
+    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.05fr_1fr] bg-[#0d0c0a] text-white">
+      {/* LEFT — full panel brand */}
+      <aside className="relative isolate flex flex-col justify-between overflow-hidden px-10 py-12 sm:px-16 sm:py-16 bg-gradient-to-br from-[#3a1a8e] via-[#5d2cd6] to-[#7a46de]">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-50"
+          style={{
+            background:
+              "radial-gradient(800px 500px at 80% -10%, rgba(255,255,255,0.18), transparent 60%), radial-gradient(700px 600px at -10% 90%, rgba(0,0,0,0.35), transparent 60%)",
+          }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-30 mix-blend-overlay"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)",
+            backgroundSize: "44px 44px",
+            maskImage: "radial-gradient(ellipse 70% 60% at 50% 50%, #000 60%, transparent 100%)",
+          }}
+        />
+
+        <a href="/" className="relative z-10 inline-flex items-center gap-3 text-2xl font-semibold tracking-tight">
+          <span
+            aria-hidden
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/30 text-base font-bold"
+          >
+            A
+          </span>
+          ADGA
+        </a>
+
+        <div className="relative z-10 max-w-xl">
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium tracking-[0.14em] uppercase ring-1 ring-white/20">
+            <span className="h-1.5 w-1.5 rounded-full bg-white/90" /> The deal flow platform
+          </span>
+          <h1 className="mt-6 text-4xl font-semibold leading-[1.05] tracking-[-0.025em] sm:text-5xl lg:text-[56px]">
+            Close more deals, with the team that helps you close them.
+          </h1>
+          <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-white/75 sm:text-base">
+            Every contact, call, document, and next action stays tied to the deal — so closes happen on schedule, not by accident.
           </p>
-          <div className="auth-proof">
-            <span>Single-use sign-in link</span>
-            <span>15-minute expiration</span>
-            <span>Encrypted session after verify</span>
-          </div>
-        </section>
-
-        <div className="auth-card premium-surface">
-          {status.kind === "sent" ? (
-            <div className="auth-success">
-              <span className="ed-label">Check your email</span>
-              <h2>Your sign-in link is on the way.</h2>
-              <p className="muted">
-                Sent to <b>{status.email}</b>. The link expires in 15 minutes and only works once.
-              </p>
-              {status.previewUrl && (
-                <p className="auth-status-msg">
-                  Local preview: <a className="accent-link" href={status.previewUrl}>open verification link</a>
-                </p>
-              )}
-              <div className="auth-footer">
-                <button type="button" className="accent-link" onClick={() => setStatus({ kind: "idle" })}>
-                  Use a different email
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="auth-header">
-                <span className="ed-label">Sign in</span>
-                <h1>Sign in to ADGA.</h1>
-                <p className="muted">Enter your work email and we&apos;ll send a verification link to open your workspace.</p>
-              </div>
-
-              <form onSubmit={submit} className="auth-form premium-form" noValidate>
-                <div className="field">
-                  <label htmlFor="login-email">Email address</label>
-                  <input
-                    id="login-email"
-                    name="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    type="email"
-                    autoComplete="email"
-                    placeholder="you@company.com"
-                    required
-                    disabled={isSending}
-                  />
-                </div>
-                <button className="btn primary lg w-full" type="submit" disabled={isSending}>
-                  {isSending ? "Sending..." : "Send magic link"}
-                </button>
-                {status.kind === "error" && <p className="auth-status-msg" role="alert">{status.message}</p>}
-              </form>
-
-              <div className="auth-footer">
-                <p className="text-xs muted">
-                  New here? <a href="/pricing" className="accent-link">See pricing</a>.
-                </p>
-              </div>
-            </>
-          )}
+          <ul className="mt-8 grid gap-3 text-sm text-white/85 sm:text-[15px]">
+            {[
+              "Mindmap every party and artifact on a deal",
+              "Templates for Acquire, Series A, M&A, and more",
+              "Agents prepare the next move — you approve",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-3">
+                <span aria-hidden className="mt-1.5 inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-white/85" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
-    </MarketingLayout>
+
+        <div className="relative z-10 flex items-center gap-3 text-xs text-white/55">
+          <span>Single-use sign-in</span>
+          <span aria-hidden>·</span>
+          <span>Expires in 15 minutes</span>
+          <span aria-hidden>·</span>
+          <span>Encrypted sessions</span>
+        </div>
+      </aside>
+
+      {/* RIGHT — full-height form panel */}
+      <main className="flex flex-col bg-[#f9f7f4] text-[#0d0c0a]">
+        <div className="flex items-center justify-end gap-4 px-8 pt-8 text-sm text-[#6b6760]">
+          <span>New to ADGA?</span>
+          <a
+            href="/pricing"
+            className="rounded-full border border-[#e8e4de] bg-white px-4 py-1.5 text-[#0d0c0a] transition hover:border-[#5d2cd6] hover:text-[#5d2cd6]"
+          >
+            See pricing
+          </a>
+        </div>
+
+        <div className="flex flex-1 items-center justify-center px-6 py-10 sm:px-12">
+          <div className="w-full max-w-md">
+            {status.kind === "sent" ? (
+              <>
+                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">
+                  Check your email
+                </div>
+                <h2 className="text-3xl font-semibold tracking-tight">Your sign-in link is on the way.</h2>
+                <p className="mt-3 text-[15px] text-[#6b6760]">
+                  Sent to <b className="text-[#0d0c0a]">{status.email}</b>. The link expires in 15 minutes and only works once.
+                </p>
+                {status.previewUrl && (
+                  <p className="mt-4 text-sm">
+                    Local preview:{" "}
+                    <a className="text-[#5d2cd6] underline underline-offset-2" href={status.previewUrl}>
+                      open verification link
+                    </a>
+                  </p>
+                )}
+                <div className="mt-8 flex flex-col gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setStatus({ kind: "idle" })}
+                    className="text-sm font-medium text-[#5d2cd6] hover:underline"
+                  >
+                    ← Use a different email
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">
+                  Sign in
+                </div>
+                <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Welcome back.</h1>
+                <p className="mt-3 text-[15px] text-[#6b6760]">
+                  Enter your name and email and we&apos;ll send a verification link to open your workspace.
+                </p>
+
+                <form onSubmit={submit} className="mt-8 grid gap-5" noValidate>
+                  <div className="grid gap-2">
+                    <label htmlFor="login-first-name" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6b6760]">
+                      First name
+                    </label>
+                    <input
+                      id="login-first-name"
+                      name="first_name"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      type="text"
+                      autoComplete="given-name"
+                      placeholder="Maren"
+                      disabled={isSending}
+                      className="rounded-lg border border-[#e8e4de] bg-white px-4 py-3 text-[15px] outline-none transition focus:border-[#5d2cd6] focus:ring-2 focus:ring-[#5d2cd6]/15"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6b6760]">
+                      Email address
+                    </label>
+                    <input
+                      id="login-email"
+                      name="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      type="email"
+                      autoComplete="email"
+                      placeholder="you@company.com"
+                      required
+                      disabled={isSending}
+                      className="rounded-lg border border-[#e8e4de] bg-white px-4 py-3 text-[15px] outline-none transition focus:border-[#5d2cd6] focus:ring-2 focus:ring-[#5d2cd6]/15"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isSending}
+                    className="rounded-full bg-[#5d2cd6] px-5 py-3.5 text-[15px] font-semibold text-white shadow-[0_10px_30px_-12px_rgba(86,36,199,0.6)] transition hover:bg-[#4920b3] disabled:opacity-60"
+                  >
+                    {isSending ? "Sending magic link…" : "Send magic link"}
+                  </button>
+                  {status.kind === "error" && (
+                    <p role="alert" className="text-sm text-[#b91c1c]">
+                      {status.message}
+                    </p>
+                  )}
+                </form>
+
+                <p className="mt-8 text-xs text-[#6b6760]">
+                  By signing in you agree to ADGA&apos;s{" "}
+                  <a className="underline underline-offset-2" href="/terms">Terms</a> and{" "}
+                  <a className="underline underline-offset-2" href="/privacy">Privacy Policy</a>.
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+
+        <footer className="px-8 pb-8 text-xs text-[#9b9eb0]">© 2026 ADGA · Deal flow platform</footer>
+      </main>
+    </div>
   );
 }

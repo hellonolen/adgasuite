@@ -15,4 +15,8 @@ tsconfig.tsbuildinfo
 .playwright-mcp/
 audit-*.jpg
 audit-*.png
+# Local dev screenshots / dump artifacts — never tracked
+*.png
+*.jpg
+docs/COMPACT*.txt
 /tmp/
