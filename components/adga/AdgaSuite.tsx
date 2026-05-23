@@ -3,7 +3,8 @@
 
 import React from "react";
 import Script from "next/script";
-import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
   SUITE_ROUTES,
   SUITE_ROUTE_IDS as REGISTRY_ROUTE_IDS,
@@ -12,6 +13,17 @@ import {
   getSidebarGroups as registryGetSidebarGroups,
   resolveSuitePathname,
 } from "@/app/suite/routes";
+import { WORKSPACES, getWorkspaceContract } from "@/app/suite/workspaces";
+import { SuiteContextProvider, type SuiteContextValue } from "@/components/suite/suite-context";
+import { emitSuiteEvent } from "@/lib/events/hooks";
+import { KNOWLEDGE } from "@/lib/seed/knowledge";
+
+// Contract-driven workspace renderers. Each entry in WORKSPACES that ships with a real renderer
+// gets lazy-imported here. The shell prefers these over the inline route-switch below — the
+// inline switch is the legacy path that shrinks as more workspaces extract.
+const CONTRACT_WORKSPACE_RENDERERS: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
+  knowledge: React.lazy(() => import("@/components/suite/workspaces/KnowledgeWorkspace")),
+};
 
 declare global {
   interface Window {
@@ -848,17 +860,8 @@ const COMMENTS = [
   { who: 'p4', initials: 'TL', av: 3, time: '34m ago', text: 'On it. Pulling from VDR-2024-Q3. Should have them in the room within the hour.', mentions: [] },
 ];
 
-const KNOWLEDGE = [
-  { tag: 'Playbook',   title: 'Running a tight LOI negotiation',          desc: 'The 12-point checklist our team uses before going to LOI. Includes red-flag language and walk-away thresholds.', readers: 14, updated: 'Apr 28' },
-  { tag: 'Template',   title: 'Diligence request list — mid-market M&A',  desc: 'Battle-tested DD list covering 6 workstreams. Auto-populates the VDR request tracker.', readers: 88, updated: 'May 11' },
-  { tag: 'Playbook',   title: 'Stage-gating capital raises',              desc: 'How to use pipeline stages to enforce deal hygiene without slowing momentum.', readers: 22, updated: 'May 02' },
-  { tag: 'Reference',  title: 'Currency & FX policy',                     desc: 'How we report multi-currency deal values, hedging notes, and rate sources.', readers: 9,  updated: 'Mar 14' },
-  { tag: 'Playbook',   title: 'Buyer diligence for licensing deals',      desc: 'IP-heavy diligence patterns: chain of title, encumbrances, and field-of-use analysis.', readers: 31, updated: 'May 06' },
-  { tag: 'SOP',        title: 'Onboarding a counterparty to the VDR',     desc: 'Permissioning, watermarking, and audit log defaults for new external collaborators.', readers: 47, updated: 'May 17' },
-  { tag: 'Template',   title: 'Term sheet — growth equity',               desc: 'Modular term sheet with anti-dilution, ROFR, and board observer language.', readers: 56, updated: 'Apr 22' },
-  { tag: 'Compliance', title: 'ITAR & export-controlled deals',           desc: 'When ITAR applies and how to gate documents to cleared parties only.', readers: 12, updated: 'May 08' },
-  { tag: 'Reference',  title: 'Currency-weighted pipeline value',         desc: 'How forecast roll-ups handle FX as deals progress through stages.', readers: 6,  updated: 'Apr 03' },
-];
+// KNOWLEDGE seed moved to lib/seed/knowledge.ts and imported at the top of this file. The
+// constant remains in scope here for the legacy KnowledgePage fallback.
 
 // Demo conversation shown to unauthenticated previews only. A real signed-in user gets a clean
 // chat (see the real-user bootstrap effect in App). Keeping it specific but not making up exact
@@ -1009,6 +1012,7 @@ function getNav(ownerView) {
 }
 
 function Sidebar({ route, setRoute, collapsed, setCollapsed }) {
+  const router = useRouter();
   const [wsOpen, setWsOpen] = React.useState(false);
   const teams = TEAMS || [];
   const [activeTeamId, setActiveTeamId] = React.useState('all');
@@ -1022,14 +1026,14 @@ function Sidebar({ route, setRoute, collapsed, setCollapsed }) {
   return (
     <aside className={'sidebar ' + (collapsed ? 'collapsed' : 'open')}>
       <div className="sb-brand">
-        <button
+        <Link
+          href="/suite"
           className="sb-brand-link"
-          type="button"
-          onClick={() => { setRoute('home'); if (window.matchMedia('(max-width: 820px)').matches) setCollapsed(true); }}
+          onClick={() => { if (window.matchMedia('(max-width: 820px)').matches) setCollapsed(true); }}
           aria-label="Go to suite home"
         >
           <span className="sb-wordmark sb-wordmark-logo">ADGA</span>
-        </button>
+        </Link>
       </div>
 
       <div className="sb-workspace" style={{position:'relative'}}>
@@ -1091,28 +1095,20 @@ function Sidebar({ route, setRoute, collapsed, setCollapsed }) {
           <React.Fragment key={sec.section || ('group-' + secIdx)}>
             {sec.section && <div className="sb-section">{sec.section}</div>}
             {sec.items.map(it => (
-              <button
+              <Link
                 key={it.id}
-                type="button"
+                href={it.path || ROUTE_PATHS[it.id] || ('/suite/' + it.id)}
                 className={'sb-item ' + (route === it.id || route === (SUITE_ROUTE_ALIASES && SUITE_ROUTE_ALIASES[it.id]) ? 'active' : '')}
                 onClick={() => {
-                  // Clean-URL navigation — push the canonical /suite/<route> path so the URL bar
-                  // reflects where the user is. Internal route also updates so the workspace re-renders.
-                  setRoute(it.id);
-                  if (typeof window !== 'undefined') {
-                    try {
-                      window.localStorage.setItem('adga-suite-route', it.id);
-                      const path = it.path || ROUTE_PATHS[it.id] || ('/suite/' + it.id);
-                      window.history.pushState({ route: it.id }, '', path);
-                    } catch (e) {}
-                  }
+                  // Next.js Link drives the URL change. Persist the last route so reloads land here.
+                  try { window.localStorage.setItem('adga-suite-route', it.id); } catch (e) {}
                   if (window.matchMedia('(max-width: 820px)').matches) setCollapsed(true);
                 }}
               >
                 <span className="sb-label">{it.label}</span>
                 {it.indicator && <span style={{width:6,height:6,borderRadius:'50%',background:'var(--accent)',marginRight:6}}/>}
                 {it.badge != null && <span className="sb-badge">{it.badge}</span>}
-              </button>
+              </Link>
             ))}
           </React.Fragment>
         ))}
@@ -8006,18 +8002,16 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
   const [handoffDeal, setHandoffDeal] = React.useState(null);
   const [quickCreate, setQuickCreate] = React.useState(null);
   const [meetingInbox, setMeetingInbox] = React.useState([]);
+  // Programmatic nav — drives the URL through Next.js's router so it's the same code path as a
+  // <Link> click. Internal route state will sync via the pathname effect above.
+  const router = useRouter();
   const navigate = React.useCallback((next, options = {}) => {
     const normalized = normalizeSuiteRoute(next) || 'home';
     if (normalized === 'leads' && !options.keepLeadSelection) setSelectedLead(null);
-    setRoute(normalized);
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem('adga-suite-route', normalized);
-        const path = ROUTE_PATHS[normalized] || ('/suite/' + normalized);
-        window.history.pushState({ route: normalized }, '', path);
-      } catch (e) {}
-    }
-  }, []);
+    const path = ROUTE_PATHS[normalized] || ('/suite/' + normalized);
+    try { window.localStorage.setItem('adga-suite-route', normalized); } catch (e) {}
+    router.push(path);
+  }, [router]);
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -8088,6 +8082,8 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
   }, []);
 
   React.useEffect(() => {
+    // Persist the event to D1 (audit trail) and mirror it onto the client bus so any subscribed
+    // workspace can react via useSuiteEvent("suite.route_viewed", ...).
     fetch('/api/agent/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -8099,6 +8095,17 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
         payload: { route },
       }),
     }).catch(() => {});
+    emitSuiteEvent({
+      id: 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+      organization_id: 'org_adga_primary',
+      event_type: 'suite.route_viewed',
+      actor_type: 'user',
+      actor_id: null,
+      resource_type: 'suite_route',
+      resource_id: route,
+      created_at: new Date().toISOString(),
+      payload: { route },
+    } as any);
   }, [route]);
 
   // Expose openShare globally for any component to trigger
@@ -8130,7 +8137,21 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
     ? `Map · ${mapData.deal.name?.split(' — ')[0] || mapData.deal.name || ''}`.trim().replace(/·\s*$/, '')
     : (ROUTE_LABELS[route] || 'Home');
 
+  // Context value exposed to every extracted workspace. As more workspaces migrate out of this
+  // file, they'll consume from here instead of taking ad-hoc props through the route switch.
+  const suiteContextValue: SuiteContextValue = React.useMemo(() => ({
+    user: { id: CURRENT_USER.id, name: CURRENT_USER.name, role: (CURRENT_USER.role as any) || 'member' },
+    deals,
+    leads,
+    openDeal: setOpenDeal,
+    tweaks,
+    setTweak,
+    navigate,
+    setQuickCreate,
+  }), [deals, leads, tweaks, navigate]);
+
   return (
+    <SuiteContextProvider value={suiteContextValue}>
     <div className={'app ' + (!tweaks.sidebarCollapsed ? 'sidebar-open ' : 'sidebar-closed ') + (!tweaks.voiceCollapsed ? 'voice-open' : 'voice-closed')}>
       <Sidebar
         route={route}
@@ -8163,7 +8184,13 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
           {route === 'story'     && <StoryPage deals={deals} openDeal={setOpenDeal} focusDealId={focusDealId}/>}
           {route === 'crm'       && <CRMPage openDeal={setOpenDeal} deals={deals}/>}
           {route === 'documents' && <DocumentsPage deals={deals} openDeal={setOpenDeal}/>}
-          {route === 'knowledge' && <KnowledgePage/>}
+          {route === 'knowledge' && (
+            CONTRACT_WORKSPACE_RENDERERS.knowledge ? (
+              <React.Suspense fallback={<div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>Loading…</div>}>
+                {React.createElement(CONTRACT_WORKSPACE_RENDERERS.knowledge)}
+              </React.Suspense>
+            ) : <KnowledgePage/>
+          )}
           {route === 'intelligence' && <IntelligencePage deals={deals}/>}
           {route === 'voice-notes' && <VoiceNotesPage/>}
           {route === 'messaging' && <MessagingPage/>}
@@ -8245,6 +8272,7 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
       />
       {editMode && <ADGATweaks tweaks={tweaks} setTweak={setTweak}/>}
     </div>
+    </SuiteContextProvider>
   );
 }
 
