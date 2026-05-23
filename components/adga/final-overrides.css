@@ -59,13 +59,25 @@
     max-width: calc(100% - (var(--suite-gutter) * 2)) !important;
   }
 
+  /* Pipeline has 8 stages — make columns narrow enough that 4 fit at the cramped width
+     produced by sidebar + voice panel, and let the user clearly scroll for the other 4.
+     Visible thin scrollbar so the affordance isn't hidden. */
   .suite-shell .kanban {
-    grid-auto-columns: minmax(260px, calc((100% - 36px) / 3)) !important;
-    scrollbar-width: none;
+    grid-auto-columns: 220px !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(86, 36, 199, 0.35) transparent;
   }
 
   .suite-shell .kanban::-webkit-scrollbar {
-    display: none;
+    height: 8px;
+    display: block;
+  }
+  .suite-shell .kanban::-webkit-scrollbar-thumb {
+    background: rgba(86, 36, 199, 0.35);
+    border-radius: 999px;
+  }
+  .suite-shell .kanban::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
 
