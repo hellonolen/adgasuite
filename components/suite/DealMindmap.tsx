@@ -365,6 +365,58 @@ export function DealMindmap({
     try { window.localStorage.setItem("adga-map-edge-style", edgeStyle); } catch {}
   }, [edgeStyle]);
 
+  // Command bar state — the LLM prompt at the top of the canvas.
+  const [commandValue, setCommandValue] = React.useState("");
+  const [commandReply, setCommandReply] = React.useState<string | null>(null);
+  const [commandSubmitting, setCommandSubmitting] = React.useState(false);
+  const commandInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  // Drop-to-ingest overlay state.
+  const [ingestActive, setIngestActive] = React.useState(false);
+  const [ingesting, setIngesting] = React.useState(false);
+
+  // Live activity rail text. Subscribes to the client event bus mirror — events emitted by
+  // the suite (suite.route_viewed, agent_job.*, deal.* etc) reach here in real time.
+  const [activityText, setActivityText] = React.useState<string>("Map loaded · live");
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    let unmounted = false;
+    let dispose: (() => void) | undefined;
+    import("@/lib/events/hooks").then((mod) => {
+      if (unmounted) return;
+      // useSuiteEvent is a hook, but the underlying emitter is module-level. Use the lower
+      // level emit/subscribe via a tiny shim — open a synthetic channel by listening to a
+      // wildcard via BroadcastChannel directly.
+      if (!("BroadcastChannel" in window)) return;
+      const ch = new BroadcastChannel("adga:events");
+      const handler = (e: MessageEvent) => {
+        const ev = e.data as { event_type?: string; payload?: Record<string, unknown> };
+        if (!ev?.event_type) return;
+        const tag = ev.event_type.replace(/_/g, " ");
+        const detail = (ev.payload?.summary as string) || (ev.payload?.title as string) || (ev.payload?.label as string) || "";
+        setActivityText(detail ? `${tag} · ${detail}` : tag);
+      };
+      ch.onmessage = handler;
+      dispose = () => { ch.close(); };
+      // Touch mod so the dynamic import isn't tree-shaken out
+      void mod;
+    }).catch(() => {});
+    return () => { unmounted = true; if (dispose) dispose(); };
+  }, []);
+
+  // ⌘K focuses the command bar from anywhere on the map.
+  React.useEffect(() => {
+    if (readOnly) return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        commandInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [readOnly]);
+
   const canShare = Boolean(mapId) && !readOnly;
 
   const loadShare = React.useCallback(async () => {
@@ -737,30 +789,225 @@ export function DealMindmap({
           0%, 100% { transform: scale(1); opacity: 1; }
           50% { transform: scale(1.25); opacity: 0.75; }
         }
+        @keyframes premium-fade-in {
+          from { opacity: 0; transform: translateY(4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes premium-slide-right {
+          from { opacity: 0; transform: translateX(12px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
         .react-flow__attribution { display: none; }
         .react-flow__node { cursor: grab; }
         .react-flow__node.dragging { cursor: grabbing; }
         .react-flow__handle { transition: opacity 180ms ease; }
         .react-flow__node:hover .react-flow__handle { opacity: 1; }
+        .react-flow__controls { box-shadow: 0 4px 14px -6px rgba(15, 23, 42, 0.12) !important; background: rgba(255, 255, 255, 0.96) !important; border: 1px solid rgba(15, 23, 42, 0.08) !important; backdrop-filter: blur(10px); border-radius: 10px; }
+        .react-flow__controls button { background: transparent !important; border: 0 !important; color: rgba(15, 23, 42, 0.7) !important; }
+        .react-flow__controls button:hover { background: rgba(86, 36, 199, 0.08) !important; color: #5d2cd6 !important; }
+        .react-flow__minimap { border-radius: 12px !important; }
       `}</style>
 
       {/* Canvas */}
-      <div style={{ flex: 1, position: "relative", minWidth: 0 }}>
+      <div
+        style={{ flex: 1, position: "relative", minWidth: 0 }}
+        onDragOver={(e) => { e.preventDefault(); setIngestActive(true); }}
+        onDragLeave={(e) => { if (e.currentTarget === e.target) setIngestActive(false); }}
+        onDrop={async (e) => {
+          e.preventDefault();
+          setIngestActive(false);
+          const files = Array.from(e.dataTransfer?.files || []);
+          const text = e.dataTransfer?.getData("text/plain") || "";
+          if (files.length === 0 && !text) return;
+          setIngesting(true);
+          try {
+            // For now: fire an agent job describing the ingest. The Conductor agent picks it
+            // up via the event bus and creates the right node(s). Files are referenced by
+            // name; a follow-up upload pipeline lands them in R2.
+            await fetch("/api/agent/jobs", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                agent: "documents",
+                job_type: "map.ingest",
+                prompt: text || `Ingest ${files.length} dropped file(s): ${files.map(f => f.name).join(", ")}`,
+                context: { mapId, dealId: deal.id, fileNames: files.map(f => f.name), text },
+                run_now: true,
+              }),
+            }).catch(() => {});
+          } finally {
+            setIngesting(false);
+          }
+        }}
+      >
+        {/* Drop-to-ingest overlay — covers the canvas during dragover */}
+        {ingestActive && (
+          <div
+            style={{
+              position: "absolute", inset: 16, zIndex: 30,
+              border: "2px dashed rgba(86, 36, 199, 0.55)",
+              borderRadius: 18,
+              background: "rgba(86, 36, 199, 0.10)",
+              display: "grid", placeItems: "center",
+              pointerEvents: "none",
+              backdropFilter: "blur(2px)",
+              animation: "premium-fade-in 140ms ease",
+            }}
+          >
+            <div style={{ textAlign: "center", color: "rgba(255, 255, 255, 0.95)" }}>
+              <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.7, marginBottom: 8 }}>Drop to ingest</div>
+              <div style={{ fontSize: 22, fontWeight: 500 }}>The map will absorb whatever you drop</div>
+              <div style={{ marginTop: 8, fontSize: 13, opacity: 0.7 }}>Files · Emails · Voice notes · Contacts · URLs · Text</div>
+            </div>
+          </div>
+        )}
+
+        {/* LLM command bar — top center. Single primary input that controls the graph. */}
+        {!readOnly && (
+          <div
+            style={{
+              position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)",
+              zIndex: 20, width: "min(640px, calc(100% - 80px))",
+              animation: "premium-fade-in 200ms ease",
+            }}
+          >
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const value = commandValue.trim();
+                if (!value) return;
+                setCommandSubmitting(true);
+                try {
+                  const res = await fetch("/api/agent/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      messages: [{ role: "user", content: value }],
+                      context: {
+                        kind: "map",
+                        mapId,
+                        deal: { id: deal.id, name: deal.name, stage: deal.stage, value: deal.value, nextAction: deal.nextAction },
+                        nodeCount: nodes.length,
+                        edgeCount: edges.length,
+                      },
+                    }),
+                  });
+                  const json = await res.json().catch(() => null);
+                  setCommandReply(json?.message?.content || "");
+                  setCommandValue("");
+                  // Apply LLM-proposed actions to the graph if the engine returned any.
+                  for (const a of (json?.actions ?? [])) {
+                    if (a?.type === "add_node" && a.kind && a.label) {
+                      const id = `mnode_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+                      const newNode: Node = {
+                        id,
+                        type: "entity",
+                        position: { x: 100 + Math.random() * 320, y: 100 + Math.random() * 320 },
+                        data: { id, kind: a.kind, label: a.label, sublabel: a.sublabel, status: a.status || "neutral" } as unknown as Record<string, unknown>,
+                      };
+                      setNodes((nds) => [...nds, newNode]);
+                      const base = persistBaseRef.current;
+                      if (persistEnabled && base) {
+                        void fetch(`${base}/nodes`, {
+                          method: "POST", credentials: "include",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ id, kind: a.kind, label: a.label, sublabel: a.sublabel, status: a.status || "neutral", position: newNode.position }),
+                        }).catch(() => {});
+                      }
+                    }
+                  }
+                } finally {
+                  setCommandSubmitting(false);
+                }
+              }}
+            >
+              <div
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  background: "rgba(255, 255, 255, 0.92)",
+                  border: "1px solid rgba(15, 23, 42, 0.08)",
+                  borderRadius: 14,
+                  padding: "10px 14px",
+                  backdropFilter: "blur(16px)",
+                  boxShadow: "0 20px 60px -20px rgba(15, 23, 42, 0.22), 0 2px 8px -2px rgba(15, 23, 42, 0.08)",
+                }}
+              >
+                <span style={{ width: 8, height: 8, borderRadius: 999, background: commandSubmitting ? "#f59e0b" : "#5d2cd6", boxShadow: `0 0 12px ${commandSubmitting ? "#f59e0b" : "#5d2cd6"}` }} aria-hidden />
+                <input
+                  ref={commandInputRef}
+                  value={commandValue}
+                  onChange={(e) => setCommandValue(e.target.value)}
+                  placeholder="Ask ADGA, or tell the map what to do…"
+                  disabled={commandSubmitting}
+                  style={{
+                    flex: 1, background: "transparent", border: 0, outline: "none",
+                    color: "#0d0c0a", fontSize: 14, letterSpacing: "0.005em",
+                    fontFamily: "inherit",
+                  }}
+                />
+                <kbd style={{ fontSize: 10, letterSpacing: "0.08em", color: "#6b6760", border: "1px solid rgba(15, 23, 42, 0.12)", borderRadius: 4, padding: "1px 5px" }}>⌘K</kbd>
+              </div>
+              {commandReply && (
+                <div style={{
+                  marginTop: 8,
+                  padding: "10px 14px",
+                  background: "rgba(255, 255, 255, 0.96)",
+                  border: "1px solid rgba(15, 23, 42, 0.08)",
+                  borderRadius: 12,
+                  color: "#0d0c0a",
+                  fontSize: 13, lineHeight: 1.5,
+                  backdropFilter: "blur(16px)",
+                  animation: "premium-fade-in 160ms ease",
+                  boxShadow: "0 10px 30px -16px rgba(15, 23, 42, 0.18)",
+                }}>
+                  {commandReply}
+                </div>
+              )}
+            </form>
+          </div>
+        )}
+
+        {/* Live activity rail — bottom strip. Subscribes to bus events via useSuiteEvent
+            so the operator can see system pulse without leaving the map. */}
+        <div
+          style={{
+            position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)",
+            zIndex: 15, maxWidth: "min(720px, calc(100% - 280px))",
+            display: "flex", gap: 8, alignItems: "center",
+            background: "rgba(255, 255, 255, 0.92)",
+            border: "1px solid rgba(15, 23, 42, 0.08)",
+            borderRadius: 999, padding: "8px 14px",
+            backdropFilter: "blur(14px)",
+            fontSize: 11.5, letterSpacing: "0.02em",
+            color: "#0d0c0a",
+            boxShadow: "0 12px 40px -20px rgba(15, 23, 42, 0.18)",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+          }}
+          aria-label="Live activity"
+        >
+          <span style={{ width: 6, height: 6, borderRadius: 999, background: "#22c55e", boxShadow: "0 0 8px #22c55e" }} />
+          <span style={{ letterSpacing: "0.16em", fontSize: 10, textTransform: "uppercase", color: "#6b6760" }}>Live</span>
+          <span style={{ width: 1, height: 12, background: "rgba(15, 23, 42, 0.10)" }} />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{activityText}</span>
+        </div>
+
         {/* Floating toolbar — top-left */}
         {!readOnly && (
         <div
           style={{
             position: "absolute",
-            top: 14,
-            left: 14,
+            top: 16,
+            left: 16,
             zIndex: 10,
             display: "flex",
-            gap: 6,
-            background: "#ffffff",
-            border: "1px solid #e8e4de",
+            gap: 4,
+            background: "rgba(255, 255, 255, 0.92)",
+            border: "1px solid rgba(15, 23, 42, 0.08)",
             borderRadius: 12,
             padding: 4,
-            boxShadow: "0 10px 30px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04)",
+            backdropFilter: "blur(14px)",
+            boxShadow: "0 12px 36px -10px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.06)",
           }}
         >
           <div style={{ position: "relative" }}>
@@ -791,11 +1038,11 @@ export function DealMindmap({
                   left: 0,
                   marginTop: 6,
                   background: "#ffffff",
-                  border: "1px solid #e8e4de",
+                  border: "1px solid rgba(15, 23, 42, 0.08)",
                   borderRadius: 10,
                   padding: 4,
                   minWidth: 180,
-                  boxShadow: "0 18px 40px rgba(15, 23, 42, 0.10)",
+                  boxShadow: "0 18px 40px rgba(15, 23, 42, 0.12)",
                 }}
               >
                 {KINDS_TO_ADD.map((kind) => {
@@ -847,7 +1094,7 @@ export function DealMindmap({
           >
             Remove
           </button>
-          <div style={{ width: 1, background: "#e8e4de", margin: "4px 0" }} />
+          <div style={{ width: 1, background: "rgba(15, 23, 42, 0.08)", margin: "4px 0" }} />
           {/* Edge style toggle — flip every connection between curved (default) and straight. */}
           <div
             role="group"
@@ -877,7 +1124,7 @@ export function DealMindmap({
               </button>
             ))}
           </div>
-          <div style={{ width: 1, background: "#e8e4de", margin: "4px 0" }} />
+          <div style={{ width: 1, background: "rgba(15, 23, 42, 0.08)", margin: "4px 0" }} />
           {canShare && (
             <div style={{ position: "relative" }}>
               <button
@@ -1087,19 +1334,20 @@ export function DealMindmap({
             markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(15, 23, 42, 0.4)", width: 14, height: 14 },
           }}
         >
-          <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="rgba(15, 23, 42, 0.08)" />
+          <Background variant={BackgroundVariant.Dots} gap={26} size={1} color="rgba(15, 23, 42, 0.10)" />
           <Controls position="bottom-right" showInteractive={false} />
           <MiniMap
             position="bottom-left"
             pannable
             zoomable
             ariaLabel="Map overview"
-            maskColor="rgba(249, 247, 244, 0.72)"
+            maskColor="rgba(249, 247, 244, 0.74)"
             style={{
               border: "1px solid rgba(15, 23, 42, 0.08)",
-              borderRadius: 10,
-              background: "#ffffff",
+              borderRadius: 12,
+              background: "rgba(255, 255, 255, 0.94)",
               boxShadow: "0 4px 16px -8px rgba(15, 23, 42, 0.18)",
+              backdropFilter: "blur(10px)",
             }}
             nodeColor={(n) => {
               const kind = (n.data as { kind?: string } | undefined)?.kind || n.type;

@@ -2975,11 +2975,34 @@ body {
   background: transparent !important;
 }
 
-/* Map workspace fills the area edge-to-edge with no scroll — DealMindmap manages its own pan/zoom. */
+/* MAP MODE — the graph is the dominant surface. Keep light-mode chrome (per design system
+   rules: light mode is always the default), but collapse the sidebar to icon-only so the
+   canvas gets max horizontal real estate. The map canvas itself is warm off-white,
+   matching the rest of the suite, with subtle dot grid. */
 .suite-shell .workspace[data-route="map"] {
   position: relative !important;
   overflow: hidden !important;
   padding: 0 !important;
+}
+.suite-shell:has(.workspace[data-route="map"]) .sidebar {
+  width: 56px !important;
+  min-width: 56px !important;
+}
+.suite-shell:has(.workspace[data-route="map"]) .sidebar .sb-label,
+.suite-shell:has(.workspace[data-route="map"]) .sidebar .sb-section,
+.suite-shell:has(.workspace[data-route="map"]) .sidebar .sb-badge,
+.suite-shell:has(.workspace[data-route="map"]) .sidebar .sb-workspace,
+.suite-shell:has(.workspace[data-route="map"]) .sidebar .sb-brand {
+  display: none !important;
+}
+.suite-shell:has(.workspace[data-route="map"]) .sidebar .sb-item {
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  margin: 2px auto !important;
+  border-radius: 8px !important;
+  display: grid !important;
+  place-items: center !important;
 }
 
 /* Settings (and any future split-pane page) — left rail of section nav + content body. */
