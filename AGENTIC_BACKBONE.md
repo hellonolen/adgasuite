@@ -57,8 +57,26 @@ Every action persists to the `events` table in D1 (append-only — see route har
 `app/api/agent/events/route.ts`).
 
 ## MCP surface
-`mcp-server.ts` at root exposes the agentic capabilities declared in `routes.ts` and the skills in
-`skills/` as discoverable MCP tools.
+`mcp-server.ts` at root holds the canonical inventory generator. It's exposed through HTTP at:
+
+- `GET  /api/mcp`                           — full inventory: server identity, routes, workspaces,
+                                              actions, skills, tools, and live bus handler stats.
+- `POST /api/mcp { tool, arguments }`       — dispatch a tool call. Admin-gated. Actions whose
+                                              policy is `approval_required` return 202 with the
+                                              next-step direction; `owner_only` returns 403; `auto`
+                                              actions emit `agent_job.started` on the bus so the
+                                              platform's own agents handle the work.
+
+The inventory is generated from contracts — `app/suite/routes.ts` (route capabilities),
+`app/suite/workspaces.ts` (per-workspace actions + policies), `skills/*.skill.md`. Adding a row
+to any of those automatically widens the MCP surface — no separate registration step.
+
+## Replay surface
+- `GET /api/events/replay?from=ISO&to=ISO&event_type=X`   — windowed audit log access
+- `GET /api/events/replay?dead_letter=1`                  — parked failed events
+- Bus handlers that throw past `REPLAY_RETRY_BUDGET` (5) get parked in `event_dead_letter`
+  with their last error, awaiting operator review. Migration `0014_event_delivery_tracking.sql`
+  adds the supporting columns + table.
 
 ## Gaps
 See `GAPS.md` at root — top 10 revenue-tied gaps, refreshed every session.

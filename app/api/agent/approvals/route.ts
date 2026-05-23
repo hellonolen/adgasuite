@@ -1,6 +1,7 @@
 import { errorJson, json, readJson } from "@/lib/server/http";
-import { createAgentApproval, createEvent, listAgentApprovals, type AgentName } from "@/lib/server/repository";
+import { createAgentApproval, listAgentApprovals, type AgentName } from "@/lib/server/repository";
 import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
+import { publish } from "@/lib/events/bus";
 
 const agents = new Set(["conductor", "sales", "intelligence", "documents", "operations", "communication", "payments"]);
 
@@ -38,14 +39,19 @@ export async function POST(request: Request) {
     payload: body.payload || {},
   });
 
-  await createEvent(context.env.DB, {
+  await publish(context.env.DB, {
     organization_id: approval.organization_id,
-    event_type: "agent_approval.created",
+    event_type: "agent_approval.requested",
     actor_type: "user",
     actor_id: context.user.email,
     resource_type: "agent_approval",
     resource_id: approval.id,
-    payload: { agent: approval.agent, title: approval.title, risk: approval.risk },
+    payload: {
+      approval_id: approval.id,
+      agent: approval.agent,
+      title: approval.title,
+      risk: approval.risk,
+    },
   });
 
   return json({ ok: true, approval });

@@ -1,6 +1,7 @@
 import { errorJson, json, readJson } from "@/lib/server/http";
-import { createEvent, decideAgentApproval } from "@/lib/server/repository";
+import { decideAgentApproval } from "@/lib/server/repository";
 import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
+import { publish } from "@/lib/events/bus";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const context = getRuntimeContext(request);
@@ -25,7 +26,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   if (!approval) return errorJson("approval not found.", 404);
 
-  await createEvent(context.env.DB, {
+  await publish(context.env.DB, {
     organization_id: approval.organization_id,
     event_type: `agent_approval.${approval.status}`,
     actor_type: "user",
@@ -33,6 +34,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     resource_type: "agent_approval",
     resource_id: approval.id,
     payload: {
+      approval_id: approval.id,
       agent: approval.agent,
       title: approval.title,
       resource_type: approval.resource_type,

@@ -2,6 +2,7 @@ import { runAgentJob } from "@/lib/agents/engine";
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { completeAgentJob, createAgentJob, listAgentJobs, type AgentName } from "@/lib/server/repository";
 import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
+import { publish } from "@/lib/events/bus";
 
 const agents = new Set(["conductor", "sales", "intelligence", "documents", "operations", "communication", "payments"]);
 
@@ -38,14 +39,42 @@ export async function POST(request: Request) {
     },
   });
 
+  // Every job creation fans through the bus so subscribers (Conductor, Intelligence) react.
+  await publish(context.env.DB, {
+    organization_id: job.organization_id || "org_adga_primary",
+    event_type: "agent_job.started",
+    actor_type: "user",
+    actor_id: context.user.email || "anonymous",
+    resource_type: "agent_job",
+    resource_id: job.id,
+    payload: { job_id: job.id, agent, job_type: job.job_type },
+  });
+
   if (body.run_now === false) return json({ ok: true, job });
 
-  const output = await runAgentJob(context.env, job);
-  const completed = await completeAgentJob(context.env.DB, job, output);
-
-  return json({
-    ok: true,
-    job: completed,
-    output,
-  });
+  try {
+    const output = await runAgentJob(context.env, job);
+    const completed = await completeAgentJob(context.env.DB, job, output);
+    await publish(context.env.DB, {
+      organization_id: job.organization_id || "org_adga_primary",
+      event_type: "agent_job.completed",
+      actor_type: "agent",
+      actor_id: agent,
+      resource_type: "agent_job",
+      resource_id: job.id,
+      payload: { job_id: job.id, agent, summary: (output as any)?.summary },
+    });
+    return json({ ok: true, job: completed, output });
+  } catch (err) {
+    await publish(context.env.DB, {
+      organization_id: job.organization_id || "org_adga_primary",
+      event_type: "agent_job.failed",
+      actor_type: "agent",
+      actor_id: agent,
+      resource_type: "agent_job",
+      resource_id: job.id,
+      payload: { job_id: job.id, agent, error: err instanceof Error ? err.message : String(err) },
+    });
+    throw err;
+  }
 }

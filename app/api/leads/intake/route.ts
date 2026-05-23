@@ -1,5 +1,6 @@
 import { json, readJson } from "@/lib/server/http";
-import { createAgentJob, createEvent } from "@/lib/server/repository";
+import { createAgentJob } from "@/lib/server/repository";
+import { publish } from "@/lib/events/bus";
 import { newId, nowIso } from "@/lib/server/id";
 import { getRuntimeContext } from "@/lib/server/runtime";
 
@@ -87,14 +88,14 @@ export async function POST(request: Request) {
       .run();
   } catch {}
 
-  await createEvent(context.env.DB, {
+  await publish(context.env.DB, {
     organization_id: org,
-    event_type: "lead.intake_submitted",
+    event_type: "lead.captured",
     actor_type: "system",
     actor_id: "public-intake",
     resource_type: "lead",
     resource_id: record.id,
-    payload: { record },
+    payload: { lead_id: record.id, source: "public-intake", record },
   });
 
   await createAgentJob(context.env.DB, {
