@@ -2033,6 +2033,47 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         </div>
       )}
 
+      {/* Map-aware suggestion row — when ADGA is sitting on a map, show 4 one-tap prompts
+          that are specific to the deal context. Click sends the prompt straight through the
+          existing send() pipeline so the chat fans into the bus the same way as typing. */}
+      {panelTab === 'chat' && activeContext?.kind === 'map' && activeContext.deal && (
+        <div
+          style={{
+            padding: '10px 12px 4px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 6,
+            borderBottom: '1px solid var(--rule, #e8e4de)',
+          }}
+        >
+          {[
+            { label: 'What\'s the next move?', prompt: `On the ${activeContext.deal.name?.split(' — ')[0] || 'deal'} map, what's the highest-leverage next action right now?` },
+            { label: 'Who haven\'t we reached?', prompt: `Who is on the ${activeContext.deal.name?.split(' — ')[0] || 'deal'} map that we haven't actually had a conversation with yet?` },
+            { label: 'Draft the next message', prompt: `Draft the next outreach message I should send on the ${activeContext.deal.name?.split(' — ')[0] || 'deal'} map.` },
+            { label: 'Where\'s the risk?', prompt: `Looking at the ${activeContext.deal.name?.split(' — ')[0] || 'deal'} map, where's the biggest risk to closing on schedule?` },
+          ].map((s) => (
+            <button
+              key={s.label}
+              type="button"
+              onClick={() => { setDraft(s.prompt); setTimeout(send, 0); }}
+              style={{
+                fontSize: 11,
+                padding: '6px 10px',
+                borderRadius: 999,
+                border: '1px solid rgba(86, 36, 199, 0.2)',
+                background: 'rgba(86, 36, 199, 0.04)',
+                color: 'var(--adga-accent, #5d2cd6)',
+                cursor: 'pointer',
+                fontWeight: 500,
+                lineHeight: 1.2,
+              }}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="voice-body" ref={bodyRef}>
         {panelTab === 'history' ? (
           <div className="voice-history-panel">
