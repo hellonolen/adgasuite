@@ -349,6 +349,21 @@ export function DealMindmap({
   const [shareError, setShareError] = React.useState<string | null>(null);
   const [sharePermission, setSharePermission] = React.useState<string>("view");
   const [copyState, setCopyState] = React.useState<"idle" | "copied">("idle");
+  // Edge style — user can flip between curved (bezier) and straight lines. Persisted to
+  // localStorage so the choice survives reloads. Curved is the default per user preference.
+  const [edgeStyle, setEdgeStyle] = React.useState<"curved" | "straight">(() => {
+    if (typeof window === "undefined") return "curved";
+    try {
+      const stored = window.localStorage.getItem("adga-map-edge-style");
+      return stored === "straight" ? "straight" : "curved";
+    } catch {
+      return "curved";
+    }
+  });
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    try { window.localStorage.setItem("adga-map-edge-style", edgeStyle); } catch {}
+  }, [edgeStyle]);
 
   const canShare = Boolean(mapId) && !readOnly;
 
@@ -833,6 +848,36 @@ export function DealMindmap({
             Remove
           </button>
           <div style={{ width: 1, background: "#e8e4de", margin: "4px 0" }} />
+          {/* Edge style toggle — flip every connection between curved (default) and straight. */}
+          <div
+            role="group"
+            aria-label="Edge style"
+            style={{ display: "inline-flex", padding: 2, borderRadius: 8, background: "rgba(15, 23, 42, 0.04)" }}
+          >
+            {(["curved", "straight"] as const).map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setEdgeStyle(opt)}
+                title={opt === "curved" ? "Curved edges" : "Straight edges"}
+                style={{
+                  padding: "5px 10px",
+                  border: 0,
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontSize: 11.5,
+                  fontWeight: 500,
+                  background: edgeStyle === opt ? "#ffffff" : "transparent",
+                  color: edgeStyle === opt ? "#0d0c0a" : "#6b6760",
+                  boxShadow: edgeStyle === opt ? "0 1px 3px rgba(15, 23, 42, 0.10)" : "none",
+                  textTransform: "capitalize",
+                }}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+          <div style={{ width: 1, background: "#e8e4de", margin: "4px 0" }} />
           {canShare && (
             <div style={{ position: "relative" }}>
               <button
@@ -1012,7 +1057,7 @@ export function DealMindmap({
 
         <ReactFlow
           nodes={nodes}
-          edges={edges}
+          edges={React.useMemo(() => edges.map(e => ({ ...e, type: edgeStyle === "straight" ? "straight" : "default" })), [edges, edgeStyle])}
           nodeTypes={nodeTypes}
           onNodesChange={handleNodesChange}
           onEdgesChange={handleEdgesChange}
@@ -1036,7 +1081,7 @@ export function DealMindmap({
           snapGrid={[16, 16]}
           deleteKeyCode={readOnly ? [] : ["Backspace", "Delete"]}
           defaultEdgeOptions={{
-            type: "smoothstep",
+            type: edgeStyle === "straight" ? "straight" : "default",
             animated: false,
             style: { stroke: "rgba(15, 23, 42, 0.32)", strokeWidth: 1.25 },
             markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(15, 23, 42, 0.4)", width: 14, height: 14 },
