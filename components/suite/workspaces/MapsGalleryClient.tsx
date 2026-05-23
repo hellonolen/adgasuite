@@ -1,15 +1,12 @@
 "use client";
 
 /**
- * Maps gallery client — fed by the server-side /suite/maps page. Renders inside the suite
- * layout's workspace area; the shell (sidebar, topbar, voice panel) is provided by the layout.
+ * Maps gallery — list of deal maps. The "workspace mindmap" overview graph that used to
+ * sit above the list was deleted: only one mind map exists in the product, and that's the
+ * deal map at /suite/map/<id>.
  */
 
-import { WorkspaceMindmap, type WorkspaceContact, type WorkspaceDeal } from "@/components/suite/WorkspaceMindmap";
-
 export interface MapsGalleryData {
-  dealsForMap: WorkspaceDeal[];
-  contacts: WorkspaceContact[];
   gallery: Array<{
     id: string;
     name: string;
@@ -35,15 +32,13 @@ function relTime(iso: string | null | undefined) {
 }
 
 export default function MapsGalleryClient({ data }: { data: MapsGalleryData }) {
-  const sharedCount = (data.contacts || []).filter((c) => (c.dealIds || []).length > 1).length;
-
   return (
     <div style={{ padding: "0 var(--suite-gutter, 32px) 48px", display: "flex", flexDirection: "column", gap: 28 }}>
       <div className="page-h">
         <div>
           <h1>Maps.</h1>
           <div className="sub">
-            Every active deal as a cluster · {data.dealsForMap.length} deals · {sharedCount} shared contact{sharedCount === 1 ? "" : "s"} connect across deals.
+            {data.gallery.length} {data.gallery.length === 1 ? "deal map" : "deal maps"}. Open any one to see every person, file, call, and task attached.
           </div>
         </div>
         <div className="page-actions">
@@ -53,26 +48,7 @@ export default function MapsGalleryClient({ data }: { data: MapsGalleryData }) {
         </div>
       </div>
 
-      <section className="card" style={{ overflow: "hidden" }}>
-        <div className="card-h">
-          <div>
-            <div className="ttl">Workspace map</div>
-            <div className="sub">All active deals and the contacts that connect them.</div>
-          </div>
-        </div>
-        <div style={{ height: 560, position: "relative" }}>
-          <WorkspaceMindmap deals={data.dealsForMap} contacts={data.contacts} />
-        </div>
-      </section>
-
       <section>
-        <div className="card-h" style={{ padding: "0 0 12px" }}>
-          <div>
-            <div className="ttl">Deal maps</div>
-            <div className="sub">Open any map to see every person, file, call, and task attached to a deal.</div>
-          </div>
-          <span className="text-xs muted">{data.gallery.length} maps</span>
-        </div>
         {data.gallery.length === 0 ? (
           <div style={{ border: "1px dashed var(--rule, #e8e4de)", borderRadius: 16, background: "#ffffff", padding: 48, textAlign: "center" }}>
             <div style={{ fontSize: 15, fontWeight: 500, color: "var(--text, #0d0c0a)" }}>No deal maps yet</div>
