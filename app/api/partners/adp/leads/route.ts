@@ -133,6 +133,179 @@ async function sha256Hex(value: string) {
     .join("");
 }
 
+function formatValue(value: unknown) {
+  if (Array.isArray(value)) return value.length ? value.join(", ") : "Not provided";
+  if (value === true) return "Yes";
+  if (value === false) return "No";
+  return String(value || "Not provided");
+}
+
+function detailCell(label: string, value: unknown) {
+  return `<td style="padding:14px 16px;border:1px solid #dde3df;background:#fbfcfa;border-radius:14px;vertical-align:top;">
+    <div style="font-size:10px;line-height:1.2;color:#64706b;font-weight:800;text-transform:uppercase;letter-spacing:.12em;">${escapeHtml(label)}</div>
+    <div style="margin-top:7px;font-size:15px;line-height:1.45;color:#161a18;font-weight:700;">${escapeHtml(formatValue(value))}</div>
+  </td>`;
+}
+
+function detailRow(label: string, value: unknown) {
+  return `<tr>
+    <td style="padding:13px 0;border-bottom:1px solid #e4e8e5;vertical-align:top;width:210px;">
+      <div style="font-size:11px;line-height:1.2;color:#64706b;font-weight:800;text-transform:uppercase;letter-spacing:.1em;">${escapeHtml(label)}</div>
+    </td>
+    <td style="padding:13px 0 13px 18px;border-bottom:1px solid #e4e8e5;vertical-align:top;">
+      <div style="font-size:14px;line-height:1.55;color:#161a18;font-weight:650;">${escapeHtml(formatValue(value))}</div>
+    </td>
+  </tr>`;
+}
+
+function needsListHtml(needs: string[]) {
+  return needs
+    .map(
+      (need) =>
+        `<span style="display:inline-block;margin:0 7px 7px 0;padding:8px 11px;border-radius:999px;background:#edf4f1;border:1px solid #d8e5df;color:#253b33;font-size:12px;line-height:1;font-weight:800;">${escapeHtml(need)}</span>`,
+    )
+    .join("");
+}
+
+function buildAdpLeadEmailHtml(lead: StoredAdpLead, timestamp: string, trackingPixelUrl: string) {
+  const detailRows = [
+    ["ADGA lead ID", lead.id],
+    ["Organization ID", lead.organization_id],
+    ["Partner", `${lead.partner_name} (${lead.partner_slug})`],
+    ["ADGA partner lead #", lead.referral_number],
+    ["ADP affiliate code", lead.affiliate_code],
+    ["Affiliate URL", lead.affiliate_url],
+    ["Full name", lead.full_name],
+    ["Email", lead.email],
+    ["Phone", lead.phone],
+    ["Company", lead.company],
+    ["Position / role", lead.job_title],
+    ["Company size", lead.company_size],
+    ["State", lead.state],
+    ["Payroll timing", lead.payroll_timing],
+    ["Current payroll provider", lead.current_payroll_provider],
+    ["What they need", lead.needs],
+    ["Purpose / conversation context", lead.notes],
+    ["Consent to contact", lead.consent_to_contact],
+    ["Source path", lead.source_path],
+    ["Submitted at", lead.submitted_at],
+    ["Notification created at", timestamp],
+  ]
+    .map(([label, value]) => detailRow(String(label), value))
+    .join("");
+
+  return `<!doctype html>
+<html>
+  <body style="margin:0;background:#eef1ee;font-family:Inter,Arial,Helvetica,sans-serif;color:#161a18;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef1ee;padding:34px 14px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:760px;background:#fffefb;border:1px solid #dbe1dc;border-radius:22px;overflow:hidden;box-shadow:0 24px 70px rgba(21,30,26,0.14);">
+            <tr>
+              <td style="padding:30px 36px 26px;background:#111715;color:#ffffff;">
+                <div style="font-size:11px;line-height:1;color:#a7b9b0;font-weight:900;text-transform:uppercase;letter-spacing:.16em;">ADGA partner referral</div>
+                <h1 style="margin:14px 0 0;font-size:32px;line-height:1.06;letter-spacing:-.025em;font-weight:900;color:#ffffff;">New ADP payroll lead ready for follow-up</h1>
+                <p style="margin:12px 0 0;font-size:15px;line-height:1.6;color:#d8e2dd;">Lead #${escapeHtml(lead.referral_number)} was stored by ADGA before this notification was sent.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px 36px 8px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td style="padding:0 0 22px;">
+                      <div style="font-size:11px;line-height:1;color:#64706b;font-weight:900;text-transform:uppercase;letter-spacing:.14em;">Primary contact</div>
+                      <div style="margin-top:9px;font-size:28px;line-height:1.15;letter-spacing:-.015em;font-weight:900;color:#161a18;">${escapeHtml(lead.full_name)}</div>
+                      <div style="margin-top:7px;font-size:15px;line-height:1.45;color:#53605a;">${escapeHtml(lead.job_title)} · ${escapeHtml(lead.company)}</div>
+                    </td>
+                  </tr>
+                </table>
+
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0 12px;">
+                  <tr>
+                    ${detailCell("Email", lead.email)}
+                    <td style="width:12px;"></td>
+                    ${detailCell("Phone", lead.phone)}
+                  </tr>
+                  <tr>
+                    ${detailCell("Company size", lead.company_size)}
+                    <td style="width:12px;"></td>
+                    ${detailCell("State", lead.state)}
+                  </tr>
+                  <tr>
+                    ${detailCell("Payroll timing", lead.payroll_timing)}
+                    <td style="width:12px;"></td>
+                    ${detailCell("Current provider", lead.current_payroll_provider)}
+                  </tr>
+                </table>
+
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:10px;background:#f4f8f6;border:1px solid #dce7e1;border-radius:18px;">
+                  <tr>
+                    <td style="padding:22px;">
+                      <div style="font-size:11px;line-height:1;color:#53665d;font-weight:900;text-transform:uppercase;letter-spacing:.14em;">What they are looking for</div>
+                      <div style="margin-top:13px;">${needsListHtml(lead.needs)}</div>
+                    </td>
+                  </tr>
+                </table>
+
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:16px;background:#fbfcfa;border:1px solid #dde3df;border-radius:18px;">
+                  <tr>
+                    <td style="padding:22px;">
+                      <div style="font-size:11px;line-height:1;color:#64706b;font-weight:900;text-transform:uppercase;letter-spacing:.14em;">Purpose and conversation context</div>
+                      <p style="margin:12px 0 0;font-size:16px;line-height:1.62;color:#161a18;">${escapeHtml(lead.notes)}</p>
+                    </td>
+                  </tr>
+                </table>
+
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:16px;background:#f6f4f1;border:1px solid #dfded9;border-radius:18px;">
+                  <tr>
+                    <td style="padding:22px;">
+                      <div style="font-size:11px;line-height:1;color:#65645f;font-weight:900;text-transform:uppercase;letter-spacing:.14em;">Referral record</div>
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:8px;border-collapse:collapse;">
+                        ${detailRows}
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:18px 0 22px;font-size:12px;line-height:1.5;color:#6f7772;">This message contains the full lead details submitted through the ADGA ADP form. No call-to-action links are included in the email body.</p>
+              </td>
+            </tr>
+          </table>
+          <img src="${trackingPixelUrl.replace(/&/g, "&amp;")}" width="1" height="1" alt="" style="display:none;border:0;height:1px;width:1px;" />
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+function buildAdpLeadTextBody(lead: StoredAdpLead, timestamp: string) {
+  return [
+    "New ADP payroll lead ready for follow-up",
+    `ADGA lead ID: ${lead.id}`,
+    `Organization ID: ${lead.organization_id}`,
+    `Partner: ${lead.partner_name} (${lead.partner_slug})`,
+    `ADGA partner lead #: ${lead.referral_number}`,
+    `ADP affiliate code: ${lead.affiliate_code}`,
+    `Affiliate URL: ${lead.affiliate_url}`,
+    `Submitted at: ${lead.submitted_at}`,
+    `Notification created at: ${timestamp}`,
+    `Full name: ${lead.full_name}`,
+    `Email: ${lead.email}`,
+    `Phone: ${lead.phone}`,
+    `Company: ${lead.company}`,
+    `Position / role: ${lead.job_title}`,
+    `Company size: ${lead.company_size || "Not provided"}`,
+    `State: ${lead.state || "Not provided"}`,
+    `Payroll timing: ${lead.payroll_timing || "Not provided"}`,
+    `Current payroll provider: ${lead.current_payroll_provider || "Not provided"}`,
+    `What they need: ${lead.needs.join(", ") || "Not provided"}`,
+    `Purpose / conversation context: ${lead.notes || "Not provided"}`,
+    `Consent to contact: ${lead.consent_to_contact ? "Yes" : "No"}`,
+    `Source path: ${lead.source_path}`,
+  ].join("\n");
+}
+
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
   const body = await readJson<AdpLeadBody>(request);
@@ -233,104 +406,7 @@ export async function POST(request: Request) {
   });
 
   const trackingPixelUrl = `${origin}/api/partners/adp/email-open?lead=${encodeURIComponent(lead.id)}&partner=${encodeURIComponent(ADP_AFFILIATE_CODE)}`;
-  const needsHtml = needs
-    .map((need) => `<span style="display:inline-block;margin:0 6px 6px 0;padding:7px 10px;border-radius:999px;background:#eef7f1;color:#176339;font-size:12px;font-weight:700;">${escapeHtml(need)}</span>`)
-    .join("");
-  const htmlBody = `<!doctype html>
-<html>
-  <body style="margin:0;background:#f5f6f4;font-family:Arial,Helvetica,sans-serif;color:#171a1f;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f6f4;padding:28px 14px;">
-      <tr>
-        <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;background:#ffffff;border:1px solid #e3e6df;border-radius:16px;overflow:hidden;">
-            <tr>
-              <td style="padding:26px 30px;background:#15221a;color:#ffffff;">
-                <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#9be7b4;">ADGA partner referral #${escapeHtml(lead.referral_number)}</div>
-                <h1 style="margin:10px 0 0;font-size:28px;line-height:1.15;font-weight:800;">New payroll conversation ready for follow-up</h1>
-                <p style="margin:10px 0 0;color:#dce9de;font-size:14px;">Lead saved in ADGA before this notification was sent.</p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:24px 30px 10px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                  <tr>
-                    <td style="padding:0 0 14px;">
-                      <div style="font-size:12px;color:#6f756d;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Primary contact</div>
-                      <div style="margin-top:6px;font-size:24px;line-height:1.2;font-weight:800;color:#171a1f;">${escapeHtml(lead.full_name)}</div>
-                      <div style="margin-top:4px;font-size:14px;color:#4f574f;">${escapeHtml(lead.job_title)} at ${escapeHtml(lead.company)}</div>
-                    </td>
-                  </tr>
-                </table>
-
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:8px;border-collapse:separate;border-spacing:0 10px;">
-                  <tr>
-                    <td style="width:50%;padding:14px;border:1px solid #e6e9e3;border-radius:12px;background:#fafbf8;">
-                      <div style="font-size:11px;color:#7a8178;font-weight:800;text-transform:uppercase;letter-spacing:.08em;">Email</div>
-                      <div style="margin-top:5px;font-size:15px;font-weight:700;color:#171a1f;">${escapeHtml(lead.email)}</div>
-                    </td>
-                    <td style="width:12px;"></td>
-                    <td style="width:50%;padding:14px;border:1px solid #e6e9e3;border-radius:12px;background:#fafbf8;">
-                      <div style="font-size:11px;color:#7a8178;font-weight:800;text-transform:uppercase;letter-spacing:.08em;">Phone</div>
-                      <div style="margin-top:5px;font-size:15px;font-weight:700;color:#171a1f;">${escapeHtml(lead.phone)}</div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="width:50%;padding:14px;border:1px solid #e6e9e3;border-radius:12px;background:#fafbf8;">
-                      <div style="font-size:11px;color:#7a8178;font-weight:800;text-transform:uppercase;letter-spacing:.08em;">Company size</div>
-                      <div style="margin-top:5px;font-size:15px;font-weight:700;color:#171a1f;">${escapeHtml(lead.company_size || "Not provided")}</div>
-                    </td>
-                    <td style="width:12px;"></td>
-                    <td style="width:50%;padding:14px;border:1px solid #e6e9e3;border-radius:12px;background:#fafbf8;">
-                      <div style="font-size:11px;color:#7a8178;font-weight:800;text-transform:uppercase;letter-spacing:.08em;">State</div>
-                      <div style="margin-top:5px;font-size:15px;font-weight:700;color:#171a1f;">${escapeHtml(lead.state || "Not provided")}</div>
-                    </td>
-                  </tr>
-                </table>
-
-                <div style="margin-top:18px;padding:18px;border:1px solid #dce7dd;border-radius:14px;background:#f3faf5;">
-                  <div style="font-size:12px;color:#176339;font-weight:800;text-transform:uppercase;letter-spacing:.08em;">What they are looking for</div>
-                  <div style="margin-top:10px;">${needsHtml}</div>
-                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:12px;">
-                    <tr>
-                      <td style="padding:10px 0;border-top:1px solid #dce7dd;">
-                        <div style="font-size:12px;color:#586157;font-weight:800;">Timing</div>
-                        <div style="margin-top:4px;font-size:15px;color:#171a1f;">${escapeHtml(lead.payroll_timing)}</div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding:10px 0;border-top:1px solid #dce7dd;">
-                        <div style="font-size:12px;color:#586157;font-weight:800;">Current provider</div>
-                        <div style="margin-top:4px;font-size:15px;color:#171a1f;">${escapeHtml(lead.current_payroll_provider || "Not provided")}</div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding:10px 0 0;border-top:1px solid #dce7dd;">
-                        <div style="font-size:12px;color:#586157;font-weight:800;">Purpose and conversation context</div>
-                        <div style="margin-top:6px;font-size:15px;line-height:1.55;color:#171a1f;">${escapeHtml(lead.notes)}</div>
-                      </td>
-                    </tr>
-                  </table>
-                </div>
-
-                <div style="margin-top:18px;padding:16px;border-radius:12px;background:#f8f4ea;border:1px solid #eadfca;">
-                  <div style="font-size:12px;color:#7b5b13;font-weight:800;text-transform:uppercase;letter-spacing:.08em;">Referral details</div>
-                  <p style="margin:8px 0 0;font-size:14px;color:#332b1c;"><strong>ADGA PIC code:</strong> ${ADP_AFFILIATE_CODE}</p>
-                  <p style="margin:5px 0 0;font-size:14px;color:#332b1c;"><strong>ADGA partner lead #:</strong> ${escapeHtml(lead.referral_number)}</p>
-                  <p style="margin:5px 0 0;font-size:14px;color:#332b1c;"><strong>Referral hub:</strong> ${ADP_REFERRAL_LINK.replace(/&/g, "&amp;")}</p>
-                  <p style="margin:5px 0 0;font-size:14px;color:#332b1c;"><strong>Submitted:</strong> ${escapeHtml(timestamp)}</p>
-                  <p style="margin:5px 0 0;font-size:14px;color:#332b1c;"><strong>Consent to contact:</strong> Yes</p>
-                </div>
-
-                <p style="margin:18px 0 0;font-size:12px;line-height:1.45;color:#747a73;">This notification is sent only after ADGA stores the lead record with full contact information and consent.</p>
-              </td>
-            </tr>
-          </table>
-          <img src="${trackingPixelUrl.replace(/&/g, "&amp;")}" width="1" height="1" alt="" style="display:none;border:0;height:1px;width:1px;" />
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
+  const htmlBody = buildAdpLeadEmailHtml(lead, timestamp, trackingPixelUrl);
 
   try {
     await context.env.DB.prepare(
@@ -356,24 +432,7 @@ export async function POST(request: Request) {
       to: toEmail,
       subject: `ADP affiliate payroll referral #${lead.referral_number}: ${lead.full_name}`,
       htmlBody,
-      textBody: [
-        "New ADP affiliate payroll referral",
-        `ADGA partner lead #: ${lead.referral_number}`,
-        `ADGA PIC code: ${ADP_AFFILIATE_CODE}`,
-        "ADP contact: Matthew Ganton <matt.ganton@adp.com>",
-        `Referral hub: ${ADP_REFERRAL_LINK}`,
-        `Submitted: ${timestamp}`,
-        `Name: ${lead.full_name}`,
-        `Email: ${lead.email}`,
-        `Phone: ${lead.phone}`,
-        `Company: ${lead.company}`,
-        `Company size: ${lead.company_size || "Not provided"}`,
-        `State: ${lead.state || "Not provided"}`,
-        `Payroll timing: ${lead.payroll_timing || "Not provided"}`,
-        `Current provider: ${lead.current_payroll_provider || "Not provided"}`,
-        `Needs: ${needs.join(", ") || "Payroll setup"}`,
-        `Notes: ${lead.notes || "None"}`,
-      ].join("\n"),
+      textBody: buildAdpLeadTextBody(lead, timestamp),
     },
     context.env,
   );
