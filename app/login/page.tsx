@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { z } from "zod";
+import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 
 const emailSchema = z.string().email("Enter a valid work email.");
 
@@ -92,28 +93,12 @@ export default function LoginPage() {
         }
         @media (max-width: 640px) {
           .login-auth-page .login-proof { display: none !important; }
-          .login-auth-page .login-shell { padding-top: 18px !important; }
-          .login-auth-page .login-card-wrap { min-height: calc(100vh - 88px) !important; align-items: flex-start !important; padding-top: 54px !important; }
+          .login-auth-page .login-card-wrap { align-items: flex-start !important; padding-top: 38px !important; }
         }
       `}</style>
-      <main className="login-auth-page min-h-screen text-[#11100e]">
-        <div className="login-shell mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-8 lg:px-10">
-          <header className="flex items-center justify-between gap-4">
-            <a href="/" className="text-2xl font-semibold tracking-[-0.03em] text-[#5d2cd6]">
-              ADGA
-            </a>
-            <div className="flex items-center gap-2 text-sm text-[#68625a]">
-              <span className="hidden sm:inline">Need a workspace?</span>
-              <a
-                href="/pricing"
-                className="inline-flex h-10 items-center rounded-full border border-[#d8d1c8] bg-white px-4 font-medium text-[#11100e] shadow-sm transition hover:border-[#5d2cd6] hover:text-[#5d2cd6]"
-              >
-                See pricing
-              </a>
-            </div>
-          </header>
-
-          <section className="login-card-wrap flex flex-1 items-center justify-center pb-16 pt-8 lg:-translate-y-10">
+      <MarketingLayout>
+        <main className="login-auth-page text-[#11100e]">
+          <section className="login-card-wrap wrap flex min-h-[760px] items-center justify-center pb-20 pt-12 lg:-translate-y-8">
             <section className="w-full max-w-[456px] rounded-[28px] border border-[#e2e8f0] bg-white/95 p-6 shadow-[0_28px_90px_-42px_rgba(15,23,42,0.54)] backdrop-blur sm:p-8">
               {status.kind === "sent" ? (
                 <>
@@ -228,8 +213,8 @@ export default function LoginPage() {
               )}
             </section>
           </section>
-        </div>
-      </main>
+        </main>
+      </MarketingLayout>
     </>
   );
 }

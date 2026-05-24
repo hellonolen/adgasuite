@@ -48,10 +48,8 @@ export function cookieOptions() {
 
 export function authCookieOptions(requestUrl?: string) {
   const secure = requestUrl ? new URL(requestUrl).protocol === "https:" : true;
-  return {
-    ...cookieOptions(),
-    secure,
-  };
+  const base = cookieOptions();
+  return { httpOnly: base.httpOnly, sameSite: base.sameSite, path: base.path, maxAge: base.maxAge, secure };
 }
 
 export function transientAuthCookieOptions(requestUrl: string, maxAge = 600) {
