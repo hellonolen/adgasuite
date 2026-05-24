@@ -162,7 +162,7 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
               </CardHeader>
               <CardContent className="space-y-2 text-sm text-[#6b6760]">
                 <p>
-                  A pre-populated mindmap with {template.nodes.length} entities connected to the
+                  A pre-populated DealFlow with {template.nodes.length} entities connected to the
                   deal anchor.
                 </p>
                 <p>Edit, rename or remove any node after the dealflow opens.</p>

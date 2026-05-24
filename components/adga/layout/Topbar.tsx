@@ -57,7 +57,7 @@ export function Topbar({ route, onSearch, collapsed, setCollapsed }: TopbarProps
           <Icon name="bell" size={16}/>
         </button>
         <button className="btn icon ghost">
-          <Icon name="sparkles" size={16}/>
+          <Icon name="sliders" size={16}/>
         </button>
       </div>
     </header>

@@ -1021,7 +1021,7 @@ export async function listAgentJobs(db?: D1Database) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Maps (canvas / mindmap persistence)
+// DealFlow persistence. Database tables still use the legacy map_* names until a safe migration renames them.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type MapNodeKind = "deal" | "contact" | "company" | "document" | "task" | "call" | "meeting" | "action";

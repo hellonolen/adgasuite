@@ -13,7 +13,7 @@ export function IntelligenceView({ intelligence }: any) {
         </div>
         <div className="page-actions">
           <button className="btn"><Icon name="filter" size={14}/> Filter</button>
-          <button className="btn primary"><Icon name="sparkles" size={14}/> Generate report</button>
+          <button className="btn primary"><Icon name="docs" size={14}/> Generate report</button>
         </div>
       </div>
 

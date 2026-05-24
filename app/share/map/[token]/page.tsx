@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { DealMindmap, type DealMindmapDeal, type DealMindmapEntity } from "@/components/suite/DealMindmap";
+import { DealFlow, type DealFlowDeal, type DealFlowEntity } from "@/components/suite/DealFlow";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 
@@ -75,13 +75,13 @@ function rateLimitHit(ip: string): boolean {
 const VALID_KINDS = new Set(["contact", "company", "document", "task", "call", "meeting", "action"]);
 const VALID_STATUSES = new Set(["neutral", "active", "warning", "overdue", "done"]);
 
-function normalizeKind(value: string | null | undefined): DealMindmapEntity["kind"] {
-  if (value && VALID_KINDS.has(value)) return value as DealMindmapEntity["kind"];
+function normalizeKind(value: string | null | undefined): DealFlowEntity["kind"] {
+  if (value && VALID_KINDS.has(value)) return value as DealFlowEntity["kind"];
   return "action";
 }
 
-function normalizeStatus(value: string | null | undefined): DealMindmapEntity["status"] {
-  if (value && VALID_STATUSES.has(value)) return value as DealMindmapEntity["status"];
+function normalizeStatus(value: string | null | undefined): DealFlowEntity["status"] {
+  if (value && VALID_STATUSES.has(value)) return value as DealFlowEntity["status"];
   return "neutral";
 }
 
@@ -133,7 +133,7 @@ async function loadEdges(db: D1Database, mapId: string): Promise<MapEdgeRow[]> {
   }
 }
 
-function buildDeal(map: MapRow): DealMindmapDeal {
+function buildDeal(map: MapRow): DealFlowDeal {
   // SECURITY: do NOT leak owner/org/private fields. Only id + display name.
   return {
     id: map.id,
@@ -142,7 +142,7 @@ function buildDeal(map: MapRow): DealMindmapDeal {
   };
 }
 
-function buildEntities(nodes: MapNodeRow[]): DealMindmapEntity[] {
+function buildEntities(nodes: MapNodeRow[]): DealFlowEntity[] {
   return nodes.map((node) => ({
     id: node.id,
     kind: normalizeKind(node.kind || node.type),
@@ -199,7 +199,7 @@ export default async function PublicSharedMapPage({ params }: PageProps) {
 
   const deal = buildDeal(map);
   const entities = buildEntities(nodes);
-  // Edges from D1 inform the connection inputs the DealMindmap renders.
+  // Edges from D1 inform the connection inputs the DealFlow renders.
   void edges;
 
   return (
@@ -211,7 +211,7 @@ export default async function PublicSharedMapPage({ params }: PageProps) {
             <div className="mt-0.5 text-sm text-[#0d0c0a]">{deal.name}</div>
           </div>
           <div style={{ height: "calc(100vh - 220px)", minHeight: 560 }}>
-            <DealMindmap deal={deal} entities={entities} readOnly />
+            <DealFlow deal={deal} entities={entities} readOnly />
           </div>
         </div>
       </div>

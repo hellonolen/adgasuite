@@ -1,5 +1,5 @@
-import NewMapPickerClient from "@/components/suite/workspaces/NewMapPickerClient";
+import NewDealFlowPickerClient from "@/components/suite/workspaces/NewDealFlowPickerClient";
 
 export default function NewDealPage() {
-  return <NewMapPickerClient />;
+  return <NewDealFlowPickerClient />;
 }

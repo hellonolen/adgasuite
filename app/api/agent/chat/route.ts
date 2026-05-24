@@ -11,7 +11,7 @@ const MessageSchema = z.object({
 
 const ContextSchema = z
   .object({
-    kind: z.enum(["deal", "pipeline", "workspace", "map"]),
+    kind: z.enum(["deal", "pipeline", "workspace", "dealflow", "map"]),
     id: z.string().min(1).max(120).optional(),
     mapId: z.string().min(1).max(120).optional(),
     route: z.string().min(1).max(60).optional(),
@@ -26,6 +26,17 @@ const ContextSchema = z
       .optional(),
     nodeCount: z.number().int().min(0).max(10_000).optional(),
     edgeCount: z.number().int().min(0).max(10_000).optional(),
+    viewMode: z.string().min(1).max(80).optional(),
+    selectedNode: z
+      .object({
+        id: z.string().min(1).max(160),
+        kind: z.string().min(1).max(80).optional().nullable(),
+        label: z.string().min(1).max(240).optional().nullable(),
+        sublabel: z.string().max(240).optional().nullable(),
+        status: z.string().max(80).optional().nullable(),
+      })
+      .optional()
+      .nullable(),
   })
   .optional();
 
@@ -74,18 +85,20 @@ async function buildContextBlock(
   db: D1Database | undefined,
   ctx:
     | {
-        kind: "deal" | "pipeline" | "workspace" | "map";
+        kind: "deal" | "pipeline" | "workspace" | "dealflow" | "map";
         id?: string;
         mapId?: string;
         route?: string;
         deal?: { id: string; name?: string; stage?: string; value?: string; nextAction?: string };
         nodeCount?: number;
         edgeCount?: number;
+        viewMode?: string;
+        selectedNode?: { id: string; kind?: string | null; label?: string | null; sublabel?: string | null; status?: string | null } | null;
       }
     | undefined,
 ): Promise<string> {
   if (!db) {
-    if (ctx?.kind === "map" && ctx.deal) {
+    if ((ctx?.kind === "dealflow" || ctx?.kind === "map") && ctx.deal) {
       const lines = [
         "ACTIVE DEALFLOW CONTEXT (no live DB bound):",
         `- Dealflow: ${ctx.deal.name || ctx.deal.id}`,
@@ -102,7 +115,7 @@ async function buildContextBlock(
 
   const kind = ctx?.kind ?? "workspace";
 
-  if (kind === "map") {
+  if (kind === "dealflow" || kind === "map") {
     const headerLines: string[] = ["ACTIVE DEALFLOW CONTEXT:"];
     if (ctx?.deal) {
       headerLines.push(`- Dealflow / deal: ${ctx.deal.name || ctx.deal.id}`);
@@ -113,6 +126,18 @@ async function buildContextBlock(
     if (ctx?.mapId) headerLines.push(`- Dealflow id: ${ctx.mapId}`);
     if (ctx?.nodeCount != null) headerLines.push(`- Nodes on canvas: ${ctx.nodeCount}`);
     if (ctx?.edgeCount != null) headerLines.push(`- Edges on canvas: ${ctx.edgeCount}`);
+    if (ctx?.viewMode) headerLines.push(`- Active DealFlow view: ${ctx.viewMode}`);
+    if (ctx?.selectedNode) {
+      headerLines.push(
+        [
+          "SELECTED NODE:",
+          `- ${ctx.selectedNode.label || ctx.selectedNode.id}`,
+          ctx.selectedNode.kind ? `- Type: ${ctx.selectedNode.kind}` : null,
+          ctx.selectedNode.sublabel ? `- Detail: ${ctx.selectedNode.sublabel}` : null,
+          ctx.selectedNode.status ? `- Status: ${ctx.selectedNode.status}` : null,
+        ].filter(Boolean).join("\n"),
+      );
+    }
 
     const dealId = ctx?.deal?.id;
     if (dealId) {

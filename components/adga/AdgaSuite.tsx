@@ -850,7 +850,7 @@ const ACTIVITY = [
   { who: 'p4', what: 'completed task', target: dealId(1218), task: 'Update cap table', time: '2h ago', icon: '✓' },
   { who: 'p3', what: 'invited', target: dealId(1213), party: 'Quorum Energy counsel', time: '3h ago', icon: '+' },
   { who: 'p5', what: 'opened deal room', target: dealId(1219), time: '4h ago', icon: '◉' },
-  { who: 'p6', what: 'closed (Won)', target: dealId(1220), time: '8h ago', icon: '★' },
+  { who: 'p6', what: 'closed (Won)', target: dealId(1220), time: '8h ago', icon: '✓' },
   { who: 'p2', what: 'requested signature', target: dealId(1218), party: 'Tessellate CFO', time: '1d ago', icon: '✎' },
 ];
 
@@ -898,7 +898,6 @@ const Icon = ({ name, size = 16, stroke = 1.5, className = '' }) => {
     case 'users':      return <svg {...props}><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.6"/><path d="M15 20c0-2.4 2-4 4-4"/></svg>;
     case 'file':       return <svg {...props}><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>;
     case 'book':       return <svg {...props}><path d="M4 5a2 2 0 0 1 2-2h12v17H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 0 2 2h12"/></svg>;
-    case 'spark':      return <svg {...props}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg>;
     case 'shield':     return <svg {...props}><path d="M12 3l8 3v6c0 5-3.4 8.3-8 9-4.6-.7-8-4-8-9V6z"/></svg>;
     case 'card':       return <svg {...props}><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>;
     case 'cog':        return <svg {...props}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9A1.7 1.7 0 0 0 10 3.1V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>;
@@ -938,7 +937,6 @@ const Icon = ({ name, size = 16, stroke = 1.5, className = '' }) => {
     case 'download':   return <svg {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V2"/></svg>;
     case 'flag':       return <svg {...props}><path d="M4 22V4M4 4h12l-2 4 2 4H4"/></svg>;
     case 'sliders':    return <svg {...props}><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/></svg>;
-    case 'sparkles':   return <svg {...props}><path d="m12 3 2 5 5 2-5 2-2 5-2-5-5-2 5-2zM19 14l1 2.5 2.5 1-2.5 1L19 21l-1-2.5-2.5-1 2.5-1zM5 14l.7 1.7L7.4 16l-1.7.7L5 18l-.7-1.7L2.6 16l1.7-.7z"/></svg>;
     default: return <span/>;
   }
 };
@@ -7151,7 +7149,7 @@ const TEAMS = [
 
 const TEAM_ACTIVITY = {
   't1': [
-    { who: 'p1', what: 'closed', target: 'DEAL-1220', time: '8h ago', icon: '★' },
+    { who: 'p1', what: 'closed', target: 'DEAL-1220', time: '8h ago', icon: '✓' },
     { who: 'p1', what: 'advanced', target: 'DEAL-1210', note: '→ Closing', time: '11h ago', icon: '→' },
     { who: 'p4', what: 'updated cap table', target: 'DEAL-1218', time: '2d ago', icon: '↑' },
     { who: 'p3', what: 'logged call', target: 'DEAL-1213', time: '3d ago', icon: '☎' },
@@ -7159,7 +7157,7 @@ const TEAM_ACTIVITY = {
   't2': [
     { who: 'p2', what: 'moved to Closing', target: 'DEAL-1221', time: '12m ago', icon: '→' },
     { who: 'p2', what: 'requested signature', target: 'DEAL-1218', time: '1d ago', icon: '✎' },
-    { who: 'p6', what: 'closed (Won)', target: 'DEAL-1220', time: '8h ago', icon: '★' },
+    { who: 'p6', what: 'closed (Won)', target: 'DEAL-1220', time: '8h ago', icon: '✓' },
   ],
   't3': [
     { who: 'p3', what: 'invited counsel to', target: 'DEAL-1213', time: '3h ago', icon: '+' },
@@ -8322,7 +8320,7 @@ function getInitialSuiteRoute() {
 }
 
 const MapWorkspace = React.lazy(() =>
-  import('@/components/suite/DealMindmap').then(mod => ({
+  import('@/components/suite/DealFlow').then(mod => ({
     default: function MapWorkspaceInner({ mapData }) {
       if (!mapData?.deal) {
         return (
@@ -8333,7 +8331,7 @@ const MapWorkspace = React.lazy(() =>
       }
       return (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', minHeight: 0 }}>
-          <mod.DealMindmap
+          <mod.DealFlow
             deal={mapData.deal}
             entities={mapData.entities || []}
             mapId={mapData.mapId}
@@ -8586,13 +8584,15 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
       <Sidebar
         route={route}
         setRoute={navigate}
-        collapsed={tweaks.sidebarCollapsed}
+        collapsed={route === 'map' ? true : tweaks.sidebarCollapsed}
         setCollapsed={(c) => setTweak('sidebarCollapsed', typeof c === 'function' ? c(tweaks.sidebarCollapsed) : c)}
       />
       <div className="main">
-        <Topbar crumb={crumb} setCmdk={setCmdkOpen} tweaks={tweaks} setTweak={setTweak} setRoute={navigate} setQuickCreate={setQuickCreate}/>
+        {route !== 'map' && (
+          <Topbar crumb={crumb} setCmdk={setCmdkOpen} tweaks={tweaks} setTweak={setTweak} setRoute={navigate} setQuickCreate={setQuickCreate}/>
+        )}
         <div className="workspace" data-route={route} style={route === 'map' ? { position: 'relative', overflow: 'hidden', padding: 0 } : undefined}>
-          {/* Routes that inject workspace content via page.tsx (map / maps) render that
+          {/* Routes that inject workspace content via page.tsx (DealFlow / Deals) render that
               content as children. Every other route falls back to the in-monolith route
               switch below. Using a route-id allowlist instead of `!children` because Next.js
               wraps even a `return null` page in a non-null React node — naive truthy check
@@ -8751,7 +8751,7 @@ function Topbar({ crumb, setCmdk, tweaks, setTweak, setRoute, setQuickCreate }) 
         <button className="btn icon ghost" type="button" title="Notifications"><Icon name="bell" size={15}/></button>
         {tweaks.voiceCollapsed && (
           <button className="btn adga-open-btn" type="button" onClick={() => setTweak('voiceCollapsed', false)} title="Show ADGA panel">
-            <Icon name="sparkles" size={13}/> ADGA
+            <Icon name="sliders" size={13}/> ADGA
           </button>
         )}
         {!tweaks.voiceCollapsed && (

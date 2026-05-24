@@ -34,7 +34,7 @@ const EVERY_PLAN = [
   { label: "Magic-link sign in", body: "No password resets, no SSO setup tax." },
   { label: "Voice notes + transcription", body: "Talk through a deal, get text instantly." },
   { label: "Nine-stage deal process", body: "Lead → Qualify → Discover → Scope → Design → Close → Sign → Deliver → Expand." },
-  { label: "Live deal map per deal", body: "Every contact, file, call, task on one canvas." },
+  { label: "Live DealFlow per deal", body: "Every contact, file, call, task on one canvas." },
   { label: "Auto-saved every keystroke", body: "Nothing lost when a tab closes." },
 ];
 
@@ -46,7 +46,7 @@ const COMPARISON_GROUPS: Array<{ section: string; rows: Array<[string, string | 
       ["Contacts and companies", "Unlimited", "Unlimited", "Unlimited"],
       ["Files in storage (R2)", "20 GB", "200 GB", "Custom"],
       ["Nine-stage deal process", true, true, true],
-      ["Live deal map per deal", true, true, true],
+      ["Live DealFlow per deal", true, true, true],
       ["Voice notes with transcription", true, true, true],
       ["Deal templates", "13", "13", "13 + custom"],
     ],
@@ -58,7 +58,7 @@ const COMPARISON_GROUPS: Array<{ section: string; rows: Array<[string, string | 
       ["Shared pipeline and calendar", "—", true, true],
       ["Invoicing with payment payouts", "—", true, true],
       ["Approval queue with audit trail", "—", true, true],
-      ["Shareable deal maps for clients", "—", true, true],
+      ["Shareable DealFlows for clients", "—", true, true],
       ["Watermarked client shares", "—", "—", true],
     ],
   },
@@ -220,7 +220,7 @@ export default function PricingPage() {
                 <li>20 GB document storage</li>
                 <li>Voice notes with auto-transcription</li>
                 <li>In-workspace deal copilot</li>
-                <li>Live deal map per deal</li>
+                <li>Live DealFlow per deal</li>
               </ul>
               <a href={proHref} className="btn">Start closing deals</a>
             </div>
@@ -270,7 +270,7 @@ export default function PricingPage() {
                 <li>200 GB document storage</li>
                 <li>Shared deals, calendar, invoicing</li>
                 <li>Approval queue with audit trail</li>
-                <li>Shareable deal maps for clients</li>
+                <li>Shareable DealFlows for clients</li>
               </ul>
               <a href={teamHref} className="btn primary">Start closing deals</a>
             </div>

@@ -1,10 +1,10 @@
 /**
- * Deal Templates — pre-populated mindmap shapes for the 13 deal archetypes.
+ * Deal Templates — pre-populated DealFlow shapes for the 13 deal archetypes.
  *
  * Each template defines the nodes and edges that get materialized into a fresh
- * map when the user selects "Use this template" from the gallery.
+ * DealFlow when the user selects "Use this template" from the gallery.
  *
- * The kind values mirror DealMindmapEntityKind from components/suite/DealMindmap.tsx.
+ * The kind values mirror DealFlowEntityKind from components/suite/DealFlow.tsx.
  */
 
 export type TemplateNodeKind =

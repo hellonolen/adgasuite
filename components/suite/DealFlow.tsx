@@ -21,12 +21,13 @@ import {
   type NodeMouseHandler,
   type OnSelectionChangeParams,
 } from "@xyflow/react";
+import { Link2, MousePointer2, Palette, Plus, Search, Share2, Trash2, X } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 
-export type DealMindmapEntityKind = "contact" | "company" | "document" | "task" | "call" | "meeting" | "action";
-export type DealMindmapStatus = "neutral" | "active" | "warning" | "overdue" | "done";
+export type DealFlowEntityKind = "contact" | "company" | "document" | "task" | "call" | "meeting" | "action";
+export type DealFlowStatus = "neutral" | "active" | "warning" | "overdue" | "done";
 
-export interface DealMindmapDeal {
+export interface DealFlowDeal {
   id: string;
   name: string;
   stage: string;
@@ -34,41 +35,41 @@ export interface DealMindmapDeal {
   nextAction?: string;
 }
 
-export interface DealMindmapEntity {
+export interface DealFlowEntity {
   id: string;
-  kind: DealMindmapEntityKind;
+  kind: DealFlowEntityKind;
   label: string;
   sublabel?: string;
-  status?: DealMindmapStatus;
+  status?: DealFlowStatus;
   role?: string;
 }
 
-export interface DealMindmapInitialNode {
+export interface DealFlowInitialNode {
   id: string;
-  kind: DealMindmapEntityKind;
+  kind: DealFlowEntityKind;
   label: string;
   sublabel?: string;
-  status?: DealMindmapStatus;
+  status?: DealFlowStatus;
   position: { x: number; y: number };
 }
 
-export interface DealMindmapInitialEdge {
+export interface DealFlowInitialEdge {
   id: string;
   source: string;
   target: string;
   label?: string;
 }
 
-export interface DealMindmapPersistenceCallbacks {
+export interface DealFlowPersistenceCallbacks {
   /** Debounced position updates (one or more nodes moved). */
   onPositionChange?: (updates: Array<{ id: string; position: { x: number; y: number } }>) => void;
   /** A new node was added in the UI. */
   onAddNode?: (node: {
     id: string;
-    kind: DealMindmapEntityKind;
+    kind: DealFlowEntityKind;
     label: string;
     sublabel?: string;
-    status?: DealMindmapStatus;
+    status?: DealFlowStatus;
     position: { x: number; y: number };
   }) => void;
   /** A node was removed in the UI. */
@@ -79,9 +80,9 @@ export interface DealMindmapPersistenceCallbacks {
   onDeleteEdge?: (edgeId: string) => void;
 }
 
-interface DealMindmapProps extends DealMindmapPersistenceCallbacks {
-  deal: DealMindmapDeal;
-  entities: DealMindmapEntity[];
+interface DealFlowProps extends DealFlowPersistenceCallbacks {
+  deal: DealFlowDeal;
+  entities: DealFlowEntity[];
   /**
    * When set, the toolbar exposes a Share popover backed by /api/maps/[mapId]/share.
    * Omit on read-only or sample views to keep the share surface internal-only.
@@ -93,9 +94,9 @@ interface DealMindmapProps extends DealMindmapPersistenceCallbacks {
    */
   readOnly?: boolean;
   /** Initial nodes loaded from D1 (Phase 9d). When present, replaces `entities` layout. */
-  initialNodes?: DealMindmapInitialNode[];
+  initialNodes?: DealFlowInitialNode[];
   /** Initial edges loaded from D1 (Phase 9d). */
-  initialEdges?: DealMindmapInitialEdge[];
+  initialEdges?: DealFlowInitialEdge[];
   /** Base URL for built-in persistence (e.g. `/api/maps/<id>`). When set, the component auto-persists changes. */
   persistApiBase?: string;
 }
@@ -108,7 +109,7 @@ interface ShareInfo {
   expires_at: string | null;
 }
 
-const KIND_META: Record<DealMindmapEntityKind, { label: string; color: string; ring: string; ringSoft: string }> = {
+const KIND_META: Record<DealFlowEntityKind, { label: string; color: string; ring: string; ringSoft: string }> = {
   contact:  { label: "Contact",  color: "#16a34a", ring: "rgba(22, 163, 74, 0.18)", ringSoft: "rgba(22, 163, 74, 0.08)" },
   company:  { label: "Company",  color: "#0ea5e9", ring: "rgba(14, 165, 233, 0.18)", ringSoft: "rgba(14, 165, 233, 0.08)" },
   document: { label: "File",     color: "#f59e0b", ring: "rgba(245, 158, 11, 0.18)", ringSoft: "rgba(245, 158, 11, 0.08)" },
@@ -118,8 +119,8 @@ const KIND_META: Record<DealMindmapEntityKind, { label: string; color: string; r
   action:   { label: "Next",     color: "#5d2cd6", ring: "rgba(86, 36, 199, 0.20)", ringSoft: "rgba(86, 36, 199, 0.08)" },
 };
 
-const STATUS_META: Record<DealMindmapStatus, { dot: string; pulse: boolean; label: string }> = {
-  neutral: { dot: "transparent", pulse: false, label: "Open" },
+const STATUS_META: Record<DealFlowStatus, { dot: string; pulse: boolean; label: string }> = {
+  neutral: { dot: "#d8d6d0",     pulse: false, label: "Open" },
   active:  { dot: "#5d2cd6",     pulse: true,  label: "Active" },
   warning: { dot: "#f59e0b",     pulse: true,  label: "Due soon" },
   overdue: { dot: "#ef4444",     pulse: true,  label: "Overdue" },
@@ -135,36 +136,42 @@ const VIEW_MODES = [
 ] as const;
 
 type ViewMode = (typeof VIEW_MODES)[number]["id"];
+type DealFlowToolPanel = "search" | "nodes" | "style" | "links" | "view" | "share";
 
 function DealNodeView({ data, selected }: NodeProps) {
-  const deal = data as unknown as DealMindmapDeal;
+  const deal = data as unknown as DealFlowDeal;
   return (
     <div
       style={{
-        background: "linear-gradient(180deg, #5d2cd6 0%, #4920b3 100%)",
+        background: "linear-gradient(180deg, #5d2cd6 0%, #4b22bb 100%)",
         color: "#fff",
-        borderRadius: 18,
-        padding: "20px 24px",
-        minWidth: 260,
-        maxWidth: 320,
+        borderRadius: 16,
+        padding: "18px 20px",
+        minWidth: 250,
+        maxWidth: 300,
         boxShadow: selected
-          ? "0 24px 60px rgba(86, 36, 199, 0.40), 0 0 0 3px rgba(86, 36, 199, 0.35)"
-          : "0 24px 60px rgba(86, 36, 199, 0.25), 0 4px 12px rgba(86, 36, 199, 0.15)",
-        border: "1px solid rgba(255, 255, 255, 0.18)",
+          ? "0 24px 58px rgba(86, 36, 199, 0.36), 0 0 0 3px rgba(86, 36, 199, 0.24)"
+          : "0 20px 48px rgba(86, 36, 199, 0.24), 0 3px 10px rgba(86, 36, 199, 0.14)",
+        border: "1px solid rgba(255, 255, 255, 0.20)",
         cursor: "grab",
       }}
     >
-      <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", opacity: 0.7, marginBottom: 8 }}>
-        Deal · {deal.stage}
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 8 }}>
+        <div style={{ fontSize: 9.5, fontWeight: 850, letterSpacing: "0.14em", textTransform: "uppercase", opacity: 0.76 }}>
+          Deal
+        </div>
+        <div style={{ fontSize: 9.5, fontWeight: 850, letterSpacing: "0.12em", textTransform: "uppercase", opacity: 0.72 }}>
+          {deal.stage}
+        </div>
       </div>
-      <div style={{ fontSize: 17, fontWeight: 600, lineHeight: 1.2, marginBottom: 10, letterSpacing: "-0.012em" }}>
+      <div style={{ fontSize: 16, fontWeight: 760, lineHeight: 1.18, marginBottom: 10 }}>
         {deal.name}
       </div>
-      {deal.value && <div style={{ fontSize: 13, opacity: 0.85, marginBottom: 4 }}>{deal.value}</div>}
+      {deal.value && <div style={{ fontSize: 12, fontWeight: 760, opacity: 0.86, marginBottom: 4 }}>{deal.value}</div>}
       {deal.nextAction && (
-        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255, 255, 255, 0.18)", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ opacity: 0.7 }}>Next →</span>
-          <span style={{ fontWeight: 500 }}>{deal.nextAction}</span>
+        <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(255, 255, 255, 0.18)", fontSize: 11.5, display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ opacity: 0.68 }}>Next</span>
+          <span style={{ fontWeight: 650, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{deal.nextAction}</span>
         </div>
       )}
 
@@ -177,21 +184,21 @@ function DealNodeView({ data, selected }: NodeProps) {
 }
 
 function EntityNodeView({ data, selected }: NodeProps) {
-  const entity = data as unknown as DealMindmapEntity;
+  const entity = data as unknown as DealFlowEntity;
   const meta = KIND_META[entity.kind];
   const status = STATUS_META[entity.status || "neutral"];
   return (
     <div
       style={{
-        background: "#ffffff",
-        borderRadius: 14,
-        padding: "12px 14px",
+        background: "rgba(255, 255, 255, 0.96)",
+        borderRadius: 12,
+        padding: "11px 12px 10px",
         minWidth: 180,
-        maxWidth: 240,
-        border: `1px solid ${selected ? meta.color : meta.ring}`,
+        maxWidth: 230,
+        border: `1px solid ${selected ? meta.color : "rgba(15, 23, 42, 0.08)"}`,
         boxShadow: selected
-          ? `0 10px 24px rgba(15, 23, 42, 0.10), 0 0 0 3px ${meta.ringSoft}`
-          : "0 10px 24px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.03)",
+          ? `0 14px 30px rgba(15, 23, 42, 0.12), 0 0 0 3px ${meta.ringSoft}`
+          : "0 12px 26px rgba(15, 23, 42, 0.065), 0 2px 5px rgba(15, 23, 42, 0.035)",
         position: "relative",
         cursor: "grab",
       }}
@@ -212,15 +219,27 @@ function EntityNodeView({ data, selected }: NodeProps) {
           }}
         />
       )}
-      <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: meta.color, marginBottom: 6 }}>
-        {meta.label}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 7 }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+          <span style={{ width: 7, height: 7, borderRadius: 999, background: meta.color, flexShrink: 0 }} />
+          <span style={{ fontSize: 9, fontWeight: 850, letterSpacing: "0.13em", textTransform: "uppercase", color: meta.color }}>
+            {meta.label}
+          </span>
+        </div>
+        <span style={{ width: 7, height: 7, borderRadius: 999, background: status.dot, flexShrink: 0 }} />
       </div>
-      <div style={{ fontSize: 13.5, fontWeight: 600, color: "#0d0c0a", lineHeight: 1.25, letterSpacing: "-0.01em" }}>
+      <div style={{ fontSize: 13.2, fontWeight: 760, color: "#0d0c0a", lineHeight: 1.22 }}>
         {entity.label}
       </div>
       {entity.sublabel && (
-        <div style={{ fontSize: 11.5, color: "#6b6760", marginTop: 4, lineHeight: 1.35 }}>{entity.sublabel}</div>
+        <div style={{ fontSize: 11.2, color: "#6b6760", marginTop: 4, lineHeight: 1.32 }}>{entity.sublabel}</div>
       )}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 9, paddingTop: 8, borderTop: "1px solid rgba(15, 23, 42, 0.06)" }}>
+        <span style={{ minWidth: 0, color: "#6b6760", fontSize: 10.2, fontWeight: 720 }}>
+          {status.label}
+        </span>
+        {entity.role && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#817a70", fontSize: 10.2 }}>{entity.role}</span>}
+      </div>
 
       <Handle type="target" position={Position.Top}    id="top"    style={{ background: meta.color, width: 8, height: 8 }} />
       <Handle type="target" position={Position.Right}  id="right"  style={{ background: meta.color, width: 8, height: 8 }} />
@@ -246,7 +265,7 @@ function polar(cx: number, cy: number, r: number, deg: number) {
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
 }
 
-function buildInitial(deal: DealMindmapDeal, entities: DealMindmapEntity[]) {
+function buildInitial(deal: DealFlowDeal, entities: DealFlowEntity[]) {
   const nodes: Node[] = [
     {
       id: deal.id,
@@ -256,11 +275,11 @@ function buildInitial(deal: DealMindmapDeal, entities: DealMindmapEntity[]) {
     },
   ];
   const edges: Edge[] = [];
-  const inner: DealMindmapEntityKind[] = ["contact", "company", "action"];
+  const inner: DealFlowEntityKind[] = ["contact", "company", "action"];
   const innerEntities = entities.filter((e) => inner.includes(e.kind));
   const outerEntities = entities.filter((e) => !inner.includes(e.kind));
 
-  const placeRing = (list: DealMindmapEntity[], radius: number, offsetDeg: number) => {
+  const placeRing = (list: DealFlowEntity[], radius: number, offsetDeg: number) => {
     if (list.length === 0) return;
     const step = 360 / list.length;
     list.forEach((entity, idx) => {
@@ -291,16 +310,16 @@ function buildInitial(deal: DealMindmapDeal, entities: DealMindmapEntity[]) {
   return { nodes, edges };
 }
 
-function nodeKindFromNode(node: Node | null | undefined): DealMindmapEntityKind | "deal" | null {
+function nodeKindFromNode(node: Node | null | undefined): DealFlowEntityKind | "deal" | null {
   if (!node) return null;
   if (node.type === "deal") return "deal";
-  const data = node.data as unknown as DealMindmapEntity;
+  const data = node.data as unknown as DealFlowEntity;
   return data?.kind || null;
 }
 
-const KINDS_TO_ADD: DealMindmapEntityKind[] = ["contact", "company", "document", "task", "call", "meeting", "action"];
+const KINDS_TO_ADD: DealFlowEntityKind[] = ["contact", "company", "document", "task", "call", "meeting", "action"];
 
-export function DealMindmap({
+export function DealFlow({
   deal,
   entities,
   mapId,
@@ -313,7 +332,7 @@ export function DealMindmap({
   onDeleteNode,
   onAddEdge,
   onDeleteEdge,
-}: DealMindmapProps) {
+}: DealFlowProps) {
   const initial = React.useMemo(() => {
     if (initialNodes && initialNodes.length >= 0 && (initialNodes.length > 0 || initialEdges)) {
       // Build from persisted nodes/edges (Phase 9d). Keep the deal node at the canvas center.
@@ -351,10 +370,11 @@ export function DealMindmap({
   const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initial.edges);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
-  const [showAddMenu, setShowAddMenu] = React.useState(false);
   const [editingLabel, setEditingLabel] = React.useState(false);
-  const [showShareMenu, setShowShareMenu] = React.useState(false);
   const [viewMode, setViewMode] = React.useState<ViewMode>("relationship");
+  const [activeToolPanel, setActiveToolPanel] = React.useState<DealFlowToolPanel | null>(null);
+  const [linkMode, setLinkMode] = React.useState(false);
+  const [linkSourceId, setLinkSourceId] = React.useState<string | null>(null);
   const [activityOpen, setActivityOpen] = React.useState(false);
   const [share, setShare] = React.useState<ShareInfo | null>(null);
   const [shareLoading, setShareLoading] = React.useState(false);
@@ -366,7 +386,7 @@ export function DealMindmap({
   const [edgeStyle, setEdgeStyle] = React.useState<"curved" | "straight">(() => {
     if (typeof window === "undefined") return "curved";
     try {
-      const stored = window.localStorage.getItem("adga-map-edge-style");
+      const stored = window.localStorage.getItem("adga-dealflow-edge-style");
       return stored === "straight" ? "straight" : "curved";
     } catch {
       return "curved";
@@ -374,7 +394,7 @@ export function DealMindmap({
   });
   React.useEffect(() => {
     if (typeof window === "undefined") return;
-    try { window.localStorage.setItem("adga-map-edge-style", edgeStyle); } catch {}
+    try { window.localStorage.setItem("adga-dealflow-edge-style", edgeStyle); } catch {}
   }, [edgeStyle]);
 
   // Command bar state — the LLM prompt at the top of the canvas.
@@ -382,6 +402,8 @@ export function DealMindmap({
   const [commandReply, setCommandReply] = React.useState<string | null>(null);
   const [commandSubmitting, setCommandSubmitting] = React.useState(false);
   const commandInputRef = React.useRef<HTMLInputElement | null>(null);
+  const toolRailRef = React.useRef<HTMLDivElement | null>(null);
+  const toolFlyoutRef = React.useRef<HTMLDivElement | null>(null);
 
   // Drop-to-ingest overlay state.
   const [ingestActive, setIngestActive] = React.useState(false);
@@ -422,12 +444,26 @@ export function DealMindmap({
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
+        setActiveToolPanel("search");
         commandInputRef.current?.focus();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [readOnly]);
+
+  React.useEffect(() => {
+    if (!activeToolPanel || readOnly || typeof window === "undefined") return;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof window.Node)) return;
+      if (toolRailRef.current?.contains(target)) return;
+      if (toolFlyoutRef.current?.contains(target)) return;
+      setActiveToolPanel(null);
+    };
+    window.addEventListener("pointerdown", onPointerDown, true);
+    return () => window.removeEventListener("pointerdown", onPointerDown, true);
+  }, [activeToolPanel, readOnly]);
 
   const canShare = Boolean(mapId) && !readOnly;
 
@@ -454,10 +490,10 @@ export function DealMindmap({
   }, [mapId]);
 
   React.useEffect(() => {
-    if (showShareMenu && mapId && !share && !shareLoading) {
+    if (activeToolPanel === "share" && mapId && !share && !shareLoading) {
       void loadShare();
     }
-  }, [showShareMenu, mapId, share, shareLoading, loadShare]);
+  }, [activeToolPanel, mapId, share, shareLoading, loadShare]);
 
   const createOrRotateShare = React.useCallback(async () => {
     if (!mapId) return;
@@ -649,14 +685,49 @@ export function DealMindmap({
     [setEdges, persistEnabled, onAddEdge],
   );
 
+  const createEdgeBetween = React.useCallback((source: string, target: string) => {
+    if (!source || !target || source === target) return;
+    const newEdgeId = `e_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    setEdges((eds) => {
+      if (eds.some((edge) => edge.source === source && edge.target === target)) return eds;
+      return eds.concat({
+        id: newEdgeId,
+        source,
+        target,
+        animated: false,
+        style: { stroke: "var(--accent, #5d2cd6)", strokeWidth: 1.5 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "rgba(93, 44, 214, 0.62)", width: 14, height: 14 },
+      });
+    });
+    if (onAddEdge) onAddEdge({ id: newEdgeId, source, target });
+    const base = persistBaseRef.current;
+    if (persistEnabled && base) {
+      void fetch(`${base}/edges`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: newEdgeId, source_node_id: source, target_node_id: target }),
+      }).catch(() => {});
+    }
+  }, [onAddEdge, persistEnabled, setEdges]);
+
   const onNodeClick: NodeMouseHandler = React.useCallback((_event, node) => {
+    if (linkMode) {
+      if (!linkSourceId) {
+        setLinkSourceId(node.id);
+      } else {
+        createEdgeBetween(linkSourceId, node.id);
+        setLinkSourceId(null);
+        setLinkMode(false);
+      }
+    }
     setSelectedId(node.id);
     setEditingLabel(false);
-  }, []);
+  }, [createEdgeBetween, linkMode, linkSourceId]);
 
   const onPaneClick = React.useCallback(() => {
     setSelectedId(null);
-    setShowAddMenu(false);
+    setLinkSourceId(null);
   }, []);
 
   const onSelectionChange = React.useCallback((params: OnSelectionChangeParams) => {
@@ -700,10 +771,13 @@ export function DealMindmap({
     return () => window.removeEventListener("keydown", onKey);
   }, [nodes, selectedId, readOnly]);
 
-  const addNode = (kind: DealMindmapEntityKind) => {
+  const addNode = (kind: DealFlowEntityKind, status: DealFlowStatus = "neutral") => {
     const id = `mnode_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
     const label = `New ${KIND_META[kind].label}`;
-    const position = { x: CENTER_X + 200, y: CENTER_Y + (Math.random() - 0.5) * 200 };
+    const sourceNode = selectedNode || nodes.find((node) => node.id === deal.id);
+    const position = sourceNode
+      ? { x: sourceNode.position.x + 240, y: sourceNode.position.y + (Math.random() - 0.5) * 180 }
+      : { x: CENTER_X + 200, y: CENTER_Y + (Math.random() - 0.5) * 200 };
     const newNode: Node = {
       id,
       type: "entity",
@@ -712,7 +786,7 @@ export function DealMindmap({
         id,
         kind,
         label,
-        status: "neutral",
+        status,
       } as unknown as Record<string, unknown>,
     };
     const edgeId = `e_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -720,15 +794,14 @@ export function DealMindmap({
     setEdges((eds) =>
       eds.concat({
         id: edgeId,
-        source: deal.id,
+        source: selectedNode?.id || deal.id,
         target: id,
         style: { stroke: KIND_META[kind].ring, strokeWidth: 1.5 },
       }),
     );
-    setShowAddMenu(false);
     setSelectedId(id);
 
-    if (onAddNode) onAddNode({ id, kind, label, status: "neutral", position });
+    if (onAddNode) onAddNode({ id, kind, label, status, position });
     const base = persistBaseRef.current;
     if (persistEnabled && base) {
       knownNodeIdsRef.current.add(id);
@@ -740,7 +813,7 @@ export function DealMindmap({
           id,
           kind,
           label,
-          status: "neutral",
+          status,
           position_x: position.x,
           position_y: position.y,
         }),
@@ -752,10 +825,25 @@ export function DealMindmap({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: edgeId,
-          source_node_id: deal.id,
+          source_node_id: selectedNode?.id || deal.id,
           target_node_id: id,
         }),
       }).catch(() => {});
+    }
+  };
+
+  const removeSelectedLinks = () => {
+    if (!selectedId) return;
+    const removing = edges.filter((edge) => edge.source === selectedId || edge.target === selectedId);
+    setEdges((eds) => eds.filter((edge) => edge.source !== selectedId && edge.target !== selectedId));
+    const base = persistBaseRef.current;
+    if (persistEnabled && base) {
+      for (const edge of removing) {
+        void fetch(`${base}/edges?edgeId=${encodeURIComponent(edge.id)}`, {
+          method: "DELETE",
+          credentials: "include",
+        }).catch(() => {});
+      }
     }
   };
 
@@ -878,7 +966,7 @@ export function DealMindmap({
 
   const selectedKind = nodeKindFromNode(selectedNode);
   const isDealSelected = selectedKind === "deal";
-  const selectedData = selectedNode?.data as unknown as (DealMindmapEntity & DealMindmapDeal) | undefined;
+  const selectedData = selectedNode?.data as unknown as (DealFlowEntity & DealFlowDeal) | undefined;
   const commandPlaceholder = selectedNode && !isDealSelected
     ? `Ask ADGA about ${selectedData?.label || "this node"}...`
     : `Ask ADGA about ${deal.name}, or tell dealflow what to do...`;
@@ -887,13 +975,13 @@ export function DealMindmap({
     const activeKinds = new Set(active?.kinds || []);
     return nodes.map((node) => {
       const kind = node.type === "deal" ? "deal" : ((node.data as { kind?: string }).kind || "");
-      const emphasized = kind === "deal" || activeKinds.has(kind as DealMindmapEntityKind);
+      const emphasized = kind === "deal" || activeKinds.has(kind as DealFlowEntityKind);
       return {
         ...node,
         style: {
           ...(node.style || {}),
-          opacity: emphasized ? 1 : 0.34,
-          filter: emphasized ? "none" : "grayscale(0.6)",
+          opacity: emphasized ? 1 : 0.58,
+          filter: emphasized ? "none" : "grayscale(0.24)",
         },
       };
     });
@@ -1006,28 +1094,29 @@ export function DealMindmap({
           style={{
             position: "absolute",
             top: 16,
-            left: 116,
+            left: 92,
+            right: 16,
             zIndex: 18,
             display: "flex",
             alignItems: "center",
-            gap: 10,
-            maxWidth: "min(720px, calc(100% - 620px))",
+            gap: 8,
+            maxWidth: "min(680px, calc(100% - 110px))",
             border: "1px solid rgba(15, 23, 42, 0.08)",
-            borderRadius: 12,
-            background: "rgba(255, 255, 255, 0.9)",
-            boxShadow: "0 16px 48px -24px rgba(15, 23, 42, 0.24)",
-            backdropFilter: "blur(16px)",
-            padding: "8px 10px",
+            borderRadius: 999,
+            background: "rgba(255, 255, 255, 0.72)",
+            boxShadow: "0 12px 34px -24px rgba(15, 23, 42, 0.26)",
+            backdropFilter: "blur(18px)",
+            padding: "6px 10px",
             color: "#0d0c0a",
           }}
           aria-label="Deal summary"
         >
-          <span style={{ fontSize: 10, fontWeight: 850, letterSpacing: "0.14em", color: "#5d2cd6" }}>{deal.id}</span>
-          <span style={{ width: 1, height: 16, background: "rgba(15, 23, 42, 0.10)" }} />
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 12.5, fontWeight: 850 }}>{deal.name}</span>
-          <span style={{ fontSize: 11.5, fontWeight: 750, color: "#6b6760", whiteSpace: "nowrap" }}>{deal.stage}</span>
-          {deal.value && <span style={{ fontSize: 11.5, fontWeight: 850, color: "#0d0c0a", whiteSpace: "nowrap" }}>{deal.value}</span>}
-          {deal.nextAction && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 11.5, color: "#6b6760" }}>Next: {deal.nextAction}</span>}
+          <span style={{ fontSize: 9.5, fontWeight: 850, letterSpacing: "0.12em", color: "#5d2cd6", whiteSpace: "nowrap" }}>{deal.id}</span>
+          <span style={{ width: 1, height: 14, background: "rgba(15, 23, 42, 0.09)" }} />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 12, fontWeight: 820 }}>{deal.name}</span>
+          <span style={{ fontSize: 11, fontWeight: 720, color: "#6b6760", whiteSpace: "nowrap" }}>{deal.stage}</span>
+          {deal.value && <span style={{ fontSize: 11, fontWeight: 820, color: "#0d0c0a", whiteSpace: "nowrap" }}>{deal.value}</span>}
+          {deal.nextAction && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 11, color: "#6b6760" }}>Next: {deal.nextAction}</span>}
         </div>
 
         {/* Drop-to-ingest overlay — covers the canvas during dragover */}
@@ -1052,12 +1141,92 @@ export function DealMindmap({
           </div>
         )}
 
-        {/* LLM command bar — top center. Single primary input that controls the graph. */}
         {!readOnly && (
           <div
+            ref={toolRailRef}
             style={{
-              position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)",
-              zIndex: 20, width: "min(640px, calc(100% - 80px))",
+              position: "absolute",
+              top: 64,
+              left: 16,
+              zIndex: 24,
+              display: "grid",
+              gap: 6,
+              border: "1px solid rgba(15, 23, 42, 0.10)",
+              borderRadius: 14,
+              background: "rgba(255, 255, 255, 0.94)",
+              boxShadow: "0 18px 48px -22px rgba(15, 23, 42, 0.24)",
+              backdropFilter: "blur(16px)",
+              padding: 6,
+            }}
+            aria-label="DealFlow tools"
+          >
+            {([
+              ["search", Search, "Search with ADGA"],
+              ["nodes", Plus, "Add nodes"],
+              ["links", Link2, "Connect nodes"],
+              ["style", Palette, "Color code"],
+              ["view", MousePointer2, "Views"],
+              ...(canShare ? ([["share", Share2, "Share"]] as const) : []),
+            ] as const).map(([panel, Icon, label]) => {
+              const active = activeToolPanel === panel;
+              return (
+                <button
+                  key={panel}
+                  type="button"
+                  title={label}
+                  aria-label={label}
+                  onClick={() => {
+                    setActiveToolPanel((current) => (current === panel ? null : panel));
+                    if (panel === "search") setTimeout(() => commandInputRef.current?.focus(), 0);
+                  }}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    border: 0,
+                    borderRadius: 10,
+                    background: active ? "rgba(93, 44, 214, 0.12)" : "transparent",
+                    color: active ? "#5d2cd6" : "#0d0c0a",
+                    cursor: "pointer",
+                    display: "grid",
+                    placeItems: "center",
+                  }}
+                >
+                  <Icon size={16} strokeWidth={2.2} />
+                </button>
+              );
+            })}
+            {activeToolPanel && (
+              <button
+                type="button"
+                title="Close tool"
+                aria-label="Close tool"
+                onClick={() => setActiveToolPanel(null)}
+                style={{
+                  width: 36,
+                  height: 30,
+                  border: 0,
+                  borderTop: "1px solid rgba(15, 23, 42, 0.08)",
+                  borderRadius: 9,
+                  background: "transparent",
+                  color: "#6b6760",
+                  cursor: "pointer",
+                  display: "grid",
+                  placeItems: "center",
+                }}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* LLM command panel — compact flyout from the left rail. */}
+        {activeToolPanel === "search" && !readOnly && (
+          <div
+            ref={toolFlyoutRef}
+            style={{
+              position: "absolute", top: 64, left: 66, transform: "none",
+              zIndex: 20, width: 330,
               animation: "premium-fade-in 200ms ease",
             }}
           >
@@ -1074,7 +1243,7 @@ export function DealMindmap({
                     body: JSON.stringify({
                       messages: [{ role: "user", content: value }],
                       context: {
-                        kind: "map",
+                        kind: "dealflow",
                         mapId,
                         deal: { id: deal.id, name: deal.name, stage: deal.stage, value: deal.value, nextAction: deal.nextAction },
                         selectedNode: selectedNode ? {
@@ -1130,10 +1299,10 @@ export function DealMindmap({
               <div
                 style={{
                   display: "flex", alignItems: "center", gap: 10,
-                  background: "rgba(255, 255, 255, 0.92)",
+                  background: "rgba(255, 255, 255, 0.96)",
                   border: "1px solid rgba(15, 23, 42, 0.08)",
                   borderRadius: 14,
-                  padding: "10px 14px",
+                  padding: "10px 12px",
                   backdropFilter: "blur(16px)",
                   boxShadow: "0 20px 60px -20px rgba(15, 23, 42, 0.22), 0 2px 8px -2px rgba(15, 23, 42, 0.08)",
                 }}
@@ -1147,7 +1316,7 @@ export function DealMindmap({
                   disabled={commandSubmitting}
                   style={{
                     flex: 1, background: "transparent", border: 0, outline: "none",
-                    color: "#0d0c0a", fontSize: 14, letterSpacing: "0.005em",
+                    color: "#0d0c0a", fontSize: 13, letterSpacing: "0.005em",
                     fontFamily: "inherit",
                   }}
                 />
@@ -1224,7 +1393,7 @@ export function DealMindmap({
             {[
               ["Now", activityText],
               ["Files", `${nodes.filter((node) => (node.data as { kind?: string }).kind === "document").length} document nodes attached`],
-              ["Tasks", `${nodes.filter((node) => ["task", "action"].includes((node.data as { kind?: string }).kind || "")).length} next-move nodes on map`],
+              ["Tasks", `${nodes.filter((node) => ["task", "action"].includes((node.data as { kind?: string }).kind || "")).length} next-step nodes in DealFlow`],
               ["Risk", `${nodes.filter((node) => (node.data as { status?: string }).status === "overdue" || (node.data as { status?: string }).status === "warning").length} nodes need attention`],
             ].map(([label, body]) => (
               <div key={label} style={{ display: "grid", gridTemplateColumns: "64px minmax(0,1fr)", gap: 10, padding: "8px 4px", borderBottom: "1px solid #f1ede8" }}>
@@ -1235,342 +1404,391 @@ export function DealMindmap({
           </div>
         )}
 
-        {/* Floating toolbar — top-left */}
-        {!readOnly && (
-        <div
-          style={{
-            position: "absolute",
-            top: 16,
-            left: 16,
-            zIndex: 10,
-            display: "flex",
-            gap: 4,
-            background: "rgba(255, 255, 255, 0.92)",
-            border: "1px solid rgba(15, 23, 42, 0.08)",
-            borderRadius: 12,
-            padding: 4,
-            backdropFilter: "blur(14px)",
-            boxShadow: "0 12px 36px -10px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.06)",
-          }}
-        >
-          <div style={{ position: "relative" }}>
-            <button
-              type="button"
-              onClick={() => setShowAddMenu((v) => !v)}
-              style={{
-                padding: "8px 12px",
-                borderRadius: 8,
-                border: 0,
-                background: showAddMenu ? "rgba(86, 36, 199, 0.10)" : "transparent",
-                color: "#0d0c0a",
-                fontSize: 12.5,
-                fontWeight: 500,
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              <span style={{ fontSize: 14, color: "#5d2cd6", fontWeight: 700 }}>+</span> Add node
-            </button>
-            {showAddMenu && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  marginTop: 6,
-                  background: "#ffffff",
-                  border: "1px solid rgba(15, 23, 42, 0.08)",
-                  borderRadius: 10,
-                  padding: 4,
-                  minWidth: 180,
-                  boxShadow: "0 18px 40px rgba(15, 23, 42, 0.12)",
-                }}
+        {/* Compact tool flyouts. The canvas stays open; only the requested tool expands. */}
+        {activeToolPanel && activeToolPanel !== "search" && !readOnly && (
+          <div
+            ref={toolFlyoutRef}
+            style={{
+              position: "absolute",
+              top: 64,
+              left: 66,
+              zIndex: 20,
+              width: activeToolPanel === "share" ? 340 : 298,
+              maxHeight: "calc(100% - 126px)",
+              overflow: "auto",
+              border: "1px solid rgba(15, 23, 42, 0.08)",
+              borderRadius: 16,
+              background: "rgba(255, 255, 255, 0.94)",
+              boxShadow: "0 18px 54px -28px rgba(15, 23, 42, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.72)",
+              backdropFilter: "blur(22px)",
+              padding: 10,
+              animation: "premium-fade-in 160ms ease",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 9, padding: "2px 2px 0" }}>
+              <div style={{ fontSize: 10, fontWeight: 850, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b6760" }}>
+                {activeToolPanel === "nodes" && "Node library"}
+                {activeToolPanel === "style" && "Color code"}
+                {activeToolPanel === "links" && "Links"}
+                {activeToolPanel === "view" && "Canvas view"}
+                {activeToolPanel === "share" && "Share dealflow"}
+              </div>
+              <button
+                type="button"
+                aria-label="Close panel"
+                onClick={() => setActiveToolPanel(null)}
+                style={{ width: 24, height: 24, border: 0, borderRadius: 8, background: "transparent", color: "#6b6760", cursor: "pointer", display: "grid", placeItems: "center", padding: 0 }}
               >
-                {KINDS_TO_ADD.map((kind) => {
-                  const meta = KIND_META[kind];
-                  return (
+                <X size={14} />
+              </button>
+            </div>
+
+            {activeToolPanel === "nodes" && (
+              <div style={{ display: "grid", gap: 10 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 7 }}>
+                  {KINDS_TO_ADD.map((kind) => {
+                    const meta = KIND_META[kind];
+                    return (
+                      <button
+                        key={kind}
+                        type="button"
+                        onClick={() => addNode(kind)}
+                        title={`Create ${meta.label} node`}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "12px minmax(0, 1fr)",
+                          alignItems: "center",
+                          gap: 8,
+                          minWidth: 0,
+                          height: 42,
+                          padding: "0 10px",
+                          background: "rgba(255, 255, 255, 0.78)",
+                          border: `1px solid rgba(15, 23, 42, 0.08)`,
+                          borderRadius: 11,
+                          cursor: "pointer",
+                          fontSize: 12,
+                          fontWeight: 760,
+                          color: "#0d0c0a",
+                          textAlign: "left",
+                        }}
+                      >
+                        <span style={{ width: 10, height: 10, borderRadius: 999, background: meta.color }} />
+                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{meta.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  type="button"
+                  onClick={removeSelected}
+                  disabled={!selectedId || isDealSelected}
+                  style={{
+                    display: "inline-flex",
+                    width: "fit-content",
+                    alignItems: "center",
+                    gap: 7,
+                    padding: "8px 10px",
+                    borderRadius: 9,
+                    border: "1px solid rgba(239, 68, 68, 0.16)",
+                    background: "rgba(255, 255, 255, 0.72)",
+                    color: !selectedId || isDealSelected ? "#b8baca" : "#ef4444",
+                    fontSize: 12,
+                    fontWeight: 720,
+                    cursor: !selectedId || isDealSelected ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <Trash2 size={14} />
+                  Remove selected
+                </button>
+              </div>
+            )}
+
+            {activeToolPanel === "style" && (
+              <div style={{ display: "grid", gap: 10 }}>
+                <div style={{ padding: "8px 10px", border: "1px solid rgba(15, 23, 42, 0.07)", borderRadius: 11, background: "rgba(249, 247, 244, 0.58)", fontSize: 12, color: "#45413b", lineHeight: 1.45 }}>
+                  {selectedId && !isDealSelected
+                    ? `Selected: ${selectedData?.label || selectedId}`
+                    : "Select a node to apply a status color."}
+                </div>
+                <div style={{ display: "grid", gap: 6 }}>
+                  {(Object.entries(STATUS_META) as Array<[DealFlowStatus, (typeof STATUS_META)[DealFlowStatus]]>).map(([key, item]) => (
                     <button
-                      key={kind}
+                      key={key}
                       type="button"
-                      onClick={() => addNode(kind)}
+                      disabled={!selectedId || isDealSelected}
+                      onClick={() => selectedId && persistNodeDetails(selectedId, { status: key })}
+                      title={selectedId && !isDealSelected ? `Set selected node to ${item.label}` : "Select a node first"}
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 8,
-                        width: "100%",
-                        padding: "8px 10px",
-                        background: "transparent",
-                        border: 0,
-                        borderRadius: 6,
-                        cursor: "pointer",
-                        fontSize: 12.5,
-                        color: "#0d0c0a",
-                        textAlign: "left",
+                        justifyContent: "space-between",
+                        gap: 10,
+                        height: 36,
+                        border: "1px solid rgba(15, 23, 42, 0.08)",
+                        borderRadius: 11,
+                        background: "rgba(255, 255, 255, 0.78)",
+                        color: !selectedId || isDealSelected ? "#b8baca" : "#0d0c0a",
+                        cursor: !selectedId || isDealSelected ? "not-allowed" : "pointer",
+                        fontSize: 12,
+                        fontWeight: 760,
+                        padding: "0 10px",
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(86, 36, 199, 0.06)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
-                      <span style={{ width: 8, height: 8, borderRadius: 999, background: meta.color }} />
-                      {meta.label}
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ width: 9, height: 9, borderRadius: 999, background: item.dot || "#d8d6d0", border: key === "neutral" ? "1px solid rgba(15, 23, 42, 0.18)" : 0 }} />
+                        {item.label}
+                      </span>
+                      {selectedData?.status === key && <span style={{ color: "#5d2cd6", fontSize: 11, fontWeight: 850 }}>Current</span>}
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeToolPanel === "links" && (
+              <div style={{ display: "grid", gap: 10 }}>
+                <div style={{ padding: "8px 10px", border: "1px solid rgba(15, 23, 42, 0.07)", borderRadius: 11, background: "rgba(249, 247, 244, 0.58)", fontSize: 12, color: "#45413b", lineHeight: 1.45 }}>
+                  {linkMode
+                    ? linkSourceId ? "Click the target node to complete the connection." : "Click the source node first."
+                    : "Start link mode, then click two nodes to draw a connection."}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLinkMode((mode) => !mode);
+                    setLinkSourceId(selectedId || null);
+                  }}
+                  style={{
+                    display: "inline-flex",
+                    width: "fit-content",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "9px 12px",
+                    borderRadius: 9,
+                    border: "1px solid rgba(93, 44, 214, 0.18)",
+                    background: linkMode ? "rgba(93, 44, 214, 0.12)" : "rgba(255, 255, 255, 0.78)",
+                    color: "#5d2cd6",
+                    fontSize: 12,
+                    fontWeight: 780,
+                    cursor: "pointer",
+                  }}
+                  title={linkMode ? "Click another node to finish linking" : "Start link mode"}
+                >
+                  <Link2 size={14} />
+                  {linkMode ? (linkSourceId ? "Pick target" : "Pick source") : "Start link mode"}
+                </button>
+                <button
+                  type="button"
+                  onClick={removeSelectedLinks}
+                  disabled={!selectedId || connectedEdges.length === 0}
+                  style={{
+                    display: "inline-flex",
+                    width: "fit-content",
+                    alignItems: "center",
+                    gap: 7,
+                    padding: "8px 10px",
+                    borderRadius: 9,
+                    border: "1px solid rgba(239, 68, 68, 0.16)",
+                    background: "rgba(255, 255, 255, 0.72)",
+                    color: !selectedId || connectedEdges.length === 0 ? "#b8baca" : "#ef4444",
+                    fontSize: 12,
+                    fontWeight: 720,
+                    cursor: !selectedId || connectedEdges.length === 0 ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <Trash2 size={14} />
+                  Delete selected links
+                </button>
+                <div style={{ fontSize: 11.5, color: "#6b6760" }}>
+                  {selectedId ? `${connectedEdges.length} connected link${connectedEdges.length === 1 ? "" : "s"}` : "No node selected"}
+                </div>
+              </div>
+            )}
+
+            {activeToolPanel === "view" && (
+              <div style={{ display: "grid", gap: 10 }}>
+                <div role="group" aria-label="Dealflow view mode" style={{ display: "grid", gap: 6 }}>
+                  {VIEW_MODES.map((mode) => (
+                    <button
+                      key={mode.id}
+                      type="button"
+                      onClick={() => setViewMode(mode.id)}
+                      title={`${mode.label} view`}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "8px 10px",
+                        border: "1px solid rgba(15, 23, 42, 0.08)",
+                        borderRadius: 11,
+                        cursor: "pointer",
+                        fontSize: 12,
+                        fontWeight: 720,
+                        background: viewMode === mode.id ? "rgba(93, 44, 214, 0.10)" : "rgba(255, 255, 255, 0.78)",
+                        color: viewMode === mode.id ? "#5d2cd6" : "#0d0c0a",
+                      }}
+                    >
+                      {mode.label}
+                      {viewMode === mode.id && <span style={{ fontSize: 10, fontWeight: 850 }}>Active</span>}
+                    </button>
+                  ))}
+                </div>
+                <div role="group" aria-label="Edge style" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                  {(["curved", "straight"] as const).map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setEdgeStyle(opt)}
+                      title={opt === "curved" ? "Curved edges" : "Straight edges"}
+                      style={{
+                        padding: "8px 10px",
+                        border: "1px solid rgba(15, 23, 42, 0.08)",
+                        borderRadius: 11,
+                        cursor: "pointer",
+                        fontSize: 12,
+                        fontWeight: 720,
+                        background: edgeStyle === opt ? "rgba(93, 44, 214, 0.10)" : "rgba(255, 255, 255, 0.78)",
+                        color: edgeStyle === opt ? "#5d2cd6" : "#0d0c0a",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ fontSize: 11.5, color: "#6b6760" }}>
+                  {nodes.length} nodes / {edges.length} edges
+                </div>
+              </div>
+            )}
+
+            {activeToolPanel === "share" && canShare && (
+              <div style={{ display: "grid", gap: 10 }}>
+                <label style={{ display: "grid", gap: 5, fontSize: 11, color: "#6b6760" }}>
+                  Permission
+                  <select
+                    value={sharePermission}
+                    onChange={(e) => setSharePermission(e.target.value)}
+                    disabled={shareLoading}
+                    style={{
+                      width: "100%",
+                      padding: "8px 10px",
+                      borderRadius: 9,
+                      border: "1px solid #e8e4de",
+                      background: "#ffffff",
+                      fontSize: 12.5,
+                      color: "#0d0c0a",
+                    }}
+                  >
+                    <option value="view">View only</option>
+                    <option value="comment">Comment</option>
+                    <option value="edit">Edit</option>
+                  </select>
+                </label>
+
+                {shareError && (
+                  <div style={{ padding: "6px 8px", background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", borderRadius: 8, fontSize: 11.5 }}>
+                    {shareError}
+                  </div>
+                )}
+
+                {share ? (
+                  <>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <input
+                        readOnly
+                        value={share.url}
+                        onFocus={(e) => e.currentTarget.select()}
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          padding: "8px 10px",
+                          borderRadius: 9,
+                          border: "1px solid #e8e4de",
+                          fontSize: 11.5,
+                          color: "#0d0c0a",
+                          background: "#f9f7f4",
+                          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={copyShareUrl}
+                        style={{
+                          padding: "8px 12px",
+                          borderRadius: 9,
+                          border: 0,
+                          background: "#5d2cd6",
+                          color: "#fff",
+                          fontSize: 12,
+                          fontWeight: 760,
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {copyState === "copied" ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button
+                        type="button"
+                        onClick={createOrRotateShare}
+                        disabled={shareLoading}
+                        style={{
+                          flex: 1,
+                          padding: "8px 10px",
+                          borderRadius: 9,
+                          border: "1px solid #e8e4de",
+                          background: "#ffffff",
+                          color: "#0d0c0a",
+                          fontSize: 12,
+                          cursor: shareLoading ? "wait" : "pointer",
+                        }}
+                      >
+                        Rotate link
+                      </button>
+                      <button
+                        type="button"
+                        onClick={revokeShare}
+                        disabled={shareLoading}
+                        style={{
+                          flex: 1,
+                          padding: "8px 10px",
+                          borderRadius: 9,
+                          border: "1px solid #fecaca",
+                          background: "#fef2f2",
+                          color: "#b91c1c",
+                          fontSize: 12,
+                          cursor: shareLoading ? "wait" : "pointer",
+                        }}
+                      >
+                        Revoke
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={createOrRotateShare}
+                    disabled={shareLoading}
+                    style={{
+                      width: "fit-content",
+                      padding: "9px 12px",
+                      borderRadius: 9,
+                      border: 0,
+                      background: "#5d2cd6",
+                      color: "#fff",
+                      fontSize: 12.5,
+                      fontWeight: 760,
+                      cursor: shareLoading ? "wait" : "pointer",
+                    }}
+                  >
+                    {shareLoading ? "Working..." : "Create share link"}
+                  </button>
+                )}
               </div>
             )}
           </div>
-          <button
-            type="button"
-            onClick={removeSelected}
-            disabled={!selectedId || isDealSelected}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 8,
-              border: 0,
-              background: "transparent",
-              color: !selectedId || isDealSelected ? "#b8baca" : "#ef4444",
-              fontSize: 12.5,
-              fontWeight: 500,
-              cursor: !selectedId || isDealSelected ? "not-allowed" : "pointer",
-            }}
-          >
-            Remove
-          </button>
-          <div style={{ width: 1, background: "rgba(15, 23, 42, 0.08)", margin: "4px 0" }} />
-          <div
-            role="group"
-            aria-label="Dealflow view mode"
-            style={{ display: "inline-flex", padding: 2, borderRadius: 8, background: "rgba(15, 23, 42, 0.04)" }}
-          >
-            {VIEW_MODES.map((mode) => (
-              <button
-                key={mode.id}
-                type="button"
-                onClick={() => setViewMode(mode.id)}
-                title={`${mode.label} view`}
-                style={{
-                  padding: "5px 8px",
-                  border: 0,
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  fontSize: 11.5,
-                  fontWeight: 650,
-                  background: viewMode === mode.id ? "#ffffff" : "transparent",
-                  color: viewMode === mode.id ? "#0d0c0a" : "#6b6760",
-                  boxShadow: viewMode === mode.id ? "0 1px 3px rgba(15, 23, 42, 0.10)" : "none",
-                }}
-              >
-                {mode.label}
-              </button>
-            ))}
-          </div>
-          <div style={{ width: 1, background: "rgba(15, 23, 42, 0.08)", margin: "4px 0" }} />
-          {/* Edge style toggle — flip every connection between curved (default) and straight. */}
-          <div
-            role="group"
-            aria-label="Edge style"
-            style={{ display: "inline-flex", padding: 2, borderRadius: 8, background: "rgba(15, 23, 42, 0.04)" }}
-          >
-            {(["curved", "straight"] as const).map((opt) => (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => setEdgeStyle(opt)}
-                title={opt === "curved" ? "Curved edges" : "Straight edges"}
-                style={{
-                  padding: "5px 10px",
-                  border: 0,
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  fontSize: 11.5,
-                  fontWeight: 500,
-                  background: edgeStyle === opt ? "#ffffff" : "transparent",
-                  color: edgeStyle === opt ? "#0d0c0a" : "#6b6760",
-                  boxShadow: edgeStyle === opt ? "0 1px 3px rgba(15, 23, 42, 0.10)" : "none",
-                  textTransform: "capitalize",
-                }}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-          <div style={{ width: 1, background: "rgba(15, 23, 42, 0.08)", margin: "4px 0" }} />
-          {canShare && (
-            <div style={{ position: "relative" }}>
-              <button
-                type="button"
-                onClick={() => setShowShareMenu((v) => !v)}
-                style={{
-                  padding: "8px 12px",
-                  borderRadius: 8,
-                  border: 0,
-                  background: showShareMenu ? "rgba(86, 36, 199, 0.10)" : "transparent",
-                  color: "#0d0c0a",
-                  fontSize: 12.5,
-                  fontWeight: 500,
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <span style={{ color: "#5d2cd6", fontWeight: 700 }}>↗</span> Share
-              </button>
-              {showShareMenu && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    left: 0,
-                    marginTop: 6,
-                    background: "#ffffff",
-                    border: "1px solid #e8e4de",
-                    borderRadius: 12,
-                    padding: 14,
-                    minWidth: 320,
-                    boxShadow: "0 18px 40px rgba(15, 23, 42, 0.12)",
-                    zIndex: 20,
-                  }}
-                >
-                  <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b6760", marginBottom: 8 }}>
-                    Share dealflow
-                  </div>
-
-                  <div style={{ marginBottom: 10 }}>
-                    <label style={{ display: "block", fontSize: 11, color: "#6b6760", marginBottom: 4 }}>Permission</label>
-                    <select
-                      value={sharePermission}
-                      onChange={(e) => setSharePermission(e.target.value)}
-                      disabled={shareLoading}
-                      style={{
-                        width: "100%",
-                        padding: "8px 10px",
-                        borderRadius: 8,
-                        border: "1px solid #e8e4de",
-                        background: "#ffffff",
-                        fontSize: 12.5,
-                        color: "#0d0c0a",
-                      }}
-                    >
-                      <option value="view">View only</option>
-                      <option value="comment">Comment</option>
-                      <option value="edit">Edit</option>
-                    </select>
-                  </div>
-
-                  {shareError && (
-                    <div style={{ marginBottom: 10, padding: "6px 8px", background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", borderRadius: 6, fontSize: 11.5 }}>
-                      {shareError}
-                    </div>
-                  )}
-
-                  {share ? (
-                    <>
-                      <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-                        <input
-                          readOnly
-                          value={share.url}
-                          onFocus={(e) => e.currentTarget.select()}
-                          style={{
-                            flex: 1,
-                            minWidth: 0,
-                            padding: "8px 10px",
-                            borderRadius: 8,
-                            border: "1px solid #e8e4de",
-                            fontSize: 11.5,
-                            color: "#0d0c0a",
-                            background: "#f9f7f4",
-                            fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={copyShareUrl}
-                          style={{
-                            padding: "8px 12px",
-                            borderRadius: 8,
-                            border: 0,
-                            background: "#5d2cd6",
-                            color: "#fff",
-                            fontSize: 12,
-                            fontWeight: 500,
-                            cursor: "pointer",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {copyState === "copied" ? "Copied" : "Copy"}
-                        </button>
-                      </div>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <button
-                          type="button"
-                          onClick={createOrRotateShare}
-                          disabled={shareLoading}
-                          style={{
-                            flex: 1,
-                            padding: "8px 10px",
-                            borderRadius: 8,
-                            border: "1px solid #e8e4de",
-                            background: "#ffffff",
-                            color: "#0d0c0a",
-                            fontSize: 12,
-                            cursor: shareLoading ? "wait" : "pointer",
-                          }}
-                        >
-                          Rotate link
-                        </button>
-                        <button
-                          type="button"
-                          onClick={revokeShare}
-                          disabled={shareLoading}
-                          style={{
-                            flex: 1,
-                            padding: "8px 10px",
-                            borderRadius: 8,
-                            border: "1px solid #fecaca",
-                            background: "#fef2f2",
-                            color: "#b91c1c",
-                            fontSize: 12,
-                            cursor: shareLoading ? "wait" : "pointer",
-                          }}
-                        >
-                          Revoke
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={createOrRotateShare}
-                      disabled={shareLoading}
-                      style={{
-                        width: "100%",
-                        padding: "9px 12px",
-                        borderRadius: 8,
-                        border: 0,
-                        background: "#5d2cd6",
-                        color: "#fff",
-                        fontSize: 12.5,
-                        fontWeight: 500,
-                        cursor: shareLoading ? "wait" : "pointer",
-                      }}
-                    >
-                      {shareLoading ? "Working…" : "Create share link"}
-                    </button>
-                  )}
-
-                  <div style={{ marginTop: 10, fontSize: 11, color: "#9b9eb0", lineHeight: 1.45 }}>
-                    Anyone with the link can open this dealflow. Rotate to invalidate previous links. Revoke removes all links.
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-          <span style={{ padding: "8px 8px", fontSize: 11, color: "#6b6760", lineHeight: 1.2 }}>
-            {nodes.length} nodes · {edges.length} edges
-          </span>
-        </div>
         )}
 
         <ReactFlow
@@ -1643,13 +1861,14 @@ export function DealMindmap({
       {selectedNode && (
         <aside
           style={{
-            width: 380,
+            width: 344,
             flexShrink: 0,
-            background: "#ffffff",
-            borderLeft: "1px solid #e8e4de",
+            background: "rgba(255, 255, 255, 0.96)",
+            borderLeft: "1px solid rgba(15, 23, 42, 0.08)",
             overflowY: "auto",
             display: "flex",
             flexDirection: "column",
+            boxShadow: "-18px 0 44px -34px rgba(15, 23, 42, 0.22)",
           }}
         >
           <NodeDetailPanel
@@ -1713,7 +1932,7 @@ function NodeDetailPanel({
   onRemove,
   onJump,
 }: NodeDetailPanelProps) {
-  const data = node.data as unknown as DealMindmapEntity & DealMindmapDeal;
+  const data = node.data as unknown as DealFlowEntity & DealFlowDeal;
   const kind = isDeal ? "deal" : data.kind;
   const meta = isDeal ? null : KIND_META[data.kind];
   const status = data.status ? STATUS_META[data.status] : null;
@@ -1733,12 +1952,12 @@ function NodeDetailPanel({
 
   return (
     <>
-      <div style={{ padding: "20px 22px 14px", borderBottom: "1px solid #f1ede8" }}>
+      <div style={{ padding: "18px 18px 14px", borderBottom: "1px solid rgba(15, 23, 42, 0.07)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <span
             style={{
-              fontSize: 10.5,
-              fontWeight: 700,
+              fontSize: 9.5,
+              fontWeight: 850,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
               color: headerBadgeColor,
@@ -1753,7 +1972,7 @@ function NodeDetailPanel({
             style={{
               width: 28,
               height: 28,
-              borderRadius: 8,
+              borderRadius: 9,
               border: 0,
               background: "transparent",
               color: "#6b6760",
@@ -1781,10 +2000,9 @@ function NodeDetailPanel({
                 padding: "10px 12px",
                 borderRadius: 8,
                 border: "1px solid #c4c5bc",
-                fontSize: 17,
-                fontWeight: 600,
+                fontSize: 16,
+                fontWeight: 760,
                 color: "#0d0c0a",
-                letterSpacing: "-0.012em",
                 outline: "none",
               }}
             />
@@ -1825,10 +2043,9 @@ function NodeDetailPanel({
         ) : readOnly ? (
           <div
             style={{
-              fontSize: 18,
-              fontWeight: 600,
+              fontSize: 17,
+              fontWeight: 780,
               color: "#0d0c0a",
-              letterSpacing: "-0.012em",
               lineHeight: 1.25,
             }}
           >
@@ -1842,10 +2059,9 @@ function NodeDetailPanel({
               all: "unset",
               cursor: "text",
               display: "block",
-              fontSize: 18,
-              fontWeight: 600,
+              fontSize: 17,
+              fontWeight: 780,
               color: "#0d0c0a",
-              letterSpacing: "-0.012em",
               lineHeight: 1.25,
             }}
           >
@@ -1854,13 +2070,13 @@ function NodeDetailPanel({
         )}
 
         {!isDeal && data.sublabel && (
-          <div style={{ fontSize: 12.5, color: "#6b6760", marginTop: 6 }}>{data.sublabel}</div>
+          <div style={{ fontSize: 12, color: "#6b6760", marginTop: 6 }}>{data.sublabel}</div>
         )}
 
         {status && (
           <div style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5 }}>
             <span style={{ width: 8, height: 8, borderRadius: 999, background: status.dot || "#cbd5e1" }} />
-            <span style={{ color: "#6b6760" }}>{status.label}</span>
+              <span style={{ color: "#6b6760", fontWeight: 720 }}>{status.label}</span>
           </div>
         )}
 
@@ -1871,7 +2087,7 @@ function NodeDetailPanel({
               <select
                 value={data.kind}
                 onChange={(event) => onPatch({ kind: event.target.value })}
-                style={{ height: 34, border: "1px solid #e8e4de", borderRadius: 8, background: "#fff", color: "#0d0c0a", padding: "0 8px", fontSize: 12 }}
+                style={{ height: 34, border: "1px solid rgba(15, 23, 42, 0.10)", borderRadius: 9, background: "#fff", color: "#0d0c0a", padding: "0 8px", fontSize: 12 }}
               >
                 {KINDS_TO_ADD.map((kind) => <option key={kind} value={kind}>{KIND_META[kind].label}</option>)}
               </select>
@@ -1881,7 +2097,7 @@ function NodeDetailPanel({
               <select
                 value={data.status || "neutral"}
                 onChange={(event) => onPatch({ status: event.target.value })}
-                style={{ height: 34, border: "1px solid #e8e4de", borderRadius: 8, background: "#fff", color: "#0d0c0a", padding: "0 8px", fontSize: 12 }}
+                style={{ height: 34, border: "1px solid rgba(15, 23, 42, 0.10)", borderRadius: 9, background: "#fff", color: "#0d0c0a", padding: "0 8px", fontSize: 12 }}
               >
                 {Object.entries(STATUS_META).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}
               </select>
@@ -1890,7 +2106,7 @@ function NodeDetailPanel({
         )}
       </div>
 
-      <div style={{ padding: "18px 22px", borderBottom: "1px solid #f1ede8", flex: 1 }}>
+      <div style={{ padding: "14px 18px", borderBottom: "1px solid rgba(15, 23, 42, 0.07)", flex: 1 }}>
         {!isDeal && !readOnly && (
           <div style={{ display: "grid", gap: 10, marginBottom: 18 }}>
             <label style={{ display: "grid", gap: 6, fontSize: 10, fontWeight: 800, color: "#6b6760", textTransform: "uppercase", letterSpacing: "0.12em" }}>
@@ -1900,7 +2116,7 @@ function NodeDetailPanel({
                 onChange={(event) => setNextStepDraft(event.target.value)}
                 onBlur={() => onPatch({ data: { ...details, next_step: nextStepDraft } })}
                 placeholder="What should happen next?"
-                style={{ height: 36, border: "1px solid #e8e4de", borderRadius: 8, background: "#fff", color: "#0d0c0a", padding: "0 10px", fontSize: 12.5 }}
+                style={{ height: 36, border: "1px solid rgba(15, 23, 42, 0.10)", borderRadius: 9, background: "#fff", color: "#0d0c0a", padding: "0 10px", fontSize: 12.5 }}
               />
             </label>
             <label style={{ display: "grid", gap: 6, fontSize: 10, fontWeight: 800, color: "#6b6760", textTransform: "uppercase", letterSpacing: "0.12em" }}>
@@ -1911,7 +2127,7 @@ function NodeDetailPanel({
                 onBlur={() => onPatch({ data: { ...details, notes: notesDraft, next_step: nextStepDraft } })}
                 rows={4}
                 placeholder="Context, risk, promise, or detail tied to this node."
-                style={{ resize: "vertical", border: "1px solid #e8e4de", borderRadius: 8, background: "#fff", color: "#0d0c0a", padding: "9px 10px", fontSize: 12.5, lineHeight: 1.45 }}
+                style={{ resize: "vertical", border: "1px solid rgba(15, 23, 42, 0.10)", borderRadius: 9, background: "#fff", color: "#0d0c0a", padding: "9px 10px", fontSize: 12.5, lineHeight: 1.45 }}
               />
             </label>
           </div>
@@ -1920,7 +2136,7 @@ function NodeDetailPanel({
         <div
           style={{
             fontSize: 10,
-            fontWeight: 700,
+            fontWeight: 850,
             letterSpacing: "0.16em",
             textTransform: "uppercase",
             color: "#6b6760",
@@ -1938,7 +2154,7 @@ function NodeDetailPanel({
         )}
         <div style={{ display: "grid", gap: 6 }}>
           {connected.map((other) => {
-            const otherData = other.data as unknown as DealMindmapEntity & DealMindmapDeal;
+            const otherData = other.data as unknown as DealFlowEntity & DealFlowDeal;
             const isOtherDeal = other.type === "deal";
             const otherKind = isOtherDeal ? null : otherData.kind;
             const otherMeta = otherKind ? KIND_META[otherKind] : null;
@@ -1952,21 +2168,21 @@ function NodeDetailPanel({
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
-                  padding: "8px 10px",
-                  background: "transparent",
-                  border: "1px solid #f1ede8",
-                  borderRadius: 8,
+                  padding: "8px 9px",
+                  background: "rgba(255, 255, 255, 0.72)",
+                  border: "1px solid rgba(15, 23, 42, 0.07)",
+                  borderRadius: 10,
                   cursor: "pointer",
                   textAlign: "left",
                   transition: "background 160ms ease, border-color 160ms ease",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = "rgba(86, 36, 199, 0.04)";
-                  e.currentTarget.style.borderColor = "#e8e4de";
+                  e.currentTarget.style.borderColor = "rgba(93, 44, 214, 0.16)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.borderColor = "#f1ede8";
+                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.72)";
+                  e.currentTarget.style.borderColor = "rgba(15, 23, 42, 0.07)";
                 }}
               >
                 <span
@@ -1979,7 +2195,7 @@ function NodeDetailPanel({
                   }}
                 />
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 500, color: "#0d0c0a" }}>{otherLabel}</div>
+                  <div style={{ fontSize: 12.2, fontWeight: 740, color: "#0d0c0a" }}>{otherLabel}</div>
                   {!isOtherDeal && otherData.sublabel && (
                     <div style={{ fontSize: 11, color: "#9b9eb0" }}>{otherData.sublabel}</div>
                   )}
@@ -2018,9 +2234,9 @@ function NodeDetailPanel({
             type="button"
             onClick={onRemove}
             style={{
-              width: "100%",
+              width: "fit-content",
               padding: "10px 12px",
-              borderRadius: 8,
+              borderRadius: 9,
               border: "1px solid #fecaca",
               background: "#fef2f2",
               color: "#b91c1c",
@@ -2029,7 +2245,7 @@ function NodeDetailPanel({
               cursor: "pointer",
             }}
           >
-            Remove {KIND_META[(data as DealMindmapEntity).kind].label} from dealflow
+            Remove {KIND_META[(data as DealFlowEntity).kind].label} from dealflow
           </button>
         </div>
       )}

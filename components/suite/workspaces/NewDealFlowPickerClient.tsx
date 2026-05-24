@@ -81,7 +81,7 @@ async function createMapFromTemplate(template: DealTemplate, name: string): Prom
   return mapId;
 }
 
-export default function NewMapPickerClient() {
+export default function NewDealFlowPickerClient() {
   return (
     <Suspense fallback={<div style={{ minHeight: 400 }} />}>
       <NewMapInner />

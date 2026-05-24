@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
-import { Archive, Check, Database, Edit3, ExternalLink, Fingerprint, History, MoreHorizontal, Plus, Search, Sparkles, X } from "lucide-react";
+import { Archive, Check, Copy, Database, Edit3, ExternalLink, Fingerprint, History, LayoutTemplate, MoreHorizontal, Plus, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export interface DealsPageData {
@@ -71,14 +71,6 @@ const FILTERS = [
   { id: "recent", label: "Recently updated" },
 ] as const;
 
-const GROUPS = [
-  { id: "new", label: "New" },
-  { id: "active", label: "Active" },
-  { id: "at-risk", label: "At Risk" },
-  { id: "closing", label: "Closing" },
-  { id: "won", label: "Won / Archived" },
-] as const;
-
 async function requestJson<T>(url: string, init: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...init,
@@ -120,17 +112,6 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
       return `${item.name} ${item.stage} ${item.id} ${item.company || ""} ${item.primaryContact || ""} ${item.nextAction || ""}`.toLowerCase().includes(q);
     });
   }, [items, query, filter]);
-
-  const grouped = useMemo(() => {
-    return GROUPS.map((group) => ({
-      ...group,
-      items: filtered.filter((item) => {
-        const risk = item.risk || dealRisk(item.stage);
-        if (group.id === "won") return risk === "won" || risk === "archived";
-        return risk === group.id;
-      }),
-    })).filter((group) => group.items.length > 0);
-  }, [filtered]);
 
   const beginRename = (item: DealsPageData["deals"][number]) => {
     setEditingId(item.id);
@@ -200,7 +181,7 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
             <Plus aria-hidden="true" size={16} /> New deal
           </button>
           <Link className="btn primary" href="/suite/deals/new">
-            <Sparkles aria-hidden="true" size={16} /> From template
+            <LayoutTemplate aria-hidden="true" size={16} /> From template
           </Link>
         </div>
       </div>
@@ -277,15 +258,8 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
             </button>
           </div>
         ) : (
-          <div className="deals-stage-stack">
-            {grouped.map((group) => (
-              <section key={group.id} className="deals-stage-section">
-                <div className="deals-stage-h">
-                  <h2>{group.label}</h2>
-                  <span>{group.items.length}</span>
-                </div>
-                <div className="deals-grid">
-            {group.items.map((deal, index) => (
+          <div className="deals-grid">
+            {filtered.map((deal, index) => (
               <article
                 key={deal.id}
                 className="deal-square"
@@ -408,14 +382,11 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
                   <div className="deal-square-menu" onClick={(event) => event.stopPropagation()}>
                     <button type="button" onClick={() => beginRename(deal)}><Edit3 size={14} /> Rename</button>
                     <button type="button" onClick={() => openDeal(deal.id)}><ExternalLink size={14} /> Edit details</button>
-                    <button type="button" onClick={() => setError("Duplicate is queued for the next deal template pass.")}><Sparkles size={14} /> Duplicate</button>
+                    <button type="button" onClick={() => setError("Duplicate is queued for the next deal template pass.")}><Copy size={14} /> Duplicate</button>
                     <button type="button" onClick={() => setItems((current) => current.filter((item) => item.id !== deal.id))}><Archive size={14} /> Archive</button>
                   </div>
                 )}
               </article>
-            ))}
-                </div>
-              </section>
             ))}
           </div>
         )}

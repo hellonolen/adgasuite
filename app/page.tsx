@@ -110,7 +110,7 @@ const GUIDE_PROOF = [
   "Built around real deal records, not generic tasks",
   "Cloudflare D1 for workspace data and R2 for files, notes, and generated documents",
   "Checkout, payment events, and invoicing paths wired into the close flow",
-  "Voice notes, transcripts, deal maps, contacts, calendars, and pipeline activity in one suite",
+  "Voice notes, transcripts, DealFlows, contacts, calendars, and pipeline activity in one suite",
 ];
 
 const SIMPLE_PLAN = [

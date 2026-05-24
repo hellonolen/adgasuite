@@ -1,15 +1,15 @@
 import { notFound } from "next/navigation";
 import {
-  type DealMindmapDeal,
-  type DealMindmapEntity,
-  type DealMindmapInitialEdge,
-  type DealMindmapInitialNode,
-} from "@/components/suite/DealMindmap";
+  type DealFlowDeal,
+  type DealFlowEntity,
+  type DealFlowInitialEdge,
+  type DealFlowInitialNode,
+} from "@/components/suite/DealFlow";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { redirect } from "next/navigation";
 import { getMap, getMapEdges, getMapNodes } from "@/lib/server/repository";
-import DealMapClient from "@/components/suite/workspaces/DealMapClient";
+import DealFlowClient from "@/components/suite/workspaces/DealFlowClient";
 import { readJsonPayload } from "@/lib/server/payload-storage";
 
 interface PageProps {
@@ -92,7 +92,7 @@ function statusForMeeting(row: CalendarRow): "neutral" | "active" | "warning" {
   return "active";
 }
 
-const SAMPLE_DEAL: DealMindmapDeal = {
+const SAMPLE_DEAL: DealFlowDeal = {
   id: "DEAL-1224",
   name: "Capital raise — Series B",
   stage: "Negotiation",
@@ -100,7 +100,7 @@ const SAMPLE_DEAL: DealMindmapDeal = {
   nextAction: "Send counter offer · today",
 };
 
-const SAMPLE_ENTITIES: DealMindmapEntity[] = [
+const SAMPLE_ENTITIES: DealFlowEntity[] = [
   { id: "contact:1", kind: "contact", label: "Aurore Chastain", sublabel: "Head of Corp Dev · Sutter Maritime", status: "neutral" },
   { id: "contact:2", kind: "contact", label: "Beni Okonkwo",   sublabel: "CFO · Foundry Helix",            status: "neutral" },
   { id: "company:1", kind: "company", label: "Sutter Maritime", sublabel: "Logistics · NYC",                status: "neutral" },
@@ -172,22 +172,22 @@ export default async function DealDetailPage({ params }: PageProps) {
       ? { ...mapRecord, ...mapPayload, id: mapRecord.id, organization_id: mapRecord.organization_id }
       : mapRecord;
 
-    const deal: DealMindmapDeal = {
+    const deal: DealFlowDeal = {
       id: mapRecord.id,
       name: String(hydratedMap.name || mapRecord.id),
       stage: String(hydratedMap.template || "Deal"),
     };
 
-    const initialNodes: DealMindmapInitialNode[] = hydratedNodes.map((node) => ({
+    const initialNodes: DealFlowInitialNode[] = hydratedNodes.map((node) => ({
       id: node.id,
-      kind: node.kind === "deal" ? "action" : (node.kind as DealMindmapEntity["kind"]),
+      kind: node.kind === "deal" ? "action" : (node.kind as DealFlowEntity["kind"]),
       label: String(node.label || "Untitled"),
       sublabel: node.sublabel ? String(node.sublabel) : undefined,
-      status: (node.status as DealMindmapEntity["status"]) || "neutral",
+      status: (node.status as DealFlowEntity["status"]) || "neutral",
       position: { x: Number(node.position_x || 0), y: Number(node.position_y || 0) },
     }));
 
-    const initialEdges: DealMindmapInitialEdge[] = hydratedEdges.map((edge) => ({
+    const initialEdges: DealFlowInitialEdge[] = hydratedEdges.map((edge) => ({
       id: edge.id,
       source: edge.source_node_id,
       target: edge.target_node_id,
@@ -234,7 +234,7 @@ export default async function DealDetailPage({ params }: PageProps) {
       .all<CalendarRow>(),
   ]);
 
-  const deal: DealMindmapDeal = {
+  const deal: DealFlowDeal = {
     id: dealRow.id,
     name: dealRow.name,
     stage: dealRow.stage || "Lead",
@@ -242,7 +242,7 @@ export default async function DealDetailPage({ params }: PageProps) {
     nextAction: (taskRows.results || [])[0]?.title || undefined,
   };
 
-  const entities: DealMindmapEntity[] = [];
+  const entities: DealFlowEntity[] = [];
 
   for (const row of contactRows.results || []) {
     entities.push({
@@ -300,17 +300,17 @@ export default async function DealDetailPage({ params }: PageProps) {
 // inside its shell. No <main>, no <SuiteClient> — the layout already provided both.
 
 function renderSample(_id: string, _banner: string) {
-  return <DealMapClient deal={SAMPLE_DEAL} entities={SAMPLE_ENTITIES} />;
+  return <DealFlowClient deal={SAMPLE_DEAL} entities={SAMPLE_ENTITIES} />;
 }
 
 function renderMap(
-  deal: DealMindmapDeal,
-  initialNodes: DealMindmapInitialNode[],
-  initialEdges: DealMindmapInitialEdge[],
+  deal: DealFlowDeal,
+  initialNodes: DealFlowInitialNode[],
+  initialEdges: DealFlowInitialEdge[],
   mapId: string,
 ) {
   return (
-    <DealMapClient
+    <DealFlowClient
       deal={deal}
       entities={[]}
       mapId={mapId}
@@ -321,6 +321,6 @@ function renderMap(
   );
 }
 
-function renderPage(deal: DealMindmapDeal, entities: DealMindmapEntity[], _dealRow: DealRow) {
-  return <DealMapClient deal={deal} entities={entities} />;
+function renderPage(deal: DealFlowDeal, entities: DealFlowEntity[], _dealRow: DealRow) {
+  return <DealFlowClient deal={deal} entities={entities} />;
 }

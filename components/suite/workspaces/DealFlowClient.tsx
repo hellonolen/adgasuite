@@ -8,39 +8,39 @@
  */
 
 import {
-  DealMindmap,
-  type DealMindmapDeal,
-  type DealMindmapEntity,
-  type DealMindmapInitialEdge,
-  type DealMindmapInitialNode,
-} from "@/components/suite/DealMindmap";
+  DealFlow,
+  type DealFlowDeal,
+  type DealFlowEntity,
+  type DealFlowInitialEdge,
+  type DealFlowInitialNode,
+} from "@/components/suite/DealFlow";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-export interface DealMapClientProps {
-  deal: DealMindmapDeal;
-  entities: DealMindmapEntity[];
+export interface DealFlowClientProps {
+  deal: DealFlowDeal;
+  entities: DealFlowEntity[];
   mapId?: string;
-  initialNodes?: DealMindmapInitialNode[];
-  initialEdges?: DealMindmapInitialEdge[];
+  initialNodes?: DealFlowInitialNode[];
+  initialEdges?: DealFlowInitialEdge[];
   persistApiBase?: string;
 }
 
-export default function DealMapClient({
+export default function DealFlowClient({
   deal,
   entities,
   mapId,
   initialNodes,
   initialEdges,
   persistApiBase,
-}: DealMapClientProps) {
+}: DealFlowClientProps) {
   return (
     <div style={{ position: "absolute", inset: 0, display: "flex", minHeight: 0 }}>
       <Link className="deal-canvas-back" href="/suite/deals" aria-label="Back to deals">
         <ArrowLeft aria-hidden="true" size={15} />
         Deals
       </Link>
-      <DealMindmap
+      <DealFlow
         deal={deal}
         entities={entities || []}
         mapId={mapId}
