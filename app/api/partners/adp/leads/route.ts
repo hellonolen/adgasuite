@@ -1,6 +1,6 @@
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { sendPostmarkEmail } from "@/lib/integrations/postmark";
-import { createEvent } from "@/lib/server/repository";
+import { createEvent, createStorageObject } from "@/lib/server/repository";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
 
@@ -20,6 +20,30 @@ type AdpLeadBody = {
   source_path?: string;
 };
 
+type StoredAdpLead = {
+  id: string;
+  organization_id: string;
+  partner_slug: "adp";
+  partner_name: "ADP";
+  referral_number: string;
+  affiliate_code: string;
+  affiliate_url: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  company: string;
+  job_title: string;
+  company_size: string | null;
+  state: string | null;
+  payroll_timing: string;
+  current_payroll_provider: string | null;
+  needs: string[];
+  notes: string;
+  consent_to_contact: boolean;
+  source_path: string;
+  submitted_at: string;
+};
+
 const ADP_AFFILIATE_CODE = "PW56143";
 const ADP_REFERRAL_LINK = "https://info.adp.com/referral-hub?loid=&adp_pc=PW56143";
 const ORGANIZATION_ID = "org_adga_primary";
@@ -33,8 +57,8 @@ export async function GET(request: Request) {
   try {
     const result = await context.env.DB.prepare(
       `SELECT
-         l.id, l.partner_slug, l.partner_name, l.referral_number, l.full_name, l.email, l.phone, l.company, l.job_title,
-         l.affiliate_code, l.affiliate_url, l.company_size, l.state, l.payroll_timing, l.current_payroll_provider, l.needs_json, l.notes,
+         l.id, l.partner_slug, l.partner_name, l.referral_number, l.lead_data_r2_key, l.storage_object_id,
+         l.affiliate_code, l.affiliate_url,
          l.consent_to_contact, l.source_path, l.status, l.email_sent_count, l.last_email_sent_at,
          l.created_at, l.updated_at,
          d.to_email AS last_to_email,
@@ -56,10 +80,7 @@ export async function GET(request: Request) {
       .bind(ORGANIZATION_ID, "adp")
       .all();
 
-    const leads = (result.results || []).map((lead: Record<string, unknown>) => ({
-      ...lead,
-      needs: JSON.parse(String(lead.needs_json || "[]")),
-    }));
+    const leads = result.results || [];
 
     return json({ ok: true, leads });
   } catch (error) {
@@ -105,6 +126,13 @@ async function createPartnerReferralNumber(db: D1Database, organizationId: strin
   throw new Error("Unable to allocate an ADP partner referral number.");
 }
 
+async function sha256Hex(value: string) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
   const body = await readJson<AdpLeadBody>(request);
@@ -129,6 +157,8 @@ export async function POST(request: Request) {
   }
   if (!body.consent_to_contact) return errorJson("consent_to_contact is required before routing to ADP.", 400);
   if (!context.env.DB) return errorJson("Lead database is not configured. ADP routing was not attempted.", 503);
+  const leadBucket = context.env.UPLOADS_BUCKET || context.env.DOCUMENTS_BUCKET;
+  if (!leadBucket) return errorJson("Lead payload storage is not configured. ADP routing was not attempted.", 503);
 
   const timestamp = nowIso();
   const leadId = newId("adp");
@@ -144,7 +174,7 @@ export async function POST(request: Request) {
     context.env.ADGA_ADMIN_EMAIL ||
     "matt.ganton@adp.com";
 
-  const lead = {
+  const lead: StoredAdpLead = {
     id: leadId,
     organization_id: ORGANIZATION_ID,
     partner_slug: "adp",
@@ -154,24 +184,53 @@ export async function POST(request: Request) {
     affiliate_url: ADP_REFERRAL_LINK,
     full_name: body.full_name,
     email: body.email,
-    phone: body.phone || null,
-    company: body.company || null,
-    job_title: body.job_title || null,
+    phone: body.phone,
+    company: body.company,
+    job_title: body.job_title,
     company_size: body.company_size || null,
     state: body.state || null,
-    payroll_timing: body.payroll_timing || null,
+    payroll_timing: body.payroll_timing,
     current_payroll_provider: body.current_payroll_provider || null,
-    needs_json: JSON.stringify(needs),
-    notes: body.notes || null,
-    consent_to_contact: body.consent_to_contact ? 1 : 0,
+    needs,
+    notes: body.notes,
+    consent_to_contact: true,
     source_path: body.source_path || "/adp",
-    user_agent: request.headers.get("user-agent") || null,
-    status: "new",
-    email_sent_count: 0,
-    last_email_sent_at: null as string | null,
-    created_at: timestamp,
-    updated_at: timestamp,
+    submitted_at: timestamp,
   };
+  const leadDataR2Key = `partner-referrals/adp/${lead.referral_number}/${lead.id}.json`;
+  const leadDataJson = JSON.stringify({
+    ...lead,
+    request_metadata: {
+      user_agent: request.headers.get("user-agent") || null,
+    },
+  });
+  const leadDataHash = await sha256Hex(leadDataJson);
+
+  await leadBucket.put(leadDataR2Key, leadDataJson, {
+    httpMetadata: { contentType: "application/json; charset=utf-8" },
+    customMetadata: {
+      organization_id: ORGANIZATION_ID,
+      partner_slug: "adp",
+      referral_number: lead.referral_number,
+      lead_id: lead.id,
+      sha256: leadDataHash,
+    },
+  });
+
+  const storageObject = await createStorageObject(context.env.DB, {
+    organization_id: ORGANIZATION_ID,
+    bucket: context.env.UPLOADS_BUCKET ? "uploads" : "documents",
+    r2_key: leadDataR2Key,
+    file_name: `adp-partner-referral-${lead.referral_number}.json`,
+    mime_type: "application/json",
+    size_bytes: new TextEncoder().encode(leadDataJson).byteLength,
+    sha256: leadDataHash,
+    category: "upload",
+    resource_type: "partner_referral_lead",
+    resource_id: lead.id,
+    visibility: "workspace",
+    created_by: "adp-page",
+  });
 
   const trackingPixelUrl = `${origin}/api/partners/adp/email-open?lead=${encodeURIComponent(lead.id)}&partner=${encodeURIComponent(ADP_AFFILIATE_CODE)}`;
   const needsHtml = needs
@@ -198,7 +257,7 @@ export async function POST(request: Request) {
                     <td style="padding:0 0 14px;">
                       <div style="font-size:12px;color:#6f756d;font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Primary contact</div>
                       <div style="margin-top:6px;font-size:24px;line-height:1.2;font-weight:800;color:#171a1f;">${escapeHtml(lead.full_name)}</div>
-                      <div style="margin-top:4px;font-size:14px;color:#4f574f;">${escapeHtml(lead.job_title || "Position not provided")} at ${escapeHtml(lead.company)}</div>
+                      <div style="margin-top:4px;font-size:14px;color:#4f574f;">${escapeHtml(lead.job_title)} at ${escapeHtml(lead.company)}</div>
                     </td>
                   </tr>
                 </table>
@@ -276,16 +335,16 @@ export async function POST(request: Request) {
   try {
     await context.env.DB.prepare(
       `INSERT INTO partner_referral_leads
-        (id, organization_id, partner_slug, partner_name, referral_number, affiliate_code, affiliate_url, full_name, email, phone, company, job_title, company_size, state,
+        (id, organization_id, partner_slug, partner_name, referral_number, lead_data_r2_key, storage_object_id, affiliate_code, affiliate_url, full_name, email, phone, company, job_title, company_size, state,
          payroll_timing, current_payroll_provider, needs_json, notes, consent_to_contact, source_path, user_agent, status,
          email_sent_count, last_email_sent_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
-        lead.id, lead.organization_id, lead.partner_slug, lead.partner_name, lead.referral_number, lead.affiliate_code, lead.affiliate_url, lead.full_name, lead.email,
-        lead.phone, lead.company, lead.job_title, lead.company_size, lead.state, lead.payroll_timing,
-        lead.current_payroll_provider, lead.needs_json, lead.notes, lead.consent_to_contact, lead.source_path,
-        lead.user_agent, lead.status, lead.email_sent_count, lead.last_email_sent_at, lead.created_at, lead.updated_at,
+        lead.id, lead.organization_id, lead.partner_slug, lead.partner_name, lead.referral_number, leadDataR2Key, storageObject.id, lead.affiliate_code, lead.affiliate_url,
+        `ADP partner referral #${lead.referral_number}`, `partner-referral-${lead.id}@metadata.adga.internal`,
+        null, null, null, null, null, null, null, "[]", null, 1, lead.source_path,
+        null, "new", 0, null, timestamp, timestamp,
       )
       .run();
   } catch (error) {
@@ -320,8 +379,8 @@ export async function POST(request: Request) {
   );
 
   const emailSent = Boolean(emailResult.ok);
-  lead.email_sent_count = emailSent ? 1 : 0;
-  lead.last_email_sent_at = emailSent ? timestamp : null;
+  const emailSentCount = emailSent ? 1 : 0;
+  const lastEmailSentAt = emailSent ? timestamp : null;
 
   try {
     await context.env.DB.prepare(
@@ -329,7 +388,7 @@ export async function POST(request: Request) {
        SET email_sent_count = ?, last_email_sent_at = ?, updated_at = ?
        WHERE id = ? AND organization_id = ?`,
     )
-      .bind(lead.email_sent_count, lead.last_email_sent_at, timestamp, lead.id, lead.organization_id)
+      .bind(emailSentCount, lastEmailSentAt, timestamp, lead.id, lead.organization_id)
       .run();
 
     await context.env.DB.prepare(
@@ -356,15 +415,38 @@ export async function POST(request: Request) {
     actor_id: "adp-page",
     resource_type: "partner_referral_lead",
     resource_id: lead.id,
-    payload: { lead, email: { to: toEmail, result: emailResult } },
+    payload: {
+      lead_id: lead.id,
+      referral_number: lead.referral_number,
+      partner_slug: lead.partner_slug,
+      lead_data_r2_key: leadDataR2Key,
+      storage_object_id: storageObject.id,
+      email: { sent: emailSent, to: toEmail, result: emailResult },
+    },
   });
 
   if (!emailSent) {
     return errorJson("Postmark did not send the ADP notification email.", 502, {
-      lead: { ...lead, needs },
+      lead: {
+        id: lead.id,
+        referral_number: lead.referral_number,
+        partner_slug: lead.partner_slug,
+        lead_data_r2_key: leadDataR2Key,
+        storage_object_id: storageObject.id,
+      },
       email: { sent: false, to: toEmail, result: emailResult },
     });
   }
 
-  return json({ ok: true, lead: { ...lead, needs }, email: { sent: emailSent, to: toEmail } });
+  return json({
+    ok: true,
+    lead: {
+      id: lead.id,
+      referral_number: lead.referral_number,
+      partner_slug: lead.partner_slug,
+      lead_data_r2_key: leadDataR2Key,
+      storage_object_id: storageObject.id,
+    },
+    email: { sent: emailSent, to: toEmail },
+  });
 }
