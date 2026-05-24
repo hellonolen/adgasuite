@@ -46,6 +46,8 @@ crons = ["*/5 * * * *", "0 * * * *"]
 # Production secrets to set with `wrangler secret put`:
 # POSTMARK_SERVER_TOKEN
 # POSTMARK_FROM_EMAIL
+# GOOGLE_CLIENT_ID
+# GOOGLE_CLIENT_SECRET
 # CLOUDFLARE_EMAIL_FROM, plus an EMAIL send_email binding if using Cloudflare Email Service
 # STRIPE_SECRET_KEY
 # STRIPE_WEBHOOK_SECRET

@@ -1,22 +1,16 @@
 import { NextResponse } from "next/server";
 import { errorJson, readJson } from "@/lib/server/http";
+import { provisionUserSession } from "@/lib/server/auth-provision";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import {
   AUTH_COOKIE_NAME,
-  cookieOptions,
-  isoDaysFromNow,
+  authCookieOptions,
   normalizeEmail,
-  randomToken,
   sha256,
 } from "@/lib/server/magic-auth";
-import { orgIdForEmail, orgNameForEmail, orgSlugForEmail, OWNER_EMAIL } from "@/lib/server/tenant";
 
 interface VerifyBody {
   token?: string;
-}
-
-function userIdForEmail(email: string) {
-  return `usr_${email.replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g, "").toLowerCase()}`;
 }
 
 export async function POST(request: Request) {
@@ -37,41 +31,13 @@ export async function POST(request: Request) {
   }
 
   const email = normalizeEmail(row.email);
-  const userId = userIdForEmail(email);
-  const organizationId = orgIdForEmail(email);
-  const organizationName = orgNameForEmail(email);
-  const organizationSlug = orgSlugForEmail(email);
-  const role = email === OWNER_EMAIL ? "owner" : "owner";
-  const now = new Date().toISOString();
-  const sessionToken = randomToken();
-  const sessionHash = await sha256(sessionToken);
-  const sessionId = crypto.randomUUID();
-
-  await context.env.DB.prepare(
-    `INSERT OR IGNORE INTO organizations (id, name, slug, plan, subscription_status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).bind(organizationId, organizationName, organizationSlug, row.plan || "team", "trialing", now, now).run();
-
-  await context.env.DB.prepare(
-    `INSERT OR IGNORE INTO users (id, email, name, role, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?)`
-  ).bind(userId, email, email.split("@")[0], role, now, now).run();
-
-  await context.env.DB.prepare(
-    `INSERT OR IGNORE INTO organization_members (organization_id, user_id, role, created_at)
-     VALUES (?, ?, ?, ?)`
-  ).bind(organizationId, userId, role, now).run();
-
-  await context.env.DB.prepare(
-    `INSERT INTO sessions (id, user_id, organization_id, token_hash, expires_at, created_at)
-     VALUES (?, ?, ?, ?, ?, ?)`
-  ).bind(sessionId, userId, organizationId, sessionHash, isoDaysFromNow(30), now).run();
+  const session = await provisionUserSession(context.env.DB, { email, plan: row.plan });
 
   await context.env.DB.prepare(
     "UPDATE magic_tokens SET used_at = datetime('now') WHERE token_hash = ?"
   ).bind(tokenHash).run();
 
   const response = NextResponse.json({ ok: true, redirect: row.redirect_path || "/suite" });
-  response.cookies.set(AUTH_COOKIE_NAME, sessionToken, cookieOptions());
+  response.cookies.set(AUTH_COOKIE_NAME, session.sessionToken, authCookieOptions(request.url));
   return response;
 }

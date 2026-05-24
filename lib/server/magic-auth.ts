@@ -24,6 +24,10 @@ export async function sha256(value: string) {
   return bytesToBase64Url(new Uint8Array(digest));
 }
 
+export async function codeChallenge(verifier: string) {
+  return sha256(verifier);
+}
+
 export function isoMinutesFromNow(minutes: number) {
   return new Date(Date.now() + minutes * 60 * 1000).toISOString();
 }
@@ -40,6 +44,33 @@ export function cookieOptions() {
     path: "/",
     maxAge: SESSION_TTL_DAYS * 24 * 60 * 60,
   };
+}
+
+export function authCookieOptions(requestUrl?: string) {
+  const secure = requestUrl ? new URL(requestUrl).protocol === "https:" : true;
+  return {
+    ...cookieOptions(),
+    secure,
+  };
+}
+
+export function transientAuthCookieOptions(requestUrl: string, maxAge = 600) {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: new URL(requestUrl).protocol === "https:",
+    path: "/",
+    maxAge,
+  };
+}
+
+export function safeAuthRedirect(value?: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/suite";
+  return value;
+}
+
+export function userIdForEmail(email: string) {
+  return `usr_${email.replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g, "").toLowerCase()}`;
 }
 
 export interface SessionUser {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { z } from "zod";
 
 const emailSchema = z.string().email("Enter a valid work email.");
@@ -15,6 +15,22 @@ export default function LoginPage() {
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [googleHref, setGoogleHref] = useState("/api/auth/google");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("next") || params.get("redirect") || "/suite";
+    setGoogleHref(`/api/auth/google?next=${encodeURIComponent(next)}`);
+
+    const error = params.get("error");
+    if (error === "google_not_configured") {
+      setStatus({ kind: "error", message: "Google sign-in is not configured yet. Use email sign-in for now." });
+    } else if (error?.startsWith("google_")) {
+      setStatus({ kind: "error", message: "Google sign-in could not be completed. Try again or use email sign-in." });
+    } else if (error === "auth_storage_missing") {
+      setStatus({ kind: "error", message: "Authentication storage is not configured." });
+    }
+  }, []);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -58,7 +74,12 @@ export default function LoginPage() {
     <>
       <style>{`
         body::before { display: none !important; }
-        body { background: #f7f5f1 !important; }
+        body { background: #f8fafc !important; }
+        .login-auth-page {
+          background:
+            radial-gradient(circle at 50% 0%, rgba(93, 44, 214, 0.08), transparent 34rem),
+            linear-gradient(180deg, #ffffff 0%, #f8fafc 58%, #eef2f7 100%) !important;
+        }
         .login-auth-page button.login-submit {
           background: #5d2cd6 !important;
           color: #fff !important;
@@ -66,15 +87,18 @@ export default function LoginPage() {
         .login-auth-page button.login-submit:hover {
           background: #4c1d95 !important;
         }
+        .login-auth-page .google-login {
+          color: #11100e !important;
+        }
         @media (max-width: 640px) {
           .login-auth-page .login-proof { display: none !important; }
-          .login-auth-page .login-hero-title { font-size: 40px !important; }
-          .login-auth-page .login-hero-copy { font-size: 16px !important; line-height: 1.65 !important; }
+          .login-auth-page .login-shell { padding-top: 18px !important; }
+          .login-auth-page .login-card-wrap { min-height: calc(100vh - 88px) !important; align-items: flex-start !important; padding-top: 54px !important; }
         }
       `}</style>
-      <main className="login-auth-page min-h-screen bg-[#f7f5f1] text-[#11100e]">
-        <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-5 py-5 sm:px-8 lg:px-10">
-          <header className="flex items-center justify-between gap-4 border-b border-[#ded9d1] pb-5">
+      <main className="login-auth-page min-h-screen text-[#11100e]">
+        <div className="login-shell mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-8 lg:px-10">
+          <header className="flex items-center justify-between gap-4">
             <a href="/" className="text-2xl font-semibold tracking-[-0.03em] text-[#5d2cd6]">
               ADGA
             </a>
@@ -89,33 +113,8 @@ export default function LoginPage() {
             </div>
           </header>
 
-          <section className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.72fr)] lg:gap-16 lg:py-16">
-            <div className="max-w-2xl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#ded9d1] bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6b6760] shadow-sm">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#5d2cd6]" />
-                Secure workspace access
-              </div>
-              <h1 className="login-hero-title text-[44px] font-semibold leading-[0.98] tracking-[-0.045em] text-[#11100e] sm:text-[64px] lg:text-[78px]">
-                Welcome.
-              </h1>
-              <p className="login-hero-copy mt-6 max-w-xl text-lg leading-8 text-[#5f5a52]">
-                Sign in with a single-use link and continue into the workspace, onboarding, billing, or the deal you were working.
-              </p>
-              <div className="login-proof mt-9 grid max-w-2xl gap-3 sm:grid-cols-3">
-                {[
-                  ["No password", "Magic links only"],
-                  ["Session protected", "30-day secure session"],
-                  ["Workspace ready", "Deals, billing, profile"],
-                ].map(([label, body]) => (
-                  <div key={label} className="rounded-2xl border border-[#ded9d1] bg-white/75 p-4 shadow-sm">
-                    <div className="text-sm font-semibold text-[#11100e]">{label}</div>
-                    <div className="mt-1 text-xs leading-5 text-[#6b6760]">{body}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <section className="rounded-[28px] border border-[#ded9d1] bg-white p-6 shadow-[0_26px_80px_-42px_rgba(33,25,18,0.42)] sm:p-8">
+          <section className="login-card-wrap flex flex-1 items-center justify-center pb-16 pt-8 lg:-translate-y-10">
+            <section className="w-full max-w-[456px] rounded-[28px] border border-[#e2e8f0] bg-white/95 p-6 shadow-[0_28px_90px_-42px_rgba(15,23,42,0.54)] backdrop-blur sm:p-8">
               {status.kind === "sent" ? (
                 <>
                   <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">Check your email</div>
@@ -141,13 +140,33 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
+                  <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#e2e8f0] bg-[#f8fafc] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#64748b]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#5d2cd6]" />
+                    Secure workspace access
+                  </div>
                   <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">Sign in</div>
-                  <h2 className="mt-3 text-3xl font-semibold tracking-tight">Open ADGA.</h2>
+                  <h1 className="mt-3 text-[40px] font-semibold leading-none tracking-[-0.04em]">Welcome.</h1>
                   <p className="mt-3 text-[15px] leading-7 text-[#6b6760]">
                     Enter your details and we will send the link that opens your account.
                   </p>
 
-                  <form onSubmit={submit} className="mt-8 grid gap-5" noValidate>
+                  <a
+                    href={googleHref}
+                    className="google-login mt-7 inline-flex h-12 w-full items-center justify-center gap-3 rounded-full border border-[#d6dbe3] bg-white px-5 text-[15px] font-semibold shadow-sm transition hover:border-[#b8c0cc] hover:bg-[#f8fafc]"
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#e2e8f0] bg-white text-sm font-bold text-[#4285f4]">
+                      G
+                    </span>
+                    Continue with Google
+                  </a>
+
+                  <div className="mt-6 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#94a3b8]">
+                    <span className="h-px flex-1 bg-[#e2e8f0]" />
+                    Or use email
+                    <span className="h-px flex-1 bg-[#e2e8f0]" />
+                  </div>
+
+                  <form onSubmit={submit} className="mt-6 grid gap-5" noValidate>
                     <div className="grid gap-2">
                       <label htmlFor="login-first-name" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6b6760]">
                         First name
@@ -198,6 +217,13 @@ export default function LoginPage() {
                   <p className="mt-7 text-xs leading-6 text-[#6b6760]">
                     By signing in you agree to ADGA&apos;s <a className="underline underline-offset-2" href="/policies">policies</a>.
                   </p>
+                  <div className="login-proof mt-6 grid gap-2 border-t border-[#e2e8f0] pt-5 sm:grid-cols-3">
+                    {["Magic link", "Secure session", "Billing ready"].map((label) => (
+                      <div key={label} className="rounded-xl bg-[#f8fafc] px-3 py-2 text-center text-[11px] font-semibold text-[#64748b]">
+                        {label}
+                      </div>
+                    ))}
+                  </div>
                 </>
               )}
             </section>
