@@ -125,6 +125,7 @@ CREATE TABLE IF NOT EXISTS partner_referral_leads (
   organization_id TEXT NOT NULL,
   partner_slug TEXT NOT NULL,
   partner_name TEXT NOT NULL,
+  referral_number TEXT,
   affiliate_code TEXT,
   affiliate_url TEXT,
   full_name TEXT NOT NULL,
@@ -168,6 +169,7 @@ CREATE TABLE IF NOT EXISTS partner_referral_email_deliveries (
 
 CREATE INDEX IF NOT EXISTS idx_partner_referral_leads_partner_created ON partner_referral_leads (organization_id, partner_slug, created_at);
 CREATE INDEX IF NOT EXISTS idx_partner_referral_leads_email ON partner_referral_leads (organization_id, email, created_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_partner_referral_leads_referral_number ON partner_referral_leads (organization_id, referral_number);
 CREATE INDEX IF NOT EXISTS idx_partner_referral_email_deliveries_lead ON partner_referral_email_deliveries (referral_lead_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_partner_referral_email_deliveries_partner ON partner_referral_email_deliveries (organization_id, partner_slug, created_at);
 

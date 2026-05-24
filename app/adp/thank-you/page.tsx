@@ -7,10 +7,13 @@ const adpReferralLink = "https://info.adp.com/referral-hub?loid=&adp_pc=PW56143"
 export default async function AdpThankYouPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ lead?: string; partner?: string; name?: string }>;
+  searchParams?: Promise<{ lead?: string; partner?: string; name?: string; ref?: string }>;
 }) {
   const params = await searchParams;
   const leadId = params?.lead;
+  const referralNumber = String(params?.ref || "")
+    .replace(/\D/g, "")
+    .slice(0, 12);
   const firstName = String(params?.name || "")
     .replace(/[^a-zA-Z.'-]/g, "")
     .slice(0, 32);
@@ -24,6 +27,7 @@ export default async function AdpThankYouPage({
           <div>
             <div className="adp-badge-row">
               <span>Request received</span>
+              {referralNumber ? <span>Reference #{referralNumber}</span> : null}
               <span>ADP partner code {adpAffiliateCode}</span>
             </div>
             <h1>{greeting} We received your payroll request.</h1>

@@ -163,13 +163,16 @@ export default function AdpPartnerPage() {
         setStatus("sent");
         submittedRef.current = true;
         const leadId = payload.lead?.id ? String(payload.lead.id) : "";
+        const referralNumber = payload.lead?.referral_number ? String(payload.lead.referral_number) : "";
         trackFunnelEvent("partner_referral.submit_succeeded", {
           filled_field_count: fields.length,
           filled_fields: fields,
+          referral_number: referralNumber || null,
           email_sent: Boolean(payload.email?.sent),
         }, leadId);
         const params = new URLSearchParams({ partner: adpAffiliateCode });
         if (leadId) params.set("lead", leadId);
+        if (referralNumber) params.set("ref", referralNumber);
         const firstName = String(form.get("full_name") || "").trim().split(/\s+/)[0];
         if (firstName) params.set("name", firstName);
         window.location.href = `/adp/thank-you?${params.toString()}`;

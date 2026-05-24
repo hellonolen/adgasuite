@@ -22,6 +22,9 @@ type AdpLeadBody = {
 
 const ADP_AFFILIATE_CODE = "PW56143";
 const ADP_REFERRAL_LINK = "https://info.adp.com/referral-hub?loid=&adp_pc=PW56143";
+const ORGANIZATION_ID = "org_adga_primary";
+const REFERRAL_NUMBER_MIN = 438217;
+const REFERRAL_NUMBER_MAX = 986742;
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);
@@ -30,7 +33,7 @@ export async function GET(request: Request) {
   try {
     const result = await context.env.DB.prepare(
       `SELECT
-         l.id, l.partner_slug, l.partner_name, l.full_name, l.email, l.phone, l.company, l.job_title,
+         l.id, l.partner_slug, l.partner_name, l.referral_number, l.full_name, l.email, l.phone, l.company, l.job_title,
          l.affiliate_code, l.affiliate_url, l.company_size, l.state, l.payroll_timing, l.current_payroll_provider, l.needs_json, l.notes,
          l.consent_to_contact, l.source_path, l.status, l.email_sent_count, l.last_email_sent_at,
          l.created_at, l.updated_at,
@@ -50,7 +53,7 @@ export async function GET(request: Request) {
        ORDER BY l.created_at DESC
        LIMIT 250`,
     )
-      .bind("org_adga_primary", "adp")
+      .bind(ORGANIZATION_ID, "adp")
       .all();
 
     const leads = (result.results || []).map((lead: Record<string, unknown>) => ({
@@ -70,6 +73,36 @@ function escapeHtml(value: unknown) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function randomReferralNumber() {
+  const range = REFERRAL_NUMBER_MAX - REFERRAL_NUMBER_MIN + 1;
+  const random = Math.floor(Math.random() * range);
+  return String(REFERRAL_NUMBER_MIN + random);
+}
+
+async function createPartnerReferralNumber(db: D1Database, organizationId: string) {
+  const range = REFERRAL_NUMBER_MAX - REFERRAL_NUMBER_MIN + 1;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const candidate =
+      attempt < 10
+        ? randomReferralNumber()
+        : String(REFERRAL_NUMBER_MIN + ((Date.now() + attempt) % range));
+    const existing = await db
+      .prepare(
+        `SELECT id
+         FROM partner_referral_leads
+         WHERE organization_id = ? AND referral_number = ?
+         LIMIT 1`,
+      )
+      .bind(organizationId, candidate)
+      .first<{ id: string }>()
+      .catch(() => null);
+
+    if (!existing) return candidate;
+  }
+
+  throw new Error("Unable to allocate an ADP partner referral number.");
 }
 
 export async function POST(request: Request) {
@@ -100,6 +133,12 @@ export async function POST(request: Request) {
   const timestamp = nowIso();
   const leadId = newId("adp");
   const deliveryId = newId("eml");
+  let referralNumber: string;
+  try {
+    referralNumber = await createPartnerReferralNumber(context.env.DB, ORGANIZATION_ID);
+  } catch (error) {
+    return errorJson("Lead reference could not be allocated. ADP routing was not attempted.", 502, { error: String(error) });
+  }
   const toEmail =
     context.env.ADP_REFERRAL_TO_EMAIL ||
     context.env.ADGA_ADMIN_EMAIL ||
@@ -107,9 +146,10 @@ export async function POST(request: Request) {
 
   const lead = {
     id: leadId,
-    organization_id: "org_adga_primary",
+    organization_id: ORGANIZATION_ID,
     partner_slug: "adp",
     partner_name: "ADP",
+    referral_number: referralNumber,
     affiliate_code: ADP_AFFILIATE_CODE,
     affiliate_url: ADP_REFERRAL_LINK,
     full_name: body.full_name,
@@ -146,7 +186,7 @@ export async function POST(request: Request) {
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;background:#ffffff;border:1px solid #e3e6df;border-radius:16px;overflow:hidden;">
             <tr>
               <td style="padding:26px 30px;background:#15221a;color:#ffffff;">
-                <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#9be7b4;">ADGA affiliate referral</div>
+                <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#9be7b4;">ADGA partner referral #${escapeHtml(lead.referral_number)}</div>
                 <h1 style="margin:10px 0 0;font-size:28px;line-height:1.15;font-weight:800;">New payroll conversation ready for follow-up</h1>
                 <p style="margin:10px 0 0;color:#dce9de;font-size:14px;">Lead saved in ADGA before this notification was sent.</p>
               </td>
@@ -216,6 +256,7 @@ export async function POST(request: Request) {
                 <div style="margin-top:18px;padding:16px;border-radius:12px;background:#f8f4ea;border:1px solid #eadfca;">
                   <div style="font-size:12px;color:#7b5b13;font-weight:800;text-transform:uppercase;letter-spacing:.08em;">Referral details</div>
                   <p style="margin:8px 0 0;font-size:14px;color:#332b1c;"><strong>ADGA PIC code:</strong> ${ADP_AFFILIATE_CODE}</p>
+                  <p style="margin:5px 0 0;font-size:14px;color:#332b1c;"><strong>ADGA partner lead #:</strong> ${escapeHtml(lead.referral_number)}</p>
                   <p style="margin:5px 0 0;font-size:14px;color:#332b1c;"><strong>Referral hub:</strong> ${ADP_REFERRAL_LINK.replace(/&/g, "&amp;")}</p>
                   <p style="margin:5px 0 0;font-size:14px;color:#332b1c;"><strong>Submitted:</strong> ${escapeHtml(timestamp)}</p>
                   <p style="margin:5px 0 0;font-size:14px;color:#332b1c;"><strong>Consent to contact:</strong> Yes</p>
@@ -235,13 +276,13 @@ export async function POST(request: Request) {
   try {
     await context.env.DB.prepare(
       `INSERT INTO partner_referral_leads
-        (id, organization_id, partner_slug, partner_name, affiliate_code, affiliate_url, full_name, email, phone, company, job_title, company_size, state,
+        (id, organization_id, partner_slug, partner_name, referral_number, affiliate_code, affiliate_url, full_name, email, phone, company, job_title, company_size, state,
          payroll_timing, current_payroll_provider, needs_json, notes, consent_to_contact, source_path, user_agent, status,
          email_sent_count, last_email_sent_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
-        lead.id, lead.organization_id, lead.partner_slug, lead.partner_name, lead.affiliate_code, lead.affiliate_url, lead.full_name, lead.email,
+        lead.id, lead.organization_id, lead.partner_slug, lead.partner_name, lead.referral_number, lead.affiliate_code, lead.affiliate_url, lead.full_name, lead.email,
         lead.phone, lead.company, lead.job_title, lead.company_size, lead.state, lead.payroll_timing,
         lead.current_payroll_provider, lead.needs_json, lead.notes, lead.consent_to_contact, lead.source_path,
         lead.user_agent, lead.status, lead.email_sent_count, lead.last_email_sent_at, lead.created_at, lead.updated_at,
@@ -254,10 +295,11 @@ export async function POST(request: Request) {
   const emailResult = await sendPostmarkEmail(
     {
       to: toEmail,
-      subject: `ADP affiliate payroll referral ${ADP_AFFILIATE_CODE}: ${lead.full_name}`,
+      subject: `ADP affiliate payroll referral #${lead.referral_number}: ${lead.full_name}`,
       htmlBody,
       textBody: [
         "New ADP affiliate payroll referral",
+        `ADGA partner lead #: ${lead.referral_number}`,
         `ADGA PIC code: ${ADP_AFFILIATE_CODE}`,
         "ADP contact: Matthew Ganton <matt.ganton@adp.com>",
         `Referral hub: ${ADP_REFERRAL_LINK}`,
