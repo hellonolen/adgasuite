@@ -777,6 +777,16 @@ export function DealMindmap({
           : n,
       ),
     );
+
+    const base = persistBaseRef.current;
+    if (persistEnabled && base && selectedId !== deal.id && knownNodeIdsRef.current.has(selectedId)) {
+      void fetch(`${base}/nodes/${encodeURIComponent(selectedId)}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label }),
+      }).catch(() => {});
+    }
   };
 
   const selectedKind = nodeKindFromNode(selectedNode);
@@ -911,7 +921,15 @@ export function DealMindmap({
                         void fetch(`${base}/nodes`, {
                           method: "POST", credentials: "include",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ id, kind: a.kind, label: a.label, sublabel: a.sublabel, status: a.status || "neutral", position: newNode.position }),
+                          body: JSON.stringify({
+                            id,
+                            kind: a.kind,
+                            label: a.label,
+                            sublabel: a.sublabel,
+                            status: a.status || "neutral",
+                            position_x: newNode.position.x,
+                            position_y: newNode.position.y,
+                          }),
                         }).catch(() => {});
                       }
                     }

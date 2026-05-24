@@ -56,7 +56,7 @@ export default function LoginPage() {
     <style>{`body::before { display: none !important; }`}</style>
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.05fr_1fr] bg-[#0d0c0a] text-white">
       {/* LEFT — full panel brand */}
-      <aside className="relative flex flex-col justify-between overflow-hidden px-10 py-12 sm:px-16 sm:py-16 bg-gradient-to-br from-[#3a1a8e] via-[#5d2cd6] to-[#7a46de]">
+      <aside className="relative flex flex-col justify-between overflow-hidden px-10 py-12 sm:px-16 sm:py-16 bg-gradient-to-br from-[#4a1eb5] via-[#5d2cd6] to-[#7c4ade]">
         <a href="/" className="inline-flex items-center gap-3 text-2xl font-semibold tracking-tight">
           <span
             aria-hidden

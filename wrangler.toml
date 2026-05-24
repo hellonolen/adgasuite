@@ -7,7 +7,8 @@ compatibility_flags = ["nodejs_compat"]
 ADGA_AI_MODEL = "@cf/moonshotai/kimi-k2.6"
 ADGA_ADMIN_EMAIL = "hellonolen@gmail.com"
 ADGA_ADMIN_EMAILS = "hellonolen@gmail.com,kamarokyle5@gmail.com"
-ADGA_LOCAL_ADMIN_BYPASS = "true"
+ADGA_LOCAL_ADMIN_BYPASS = "false"
+ADP_REFERRAL_TO_EMAIL = "matt.ganton@adp.com"
 WHOP_REDIRECT_URL = "https://adga.ai/suite"
 
 [assets]
@@ -36,12 +37,28 @@ bucket_name = "adga-suite-documents"
 binding = "UPLOADS_BUCKET"
 bucket_name = "adga-suite-uploads"
 
+[[send_email]]
+name = "EMAIL"
+
 [triggers]
 crons = ["*/5 * * * *", "0 * * * *"]
 
 # Production secrets to set with `wrangler secret put`:
 # POSTMARK_SERVER_TOKEN
 # POSTMARK_FROM_EMAIL
+# CLOUDFLARE_EMAIL_FROM, plus an EMAIL send_email binding if using Cloudflare Email Service
+# STRIPE_SECRET_KEY
+# STRIPE_WEBHOOK_SECRET
+# STRIPE_PRICE_PRO_MONTHLY
+# STRIPE_PRICE_PRO_ANNUAL
+# STRIPE_PRICE_TEAM_BASE_MONTHLY
+# STRIPE_PRICE_TEAM_BASE_ANNUAL
+# STRIPE_PRICE_TEAM_SEAT_MONTHLY
+# STRIPE_PRICE_TEAM_SEAT_ANNUAL
+# STRIPE_PRICE_ENTERPRISE_BASE_MONTHLY
+# STRIPE_PRICE_ENTERPRISE_BASE_ANNUAL
+# STRIPE_PRICE_ENTERPRISE_SEAT_MONTHLY
+# STRIPE_PRICE_ENTERPRISE_SEAT_ANNUAL
 # WHOP_API_KEY
 # WHOP_WEBHOOK_SECRET
 # WHOP_COMPANY_ID

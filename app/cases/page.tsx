@@ -130,7 +130,7 @@ export default function CasesPage() {
       <div className="wrap">
         <MarketingHero
           headline="Deals from closers."
-          deck="Acquisitions, capital raises, M&A, partnerships, licensing, and high-ticket sales — closers, dealmakers, and operators running every deal type through the same record."
+          deck="Acquisitions, capital raises, M&A, partnerships, licensing, and high-ticket sales — closers, dealmakers, and operators running them inside ADGA."
           primaryCta={{ label: "Start closing deals", href: "/pricing" }}
           paddingBottom={24}
         />
@@ -139,7 +139,7 @@ export default function CasesPage() {
           <span className="ed-label">Use cases</span>
           <h2 className="title">Different deals. <em>One operating path.</em></h2>
           <p style={{ maxWidth: "60ch", marginTop: 12, color: "var(--ink-2)" }}>
-            ADGA is built around the anatomy of a deal — source, people, proof, stage, close, delivery, expansion. The same operating record carries real estate closings, capital raises, acquisitions, partnerships, licensing, procurement, and high-ticket sales without forcing every team into the same script.
+            Real estate closings. Capital raises. Acquisitions. Partnerships. Licensing. Procurement. High-ticket sales. Closers run all of them inside ADGA — without forcing every team into the same script.
           </p>
 
           <div

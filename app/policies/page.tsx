@@ -228,7 +228,7 @@ const POLICIES: ReadonlyArray<Policy> = [
       },
       {
         heading: "Payments",
-        body: "Whop — subscription billing, invoicing, and payment processing. Region: United States. Data: workspace owner name, email, billing address, subscription tier, payment method tokens. Stripe is available as an additional payments connector on request and is governed by the same processor relationship.",
+        body: "Payment processor — subscription billing, checkout, invoicing, and payment processing. Region: United States. Data: workspace owner name, email, billing address, subscription tier, payment method tokens, invoices, and payment status.",
       },
       {
         heading: "Analytics and monitoring",

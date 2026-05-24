@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=GT+Sectra&display=swap");
 @import "tailwindcss";
 @import "../components/adga/marketing.css";
 @import "../components/adga/styles.css";
@@ -2588,6 +2589,670 @@ body {
 
 .partner-status.error {
   color: #b42318;
+}
+
+.marketing-root .adp-page {
+  padding-top: clamp(22px, 3vw, 42px);
+  padding-bottom: clamp(54px, 8vw, 104px);
+}
+
+.marketing-root .adp-attribution-frame {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  clip-path: inset(50%);
+}
+
+.marketing-root .adp-conversion-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(420px, 0.82fr);
+  gap: clamp(22px, 3vw, 38px);
+  align-items: stretch;
+}
+
+.marketing-root .adp-offer-panel {
+  position: relative;
+  isolation: isolate;
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: clamp(26px, 3.6vw, 46px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
+    radial-gradient(circle at 88% 12%, rgba(166, 121, 255, 0.32), transparent 34%),
+    radial-gradient(circle at 12% 88%, rgba(255, 255, 255, 0.11), transparent 30%),
+    #14101f;
+  color: #ffffff;
+  box-shadow: 0 28px 90px rgba(26, 16, 47, 0.22);
+}
+
+.marketing-root .adp-offer-panel::after {
+  content: "";
+  position: absolute;
+  right: -16%;
+  bottom: -22%;
+  width: 440px;
+  height: 440px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(91, 33, 182, 0.32), transparent 62%);
+  z-index: -1;
+}
+
+.marketing-root .adp-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: clamp(24px, 4vw, 48px);
+}
+
+.marketing-root .adp-badge-row span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.marketing-root .adp-offer-panel h1 {
+  max-width: 760px;
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(40px, 5.7vw, 76px);
+  line-height: 0.96;
+  letter-spacing: 0;
+}
+
+.marketing-root .adp-offer-panel p {
+  max-width: 640px;
+  margin: 18px 0 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: clamp(17px, 2vw, 21px);
+  line-height: 1.45;
+}
+
+.marketing-root .adp-proof-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: clamp(24px, 3.6vw, 44px);
+}
+
+.marketing-root .adp-proof-grid div,
+.marketing-root .adp-contact-card {
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.marketing-root .adp-proof-grid div {
+  min-height: 78px;
+  padding: 14px;
+}
+
+.marketing-root .adp-proof-grid strong {
+  display: block;
+  color: #ffffff;
+  font-size: clamp(22px, 3vw, 36px);
+  line-height: 1;
+}
+
+.marketing-root .adp-proof-grid span,
+.marketing-root .adp-contact-card span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.marketing-root .adp-contact-card {
+  margin-top: 10px;
+  padding: 15px;
+}
+
+.marketing-root .adp-contact-card strong {
+  display: block;
+  margin-top: 6px;
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.marketing-root .adp-contact-card a {
+  display: inline-block;
+  margin-top: 4px;
+  color: #ffffff;
+  text-decoration-color: rgba(255, 255, 255, 0.42);
+}
+
+.marketing-root .adp-lead-form {
+  align-self: start;
+  padding: clamp(20px, 2.4vw, 28px);
+  border: 1px solid rgba(91, 33, 182, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 80px rgba(26, 16, 47, 0.12);
+}
+
+.marketing-root .adp-form-head {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--adga-theme-rule);
+}
+
+.marketing-root .adp-form-head span {
+  display: inline-flex;
+  margin-bottom: 8px;
+  color: var(--adga-theme-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.marketing-root .adp-form-head h2 {
+  margin: 0;
+  color: var(--adga-theme-ink);
+  font-size: clamp(28px, 2.7vw, 38px);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.marketing-root .adp-form-head p {
+  margin: 8px 0 0;
+  color: var(--adga-theme-ink-2);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.marketing-root .adp-referral-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  margin-top: 14px;
+  padding: 0 14px;
+  border: 1px solid rgba(91, 33, 182, 0.2);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--adga-theme-accent) 8%, white 92%);
+  color: var(--adga-theme-accent);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.marketing-root .adp-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.marketing-root .adp-wide {
+  grid-column: 1 / -1;
+}
+
+.marketing-root .adp-check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 8px;
+}
+
+.marketing-root .adp-extra-fields {
+  border: 1px solid var(--adga-theme-rule);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--adga-theme-bg) 58%, white 42%);
+}
+
+.marketing-root .adp-extra-fields summary {
+  cursor: pointer;
+  padding: 12px 14px;
+  color: var(--adga-theme-ink);
+  font-size: 13px;
+  font-weight: 760;
+  list-style-position: inside;
+}
+
+.marketing-root .adp-extra-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 14px 14px;
+}
+
+.marketing-root .adp-check-grid label,
+.marketing-root .adp-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: var(--adga-theme-ink-2);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.marketing-root .adp-check-grid input,
+.marketing-root .adp-consent input {
+  width: auto;
+  min-width: 14px;
+  margin-top: 2px;
+}
+
+.marketing-root .adp-consent {
+  padding: 12px;
+  border: 1px solid var(--adga-theme-rule);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--adga-theme-accent) 5%, white 95%);
+}
+
+.marketing-root .adp-form-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.marketing-root .adp-detail-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.marketing-root .adp-detail-strip article,
+.marketing-root .adp-secondary > div,
+.marketing-root .adp-process-row > div,
+.marketing-root .adp-coverage-grid > div,
+.marketing-root .adp-audience-card {
+  padding: 22px;
+  border: 1px solid var(--adga-theme-rule);
+  border-radius: 14px;
+  background: var(--adga-theme-surface);
+  box-shadow: 0 12px 34px rgba(29, 21, 52, 0.055);
+}
+
+.marketing-root .adp-detail-strip span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--adga-theme-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.marketing-root .adp-detail-strip p,
+.marketing-root .adp-secondary p,
+.marketing-root .adp-expanded-copy p,
+.marketing-root .adp-coverage-grid span,
+.marketing-root .adp-audience-card p,
+.marketing-root .adp-eligibility-panel li,
+.marketing-root .adp-process-row p,
+.marketing-root .adp-compliance-note p {
+  margin: 0;
+  color: var(--adga-theme-ink-2);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.marketing-root .adp-expanded-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(420px, 0.9fr);
+  gap: 20px;
+  align-items: stretch;
+  margin-top: 18px;
+  padding: clamp(28px, 4vw, 46px);
+  border: 1px solid rgba(91, 33, 182, 0.13);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(91, 33, 182, 0.12), transparent 32%),
+    linear-gradient(135deg, #ffffff, color-mix(in srgb, var(--adga-theme-bg) 70%, white 30%));
+  box-shadow: 0 16px 44px rgba(29, 21, 52, 0.06);
+}
+
+.marketing-root .adp-expanded-copy span,
+.marketing-root .adp-audience-card span,
+.marketing-root .adp-eligibility-panel span {
+  display: inline-flex;
+  margin-bottom: 12px;
+  color: var(--adga-theme-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.marketing-root .adp-expanded-copy h2,
+.marketing-root .adp-eligibility-panel h2 {
+  max-width: 780px;
+  margin: 0 0 18px;
+  color: var(--adga-theme-ink);
+  font-size: clamp(34px, 4.3vw, 62px);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.marketing-root .adp-expanded-copy p {
+  max-width: 74ch;
+  font-size: 16px;
+}
+
+.marketing-root .adp-coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.marketing-root .adp-coverage-grid strong,
+.marketing-root .adp-audience-card h3,
+.marketing-root .adp-process-row strong {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--adga-theme-ink);
+  font-size: 16px;
+}
+
+.marketing-root .adp-coverage-grid span {
+  display: block;
+}
+
+.marketing-root .adp-audience-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.marketing-root .adp-audience-card h3 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  line-height: 1.14;
+}
+
+.marketing-root .adp-eligibility-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(420px, 0.86fr);
+  gap: 22px;
+  margin-top: 14px;
+  padding: clamp(24px, 3.4vw, 38px);
+  border-radius: 18px;
+  background: #171222;
+  color: #ffffff;
+  box-shadow: 0 22px 58px rgba(29, 21, 52, 0.14);
+}
+
+.marketing-root .adp-eligibility-panel span,
+.marketing-root .adp-eligibility-panel h2,
+.marketing-root .adp-eligibility-panel li {
+  color: #ffffff;
+}
+
+.marketing-root .adp-eligibility-panel span {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.marketing-root .adp-eligibility-panel h2 {
+  margin-bottom: 0;
+  font-size: clamp(30px, 3.6vw, 48px);
+}
+
+.marketing-root .adp-eligibility-panel ul {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.marketing-root .adp-eligibility-panel li {
+  position: relative;
+  padding: 14px 14px 14px 38px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.marketing-root .adp-eligibility-panel li::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  top: 22px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--adga-theme-accent);
+}
+
+.marketing-root .adp-process-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.marketing-root .adp-process-row span {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 18px;
+  border-radius: 50%;
+  background: var(--adga-theme-accent);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.marketing-root .adp-secondary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.marketing-root .adp-secondary h2 {
+  margin: 0 0 10px;
+  color: var(--adga-theme-ink);
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.marketing-root .adp-secondary .accent-link {
+  display: inline-flex;
+  margin-top: 14px;
+}
+
+.marketing-root .adp-compliance-note {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--adga-theme-rule);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--adga-theme-bg) 74%, white 26%);
+}
+
+.marketing-root .adp-compliance-note p {
+  font-size: 12px;
+}
+
+.marketing-root .adp-affiliate-credit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(91, 33, 182, 0.18);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--adga-theme-accent) 7%, white 93%);
+}
+
+.marketing-root .adp-affiliate-credit strong {
+  color: var(--adga-theme-ink);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.marketing-root .adp-affiliate-credit span {
+  color: var(--adga-theme-accent);
+  font-family: var(--adga-font-mono);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.marketing-root .adp-terms-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.marketing-root .adp-terms-grid > div {
+  padding: 16px;
+  border: 1px solid var(--adga-theme-rule);
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.marketing-root .adp-terms-grid strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--adga-theme-ink);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.marketing-root .adp-terms-grid p {
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.marketing-root .adp-thank-you-panel {
+  min-height: calc(100vh - 230px);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 0.58fr);
+  gap: clamp(22px, 3vw, 38px);
+  align-items: stretch;
+  padding: clamp(34px, 5vw, 68px);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(166, 121, 255, 0.24), transparent 32%),
+    linear-gradient(135deg, #171222, #2b2140);
+  color: #ffffff;
+  box-shadow: 0 28px 90px rgba(26, 16, 47, 0.22);
+}
+
+.marketing-root .adp-thank-you-panel h1 {
+  max-width: 920px;
+  margin: clamp(58px, 9vw, 120px) 0 22px;
+  color: #ffffff;
+  font-size: clamp(46px, 7vw, 92px);
+  line-height: 0.96;
+  letter-spacing: 0;
+}
+
+.marketing-root .adp-thank-you-panel p {
+  max-width: 760px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: clamp(17px, 2vw, 22px);
+  line-height: 1.45;
+}
+
+.marketing-root .adp-thank-you-card {
+  align-self: end;
+  padding: clamp(22px, 3vw, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.marketing-root .adp-thank-you-card span {
+  display: block;
+  margin-bottom: 16px;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.marketing-root .adp-thank-you-card ul {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.marketing-root .adp-thank-you-card li {
+  position: relative;
+  padding-left: 24px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.marketing-root .adp-thank-you-card li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--adga-theme-accent);
+}
+
+@media (max-width: 1060px) {
+  .marketing-root .adp-conversion-hero,
+  .marketing-root .adp-detail-strip,
+  .marketing-root .adp-secondary,
+  .marketing-root .adp-expanded-panel,
+  .marketing-root .adp-audience-panel,
+  .marketing-root .adp-eligibility-panel,
+  .marketing-root .adp-terms-grid,
+  .marketing-root .adp-thank-you-panel,
+  .marketing-root .adp-process-row {
+    grid-template-columns: 1fr;
+  }
+
+  .marketing-root .adp-offer-panel {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .marketing-root .adp-form-grid,
+  .marketing-root .adp-extra-grid,
+  .marketing-root .adp-check-grid,
+  .marketing-root .adp-coverage-grid,
+  .marketing-root .adp-proof-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .marketing-root .adp-offer-panel,
+  .marketing-root .adp-lead-form {
+    border-radius: 14px;
+  }
 }
 
 @media (max-width: 900px) {

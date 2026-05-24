@@ -98,6 +98,8 @@ export async function POST(request: Request) {
     payload: {
       provider: "whop",
       configured: checkout.configured,
+      ok: "ok" in checkout ? checkout.ok : false,
+      status: "status" in checkout ? checkout.status : null,
       plan,
       seats: seats ?? null,
       cadence,
@@ -118,6 +120,14 @@ export async function POST(request: Request) {
   }
 
   const url = extractCheckoutUrl(checkout);
+  if (!checkout.ok || !url) {
+    return errorJson("Checkout provider did not return a usable checkout URL.", 502, {
+      provider: checkout.provider,
+      status: checkout.status,
+      configured: checkout.configured,
+    });
+  }
+
   return json({
     ok: true,
     configured: true,

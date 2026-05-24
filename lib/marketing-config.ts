@@ -35,6 +35,7 @@ export const NAV_LINKS: ReadonlyArray<NavLink> = [
   { label: "Plan", href: "/plan" },
   { label: "Process", href: "/process" },
   { label: "Use Cases", href: "/cases" },
+  { label: "Resources", href: "/resources/deal-pipeline-audit" },
   { label: "Pricing", href: "/pricing" },
 ];
 
@@ -50,13 +51,16 @@ export const FOOTER_COLUMNS: ReadonlyArray<FooterColumn> = [
       { label: "Plan", href: "/plan" },
       { label: "Process", href: "/process" },
       { label: "Use Cases", href: "/cases" },
+      { label: "Free Checklist", href: "/resources/deal-pipeline-audit" },
       { label: "Pricing", href: "/pricing" },
     ],
   },
   {
     heading: "Company",
     links: [
+      { label: "About", href: "/about" },
       { label: "Stories", href: "/stories" },
+      { label: "Contact", href: "/contact" },
       { label: "Sign in", href: "/login" },
     ],
   },
@@ -135,12 +139,12 @@ export const PAGE_SEO = {
   process: {
     title: "Dealmakers close deals",
     description:
-      "The deal process designed to help closers, dealmakers, and operators run every deal through the same proven path — from lead to expand.",
+      "The deal process designed to help closers, dealmakers, and operators run their deals through the same proven path — from lead to expand.",
   },
   cases: {
     title: "Deals from closers",
     description:
-      "Acquisitions, capital raises, M&A, partnerships, licensing, and high-ticket sales — same operating spine, configured per vertical. Designed for closers, dealmakers, and operators across every deal type.",
+      "Acquisitions, capital raises, M&A, partnerships, licensing, and high-ticket sales — closers, dealmakers, and operators running them inside ADGA.",
   },
   pricing: {
     title: "Join our community",
@@ -151,6 +155,16 @@ export const PAGE_SEO = {
     title: "Stories from the closers running ADGA",
     description:
       "How dealmakers, operators, and closers use ADGA to keep every deal moving and close more of what’s already in their pipeline.",
+  },
+  about: {
+    title: "About",
+    description:
+      "ADGA is built for closers, dealmakers, advisors, and operators who need every lead, contact, file, invoice, and next action attached to the deal.",
+  },
+  resources: {
+    title: "Deal Pipeline Audit Checklist",
+    description:
+      "Download the ADGA Deal Pipeline Audit Checklist to find stale deals, missed follow-ups, missing owners, invoice gaps, and close blockers before your next pipeline review.",
   },
   security: {
     title: "Security",
@@ -174,10 +188,10 @@ export const PAGE_SEO = {
   support: {
     title: "Support",
     description:
-      "ADGA support runs inside the workspace. The agents resolve questions on the deal itself — never away from where the deal lives.",
+      "ADGA support runs inside the workspace. Questions resolve on the deal itself — never away from where the deal lives.",
   },
   contact: {
     title: "Contact",
-    description: "Every interaction with ADGA runs through the agents inside the workspace. The deal is the conversation.",
+    description: "Every interaction with ADGA runs through the workspace, on the deal itself. The deal is the conversation.",
   },
 } as const;

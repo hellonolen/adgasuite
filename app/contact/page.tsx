@@ -18,11 +18,11 @@ type ContactRoute = {
 const ROUTES: ReadonlyArray<ContactRoute> = [
   {
     label: "Inside your workspace",
-    body: "Every conversation with ADGA happens on the deal. The agents handle the question right where the deal lives, with the full context already attached.",
+    body: "Every conversation with ADGA happens on the deal. Questions resolve right where the deal lives, with the full context already attached.",
   },
   {
     label: "Before you open a workspace",
-    body: "Pricing, configuration, and getting started questions are answered on the pricing page and inside the agents from the first sign-in.",
+    body: "Pricing, configuration, and getting started questions are answered on the pricing page and inside the workspace from the first sign-in.",
   },
   {
     label: "Policy, security, or compliance",
@@ -40,7 +40,7 @@ export default function ContactPage() {
       <div className="wrap">
         <MarketingHero
           headline="The deal is the conversation."
-          deck="ADGA is an agentic platform. Every interaction — questions, requests, escalations — runs through the agents inside the workspace, on the deal itself."
+          deck="Every interaction with ADGA — questions, requests, escalations — runs through the workspace, on the deal itself."
           primaryCta={{ label: "Start closing deals", href: "/pricing" }}
           paddingBottom={24}
         />

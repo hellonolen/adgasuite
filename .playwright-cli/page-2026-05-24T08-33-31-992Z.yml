@@ -1,0 +1,210 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - link "ADGA" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e5]:
+        - link "Plan" [ref=e6] [cursor=pointer]:
+          - /url: /plan
+        - link "Process" [ref=e7] [cursor=pointer]:
+          - /url: /process
+        - link "Use Cases" [ref=e8] [cursor=pointer]:
+          - /url: /cases
+        - link "Resources" [ref=e9] [cursor=pointer]:
+          - /url: /resources/deal-pipeline-audit
+        - link "Pricing" [ref=e10] [cursor=pointer]:
+          - /url: /pricing
+      - generic [ref=e11]:
+        - generic [ref=e12]: Deal flow platform
+        - link "Sign in" [ref=e13] [cursor=pointer]:
+          - /url: /login
+        - link "Start closing deals" [ref=e14] [cursor=pointer]:
+          - /url: /pricing
+    - generic [ref=e15]:
+      - region "Payroll help, routed straight to ADP." [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - generic [ref=e19]: ADGA Affiliate
+            - generic [ref=e20]: ADP PIC PW56143
+          - heading "Payroll help, routed straight to ADP." [level=1] [ref=e21]
+          - paragraph [ref=e22]: Eligible companies can receive up to six months free payroll with RUN Powered by ADP when they start processing by June 25, 2026.
+          - generic "Offer highlights" [ref=e23]:
+            - generic [ref=e24]:
+              - strong [ref=e25]: Up to 6 months
+              - generic [ref=e26]: Free payroll offer
+            - generic [ref=e27]:
+              - strong [ref=e28]: 3-49
+              - generic [ref=e29]: Employees for switchers
+            - generic [ref=e30]:
+              - strong [ref=e31]: 5-49
+              - generic [ref=e32]: Employees if not switching
+          - generic [ref=e33]:
+            - generic [ref=e34]: ADP sales associate
+            - strong [ref=e35]: Matthew Ganton
+            - link "matt.ganton@adp.com" [ref=e36] [cursor=pointer]:
+              - /url: mailto:matt.ganton@adp.com
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]: Payroll referral
+            - heading "Send the lead" [level=2] [ref=e40]
+            - paragraph [ref=e41]: Fill this out and ADGA will keep the referral record while routing the contact for ADP follow-up.
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - generic [ref=e44]: Full name
+              - textbox [ref=e45]
+            - generic [ref=e46]:
+              - generic [ref=e47]: Email
+              - textbox [ref=e48]
+            - generic [ref=e49]:
+              - generic [ref=e50]: Phone
+              - textbox [ref=e51]
+            - generic [ref=e52]:
+              - generic [ref=e53]: Company
+              - textbox [ref=e54]
+            - generic [ref=e55]:
+              - generic [ref=e56]: Role
+              - textbox [ref=e57]
+            - generic [ref=e58]:
+              - generic [ref=e59]: Company size
+              - combobox [ref=e60]:
+                - option "Select size" [selected]
+                - option "1-9"
+                - option "10-24"
+                - option "25-49"
+                - option "50-99"
+                - option "100-249"
+                - option "250+"
+            - generic [ref=e61]:
+              - generic [ref=e62]: State
+              - textbox "State" [ref=e63]
+            - generic [ref=e64]:
+              - generic [ref=e65]: Payroll timing
+              - combobox [ref=e66]:
+                - option "Select timing" [selected]
+                - option "Immediately"
+                - option "This month"
+                - option "This quarter"
+                - option "Exploring options"
+            - generic [ref=e67]:
+              - generic [ref=e68]: Current payroll provider
+              - textbox "ADP, Gusto, Paychex, QuickBooks, none..." [ref=e69]
+          - group [ref=e70]:
+            - generic [ref=e71]: Payroll needs
+            - generic [ref=e72]:
+              - generic [ref=e73]:
+                - checkbox "Payroll" [ref=e74]
+                - generic [ref=e75]: Payroll
+              - generic [ref=e76]:
+                - checkbox "Payroll tax filing" [ref=e77]
+                - generic [ref=e78]: Payroll tax filing
+              - generic [ref=e79]:
+                - checkbox "Hiring and onboarding" [ref=e80]
+                - generic [ref=e81]: Hiring and onboarding
+              - generic [ref=e82]:
+                - checkbox "Time and attendance" [ref=e83]
+                - generic [ref=e84]: Time and attendance
+              - generic [ref=e85]:
+                - checkbox "Benefits administration" [ref=e86]
+                - generic [ref=e87]: Benefits administration
+              - generic [ref=e88]:
+                - checkbox "Workers' compensation" [ref=e89]
+                - generic [ref=e90]: Workers' compensation
+              - generic [ref=e91]:
+                - checkbox "Retirement plan support" [ref=e92]
+                - generic [ref=e93]: Retirement plan support
+              - generic [ref=e94]:
+                - checkbox "HR compliance" [ref=e95]
+                - generic [ref=e96]: HR compliance
+          - generic [ref=e97]:
+            - generic [ref=e98]: Notes
+            - textbox "Anything ADP should know..." [ref=e99]
+          - generic [ref=e100]:
+            - checkbox "I agree that ADGA may share this information with its ADP referral contact so ADP can follow up about payroll or HR services." [ref=e101]
+            - generic [ref=e102]: I agree that ADGA may share this information with its ADP referral contact so ADP can follow up about payroll or HR services.
+          - button "Send payroll lead" [ref=e104] [cursor=pointer]
+      - region "ADP offer details" [ref=e105]:
+        - article [ref=e106]:
+          - generic [ref=e107]: Offer terms
+          - paragraph [ref=e108]: Referred company must sign and submit an ADP sales order and start processing payroll by 6/25/2026, then continue processing for three consecutive months at the originally implemented bundle, payroll frequency, and discounting level.
+        - article [ref=e109]:
+          - generic [ref=e110]: What ADP can help with
+          - paragraph [ref=e111]: Payroll processing, payroll taxes, hiring, onboarding, HR support, time tracking, benefits, workers' compensation, and RUN payroll options for small businesses.
+        - article [ref=e112]:
+          - generic [ref=e113]: Referral tracking
+          - paragraph [ref=e114]: ADGA stores the submission in the partner referral table, keeps the affiliate channel attached, and routes the lead to Matthew Ganton at ADP.
+      - generic [ref=e115]:
+        - generic [ref=e116]:
+          - heading "Clover POS referrals" [level=2] [ref=e117]
+          - paragraph [ref=e118]: ADP also notes an ongoing 10% revenue share on qualified new Clover POS referrals. Qualified merchants and eligible products only; program terms apply.
+        - generic [ref=e119]:
+          - heading "Direct referral hub" [level=2] [ref=e120]
+          - paragraph [ref=e121]: Use the form above when ADGA needs to keep a referral record. The direct ADP referral hub remains available for partner materials.
+          - link "Open ADP referral hub" [ref=e122] [cursor=pointer]:
+            - /url: https://info.adp.com/referral-hub?loid=&adp_pc=PW56143
+      - paragraph [ref=e123]: Additional ADP terms and conditions apply. ADP, the ADP logo, RUN Powered by ADP, and Always Designing for People are trademarks of ADP, Inc. Clover is owned by Clover Network, LLC.
+    - contentinfo [ref=e124]:
+      - generic [ref=e125]:
+        - link "ADGA" [ref=e126] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=e127]: Designed for the closers, dealmakers, and operators who carry the number.
+      - generic [ref=e128]:
+        - generic [ref=e129]:
+          - heading "Product" [level=4] [ref=e130]
+          - list [ref=e131]:
+            - listitem [ref=e132]:
+              - link "Plan" [ref=e133] [cursor=pointer]:
+                - /url: /plan
+            - listitem [ref=e134]:
+              - link "Process" [ref=e135] [cursor=pointer]:
+                - /url: /process
+            - listitem [ref=e136]:
+              - link "Use Cases" [ref=e137] [cursor=pointer]:
+                - /url: /cases
+            - listitem [ref=e138]:
+              - link "Free Checklist" [ref=e139] [cursor=pointer]:
+                - /url: /resources/deal-pipeline-audit
+            - listitem [ref=e140]:
+              - link "Pricing" [ref=e141] [cursor=pointer]:
+                - /url: /pricing
+        - generic [ref=e142]:
+          - heading "Company" [level=4] [ref=e143]
+          - list [ref=e144]:
+            - listitem [ref=e145]:
+              - link "About" [ref=e146] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e147]:
+              - link "Stories" [ref=e148] [cursor=pointer]:
+                - /url: /stories
+            - listitem [ref=e149]:
+              - link "Contact" [ref=e150] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e151]:
+              - link "Sign in" [ref=e152] [cursor=pointer]:
+                - /url: /login
+        - generic [ref=e153]:
+          - heading "Home" [level=4] [ref=e154]
+          - list [ref=e155]:
+            - listitem [ref=e156]:
+              - link "Start closing deals" [ref=e157] [cursor=pointer]:
+                - /url: /pricing
+        - generic [ref=e158]:
+          - heading "Legal" [level=4] [ref=e159]
+          - list [ref=e160]:
+            - listitem [ref=e161]:
+              - link "Security" [ref=e162] [cursor=pointer]:
+                - /url: /security
+            - listitem [ref=e163]:
+              - link "Policy Center" [ref=e164] [cursor=pointer]:
+                - /url: /policies
+    - generic [ref=e165]:
+      - generic [ref=e166]: © 2026 ADGA · All rights reserved
+      - generic [ref=e167]:
+        - link "Policy Center" [ref=e168] [cursor=pointer]:
+          - /url: /policies
+        - link "Support" [ref=e169] [cursor=pointer]:
+          - /url: /support
+        - link "Contact" [ref=e170] [cursor=pointer]:
+          - /url: /contact
+  - button "Open Next.js Dev Tools" [ref=e176] [cursor=pointer]:
+    - img [ref=e177]
+  - alert [ref=e180]

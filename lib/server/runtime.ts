@@ -20,8 +20,21 @@ function envFromProcess(): CloudflareEnv {
     ADGA_ADMIN_EMAILS: process.env.ADGA_ADMIN_EMAILS,
     ADGA_LOCAL_ADMIN_BYPASS: process.env.ADGA_LOCAL_ADMIN_BYPASS,
     ADP_REFERRAL_TO_EMAIL: process.env.ADP_REFERRAL_TO_EMAIL,
+    CLOUDFLARE_EMAIL_FROM: process.env.CLOUDFLARE_EMAIL_FROM,
     POSTMARK_SERVER_TOKEN: process.env.POSTMARK_SERVER_TOKEN,
     POSTMARK_FROM_EMAIL: process.env.POSTMARK_FROM_EMAIL,
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    STRIPE_PRICE_PRO_MONTHLY: process.env.STRIPE_PRICE_PRO_MONTHLY,
+    STRIPE_PRICE_PRO_ANNUAL: process.env.STRIPE_PRICE_PRO_ANNUAL,
+    STRIPE_PRICE_TEAM_BASE_MONTHLY: process.env.STRIPE_PRICE_TEAM_BASE_MONTHLY,
+    STRIPE_PRICE_TEAM_BASE_ANNUAL: process.env.STRIPE_PRICE_TEAM_BASE_ANNUAL,
+    STRIPE_PRICE_TEAM_SEAT_MONTHLY: process.env.STRIPE_PRICE_TEAM_SEAT_MONTHLY,
+    STRIPE_PRICE_TEAM_SEAT_ANNUAL: process.env.STRIPE_PRICE_TEAM_SEAT_ANNUAL,
+    STRIPE_PRICE_ENTERPRISE_BASE_MONTHLY: process.env.STRIPE_PRICE_ENTERPRISE_BASE_MONTHLY,
+    STRIPE_PRICE_ENTERPRISE_BASE_ANNUAL: process.env.STRIPE_PRICE_ENTERPRISE_BASE_ANNUAL,
+    STRIPE_PRICE_ENTERPRISE_SEAT_MONTHLY: process.env.STRIPE_PRICE_ENTERPRISE_SEAT_MONTHLY,
+    STRIPE_PRICE_ENTERPRISE_SEAT_ANNUAL: process.env.STRIPE_PRICE_ENTERPRISE_SEAT_ANNUAL,
     SMS_GATEWAY_URL: process.env.SMS_GATEWAY_URL,
     SMS_GATEWAY_API_KEY: process.env.SMS_GATEWAY_API_KEY,
     SMS_GATEWAY_PROVIDER: process.env.SMS_GATEWAY_PROVIDER,
@@ -48,9 +61,15 @@ export function getRuntimeContext(request?: Request): RuntimeContext {
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
 
+  const hostname = request ? new URL(request.url).hostname : "";
+  const isLocalhost =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1";
   const localBypass =
-    process.env.NODE_ENV !== "production" ||
-    env.ADGA_LOCAL_ADMIN_BYPASS === "true";
+    isLocalhost ||
+    (process.env.NODE_ENV !== "production" &&
+      env.ADGA_LOCAL_ADMIN_BYPASS !== "false");
 
   // SECURITY: the x-adga-admin-email header is only honored when local bypass
   // is active. In production every authenticated request must validate against

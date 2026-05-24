@@ -18,11 +18,11 @@ type SupportCapability = {
 const CAPABILITIES: ReadonlyArray<SupportCapability> = [
   {
     label: "Live inside the deal",
-    body: "The agents handle questions where the deal already lives. No tab switching, no ticket queues, no waiting for a reply from somewhere else.",
+    body: "Questions resolve where the deal already lives. No tab switching, no ticket queues, no waiting for a reply from somewhere else.",
   },
   {
     label: "Answers tied to your data",
-    body: "The agents see the contact, the document, the call summary, the next action. Answers reference the exact record you’re looking at.",
+    body: "Answers reference the contact, the document, the call summary, and the next action on the exact record you’re looking at.",
   },
   {
     label: "Always on, always current",
@@ -30,7 +30,7 @@ const CAPABILITIES: ReadonlyArray<SupportCapability> = [
   },
   {
     label: "Escalation built in",
-    body: "Anything that can’t be resolved by the agents — billing exceptions, security incidents, data requests — is routed automatically through the policies that govern it.",
+    body: "Anything that can’t resolve in-workspace — billing exceptions, security incidents, data requests — is routed automatically through the policies that govern it.",
   },
 ];
 
@@ -39,8 +39,8 @@ export default function SupportPage() {
     <MarketingLayout>
       <div className="wrap">
         <MarketingHero
-          headline="The agents are your support."
-          deck="ADGA support lives inside the workspace. Ask anything on the deal itself — the agents see what you see and resolve in context."
+          headline="Support lives inside the workspace."
+          deck="ADGA support runs inside the workspace. Ask on the deal itself — answers resolve in context, on the record you’re looking at."
           primaryCta={{ label: "Start closing deals", href: "/pricing" }}
           paddingBottom={24}
         />

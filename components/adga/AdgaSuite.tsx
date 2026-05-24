@@ -2345,7 +2345,170 @@ function PipelineControls({ view, setView }) {
   );
 }
 
-function Kanban({ deals, onOpen, onMove }) {
+function pipelineHealthForDeal(deal) {
+  const taskCount = TASKS.filter(t => t.deal === deal.id).length;
+  const docCount = DOCUMENTS.filter(d => d.deal === deal.id).length;
+  const daysToClose = deal.close ? Math.ceil((new Date(deal.close + 'T00:00:00') - new Date()) / 86400000) : 999;
+  const lateStage = ['scope', 'design', 'close', 'sign'].includes(deal.stage);
+  const stale = String(deal.updated || '').includes('w') || String(deal.updated || '').includes('2w') || String(deal.updated || '').includes('7d');
+  const score = Math.max(0, Math.min(100,
+    (deal.prob || 0)
+    + (lateStage ? 12 : 0)
+    + (docCount >= 2 ? 8 : 0)
+    + (taskCount >= 2 ? 6 : 0)
+    - (stale ? 18 : 0)
+    - (daysToClose < 7 && deal.stage !== 'close' && deal.stage !== 'sign' ? 12 : 0)
+  ));
+  const blockers = [
+    stale ? 'No recent map activity' : null,
+    daysToClose < 7 && deal.stage !== 'close' && deal.stage !== 'sign' ? 'Close date is near but stage is not late' : null,
+    docCount === 0 ? 'No attached documents' : null,
+    taskCount === 0 ? 'No open tasks' : null,
+  ].filter(Boolean);
+  return { score, taskCount, docCount, daysToClose, blockers };
+}
+
+function PipelineOpsPanel({ deals, selectedDeal, onSelect, openDeal }) {
+  const active = (deals || []).filter(d => d.stage !== 'won' && d.stage !== 'lost');
+  const staleDeals = active.filter(d => pipelineHealthForDeal(d).blockers.length).slice(0, 5);
+  const stageRows = PIPELINE_STAGES.map(stage => {
+    const stageDeals = active.filter(d => d.stage === stage.id);
+    const value = stageDeals.reduce((s, d) => s + d.value, 0);
+    const weighted = stageDeals.reduce((s, d) => s + d.value * d.prob / 100, 0);
+    return { stage, count: stageDeals.length, value, weighted };
+  });
+  const activityRows = active
+    .slice()
+    .sort((a, b) => pipelineHealthForDeal(a).blockers.length - pipelineHealthForDeal(b).blockers.length || new Date(a.close) - new Date(b.close))
+    .slice(0, 6)
+    .map(d => ({ deal: d, health: pipelineHealthForDeal(d), docs: DOCUMENTS.filter(x => x.deal === d.id).slice(0, 2), tasks: TASKS.filter(x => x.deal === d.id).slice(0, 2) }));
+
+  return (
+    <div style={{padding:'0 var(--suite-gutter, 32px) 18px',display:'grid',gridTemplateColumns:'minmax(0,1.15fr) minmax(320px,.85fr)',gap:14}}>
+      <div className="card">
+        <div className="card-h">
+          <div><div className="ttl">Pipeline operations</div><div className="sub">Stage health, weighted forecast, and stuck-deal signals from the live map layer.</div></div>
+          <Pill tone="blue" noDot>{active.length} active</Pill>
+        </div>
+        <div className="card-b" style={{padding:0}}>
+          {stageRows.map(({ stage, count, value, weighted }) => (
+            <div key={stage.id} className="list-row" style={{height:'auto',padding:'12px 16px'}}>
+              <span className="col-dot" style={{background:stage.dot}}/>
+              <div className="grow">
+                <b>{stage.name}</b>
+                <div className="sub">{count} deals · {fmtCurrency(value, 'USD')} gross · {fmtCurrency(weighted, 'USD')} weighted</div>
+              </div>
+              <span className="mono text-xs muted">WIP {stage.wip || '∞'}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-h"><div><div className="ttl">Needs attention</div><div className="sub">Map gaps and stale movement.</div></div></div>
+        <div className="card-b" style={{padding:0}}>
+          {staleDeals.map(d => {
+            const health = pipelineHealthForDeal(d);
+            return (
+              <button key={d.id} type="button" className="list-row" style={{height:'auto',padding:'12px 16px',width:'100%',textAlign:'left'}} onClick={() => onSelect(d)}>
+                <Icon name="flag" size={14} className="muted"/>
+                <div className="grow">
+                  <b>{d.name}</b>
+                  <div className="sub">{health.blockers[0]} · {health.docCount} docs · {health.taskCount} tasks</div>
+                </div>
+                <Pill tone={health.score > 70 ? 'green' : health.score > 45 ? 'amber' : 'red'}>{health.score}</Pill>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="card" style={{gridColumn:'1 / -1'}}>
+        <div className="card-h">
+          <div><div className="ttl">Map activity feeding the pipeline</div><div className="sub">Documents, tasks, and notes are the evidence behind each stage movement.</div></div>
+          <button className="btn sm" type="button" onClick={() => selectedDeal && openDeal(selectedDeal)} disabled={!selectedDeal}>Open selected map</button>
+        </div>
+        <div className="card-b" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:10}}>
+          {activityRows.map(({ deal, health, docs, tasks }) => (
+            <button key={deal.id} type="button" className="card" style={{padding:14,textAlign:'left',borderColor:selectedDeal?.id === deal.id ? 'var(--accent)' : 'var(--border)'}} onClick={() => onSelect(deal)}>
+              <div style={{display:'flex',justifyContent:'space-between',gap:8,alignItems:'flex-start'}}>
+                <div>
+                  <div className="ttl">{deal.name}</div>
+                  <div className="sub mono">{deal.id} · {stageOf(deal.stage)?.name || deal.stage}</div>
+                </div>
+                <Pill tone={health.blockers.length ? 'amber' : 'green'}>{health.blockers.length ? 'Review' : 'Clean'}</Pill>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:12}}>
+                <div className="tag">{health.docCount} map docs</div>
+                <div className="tag">{health.taskCount} tasks</div>
+              </div>
+              <div style={{marginTop:10,fontSize:12,color:'var(--text-2)',lineHeight:1.45}}>
+                {(docs[0]?.name || tasks[0]?.title || health.blockers[0] || 'Recent map activity is current.')}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PipelineDealInspector({ deal, onClose, openDeal }) {
+  if (!deal) return null;
+  const co = companyOf(deal.company);
+  const owner = personOf(deal.owner);
+  const stage = stageOf(deal.stage);
+  const docs = DOCUMENTS.filter(d => d.deal === deal.id);
+  const tasks = TASKS.filter(t => t.deal === deal.id);
+  const health = pipelineHealthForDeal(deal);
+  return (
+    <aside style={{position:'absolute',top:0,right:0,bottom:0,width:380,background:'var(--surface)',borderLeft:'1px solid var(--border)',zIndex:8,boxShadow:'-18px 0 40px rgba(15,23,42,.08)',display:'flex',flexDirection:'column'}}>
+      <div className="drawer-h">
+        <div>
+          <div className="eyebrow mono">{deal.id}</div>
+          <h2>{deal.name}</h2>
+          <div className="sub">{co?.name || 'Company'} · {stage?.name || deal.stage}</div>
+        </div>
+        <button className="btn icon ghost" type="button" onClick={onClose}><Icon name="x" size={14}/></button>
+      </div>
+      <div style={{padding:18,overflow:'auto',display:'flex',flexDirection:'column',gap:14}}>
+        <div className="kpis" style={{padding:0,gridTemplateColumns:'1fr 1fr'}}>
+          <KPI label="Health" value={health.score} delta={health.blockers.length ? 'review' : 'clean'}/>
+          <KPI label="Weighted" value={fmtCurrency(deal.value * deal.prob / 100, deal.currency)} delta={deal.prob + '% prob'}/>
+        </div>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Stage evidence</div></div>
+          <div className="card-b" style={{padding:0}}>
+            {[
+              ['Map documents', docs.length, docs[0]?.name || 'No document evidence yet'],
+              ['Open tasks', tasks.length, tasks[0]?.title || 'No task evidence yet'],
+              ['Owner', owner?.name || 'Unassigned', 'Responsible for stage movement'],
+              ['Close date', deal.close || 'Unset', health.daysToClose < 7 ? 'Needs near-term attention' : 'Inside forecast horizon'],
+            ].map(([label, value, note]) => (
+              <div key={label} className="list-row" style={{height:'auto',padding:'12px 14px'}}>
+                <div className="grow"><b>{label}</b><div className="sub">{note}</div></div>
+                <span className="mono text-xs muted">{value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Recommended next moves</div></div>
+          <div className="card-b" style={{display:'flex',flexDirection:'column',gap:8}}>
+            {(health.blockers.length ? health.blockers : ['Map evidence supports current stage', 'Prepare next client update']).map(item => (
+              <div key={item} style={{display:'flex',gap:8,alignItems:'center',fontSize:13}}>
+                <Icon name="check" size={13}/><span>{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <button className="btn primary" type="button" onClick={() => openDeal(deal)}>Open deal map</button>
+      </div>
+    </aside>
+  );
+}
+
+function Kanban({ deals, onOpen, onMove, onInspect }) {
   const [dragId, setDragId] = React.useState(null);
   const [overCol, setOverCol] = React.useState(null);
 
@@ -2379,7 +2542,7 @@ function Kanban({ deals, onOpen, onMove }) {
                     className="deal-card"
                     draggable
                     onDragStart={() => setDragId(d.id)}
-                    onClick={() => { window.location.href = '/suite/map/' + d.id; }}
+                    onClick={() => onInspect ? onInspect(d) : onOpen(d)}
                   >
                     <div className="deal-row between">
                       <span className="tag">{d.type}</span>
@@ -2532,11 +2695,18 @@ function PipelineTimeline({ deals, onOpen }) {
 
 function PipelinePage({ view, setView, deals, setDeals, openDeal, setQuickCreate }) {
   const [section, setSection] = React.useState('pipeline');
+  const [selectedDeal, setSelectedDeal] = React.useState(null);
   const move = (id, newStage) => {
     setDeals(ds => ds.map(d => d.id === id ? {...d, stage: newStage} : d));
+    fetch('/api/deals/' + encodeURIComponent(id) + '/stage', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ stage: newStage }),
+    }).catch(() => {});
   };
   return (
-    <>
+    <div style={{position:'relative',display:'flex',flexDirection:'column',minHeight:0,flex:1}}>
       <PipelineHeader section={section} setSection={setSection} onAdd={() => setQuickCreate && setQuickCreate('deal')} deals={deals}/>
       {section === 'pipeline' && (
         <div className="pipeline-viewbar">
@@ -2544,10 +2714,12 @@ function PipelinePage({ view, setView, deals, setDeals, openDeal, setQuickCreate
         </div>
       )}
       {section === 'controls' && <PipelineControls view={view} setView={setView}/>}
-      {view === 'kanban' && <Kanban deals={deals} onOpen={openDeal} onMove={move}/>}
+      {section === 'pipeline' && <PipelineOpsPanel deals={deals} selectedDeal={selectedDeal} onSelect={setSelectedDeal} openDeal={openDeal}/>}
+      {view === 'kanban' && <Kanban deals={deals} onOpen={openDeal} onMove={move} onInspect={setSelectedDeal}/>}
       {view === 'table' && <PipelineTable deals={deals} onOpen={openDeal}/>}
       {view === 'timeline' && <PipelineTimeline deals={deals} onOpen={openDeal}/>}
-    </>
+      <PipelineDealInspector deal={selectedDeal} onClose={() => setSelectedDeal(null)} openDeal={openDeal}/>
+    </div>
   );
 }
 
@@ -3819,7 +3991,7 @@ function IntelligencePage({ deals }) {
   return (
     <>
       <div className="page-h">
-        <div><h1>Intelligence</h1><div className="sub">Forecasting, deal health scoring, and pipeline analytics</div></div>
+        <div><h1>Analytics</h1><div className="sub">Forecasting, deal health scoring, conversion analytics, and pipeline risk intelligence</div></div>
         <div className="page-actions">
           <div className="seg">
             <button className="active" type="button">Q2 2026</button>
@@ -4543,7 +4715,47 @@ function BillingPage() {
   );
 }
 
+type AdpReferralRow = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone?: string | null;
+  company?: string | null;
+  affiliate_code?: string | null;
+  affiliate_url?: string | null;
+  company_size?: string | null;
+  payroll_timing?: string | null;
+  current_payroll_provider?: string | null;
+  status: string;
+  email_sent_count?: number;
+  last_email_sent_at?: string | null;
+  last_to_email?: string | null;
+  last_delivery_status?: string | null;
+  created_at: string;
+};
+
 function AffiliateCenterPage({ initialSection: _initialSection }: { initialSection?: string } = {}) {
+  const [adpReferrals, setAdpReferrals] = React.useState<AdpReferralRow[]>([]);
+  const [adpReferralsLoading, setAdpReferralsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let active = true;
+    fetch('/api/partners/adp/leads')
+      .then((response) => response.json())
+      .then((payload) => {
+        if (active) setAdpReferrals(Array.isArray(payload.leads) ? payload.leads : []);
+      })
+      .catch(() => {
+        if (active) setAdpReferrals([]);
+      })
+      .finally(() => {
+        if (active) setAdpReferralsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const rows = [
     ['AFF-001', 'Northstar Partners', 'NORTHSTAR', 'Approved', '42', '8', '$18,420', '$1,842'],
     ['AFF-002', 'DealDesk Media', 'DEALDESK', 'Pending', '19', '3', '$6,970', '$697'],
@@ -4569,6 +4781,48 @@ function AffiliateCenterPage({ initialSection: _initialSection }: { initialSecti
             <tbody>{rows.map(r => <tr key={r[0]}><td className="mono">{r[0]}</td><td>{r[1]}</td><td className="mono">{r[2]}</td><td><Pill tone={r[3]==='Approved'?'green':'amber'}>{r[3]}</Pill></td><td>{r[4]}</td><td>{r[5]}</td><td>{r[6]}</td><td>{r[7]}</td></tr>)}</tbody>
           </table>
         </div>
+        <div className="card">
+          <div className="card-h">
+            <div className="ttl">ADP payroll inquiries</div>
+            <span className="text-xs muted">Stored partner referral leads and Matthew email delivery status.</span>
+          </div>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Submitted</th>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Email</th>
+                <th>Size</th>
+                <th>Timing</th>
+                <th>Provider</th>
+                <th>Affiliate code</th>
+                <th>Email route</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {adpReferralsLoading ? (
+                <tr><td colSpan={10} className="muted">Loading ADP inquiries...</td></tr>
+              ) : adpReferrals.length ? adpReferrals.map((lead) => (
+                <tr key={lead.id}>
+                  <td className="mono">{lead.created_at ? new Date(lead.created_at).toLocaleDateString() : '—'}</td>
+                  <td>{lead.full_name}</td>
+                  <td>{lead.company || '—'}</td>
+                  <td>{lead.email}</td>
+                  <td>{lead.company_size || '—'}</td>
+                  <td>{lead.payroll_timing || '—'}</td>
+                  <td>{lead.current_payroll_provider || '—'}</td>
+                  <td className="mono">{lead.affiliate_code || 'PW56143'}</td>
+                  <td>{lead.last_to_email || 'matt.ganton@adp.com'}</td>
+                  <td><Pill tone={lead.email_sent_count ? 'green' : 'amber'}>{lead.email_sent_count ? 'Emailed' : lead.status || 'New'}</Pill></td>
+                </tr>
+              )) : (
+                <tr><td colSpan={10} className="muted">No ADP payroll inquiries captured yet.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );
@@ -4582,13 +4836,23 @@ function InvoicingCenterPage() {
   ];
   const connectors = [
     ['bank_account', 'Bank account', 'Receive payouts by ACH or bank transfer', 'Not connected'],
-    ['stripe', 'Stripe', 'Card payments, payment links, payouts', 'Not connected'],
+    ['card_payments', 'Card payments', 'Payment links, card payments, payouts', 'Not connected'],
     ['paypal', 'PayPal', 'PayPal payments, payment links, payouts', 'Not connected'],
-    ['whop', 'Whop', 'Subscriptions and platform commerce', 'Pending setup'],
     ['quickbooks', 'QuickBooks', 'Accounting sync and invoice payment routing', 'Not connected'],
   ];
   const [connectorResult, setConnectorResult] = React.useState(null);
   const [connecting, setConnecting] = React.useState('');
+  const [invoiceResult, setInvoiceResult] = React.useState(null);
+  const [invoiceSaving, setInvoiceSaving] = React.useState(false);
+  const [invoiceDraft, setInvoiceDraft] = React.useState({
+    client_name: 'Axiom Group',
+    client_email: 'ap@axiom.example',
+    client_company: 'Axiom Group',
+    description: 'Advisory retainer',
+    amount: '12500',
+    platform_fee_bps: '500',
+    due_at: '2026-06-15',
+  });
 
   const connect = async (connectorType, displayName) => {
     setConnecting(connectorType);
@@ -4606,6 +4870,34 @@ function InvoicingCenterPage() {
       setConnectorResult(await response.json());
     } finally {
       setConnecting('');
+    }
+  };
+
+  const createInvoice = async (event) => {
+    event.preventDefault();
+    setInvoiceSaving(true);
+    try {
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_name: invoiceDraft.client_name,
+          client_email: invoiceDraft.client_email,
+          client_company: invoiceDraft.client_company,
+          currency: 'USD',
+          due_at: invoiceDraft.due_at ? new Date(invoiceDraft.due_at + 'T12:00:00').toISOString() : null,
+          platform_fee_bps: Number(invoiceDraft.platform_fee_bps || 0),
+          line_items: [{
+            description: invoiceDraft.description,
+            quantity: 1,
+            unit_amount_cents: Math.round(Number(invoiceDraft.amount || 0) * 100),
+          }],
+          notes: 'Created from ADGA invoicing center.',
+        }),
+      });
+      setInvoiceResult(await response.json());
+    } finally {
+      setInvoiceSaving(false);
     }
   };
 
@@ -4648,6 +4940,35 @@ function InvoicingCenterPage() {
           )}
         </div>
         <div className="card">
+          <div className="card-h">
+            <div><div className="ttl">Create and send invoice</div><div className="sub">Draft an invoice, calculate platform fee, and prepare it for payment collection.</div></div>
+            <Pill tone={invoiceResult?.invoice ? 'green' : 'amber'}>{invoiceResult?.invoice ? 'Draft saved' : 'Ready'}</Pill>
+          </div>
+          <form className="card-b" style={{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:12}} onSubmit={createInvoice}>
+            <div className="field"><label>Client</label><input value={invoiceDraft.client_name} onChange={e => setInvoiceDraft(d => ({...d, client_name:e.target.value}))} required/></div>
+            <div className="field"><label>Email</label><input type="email" value={invoiceDraft.client_email} onChange={e => setInvoiceDraft(d => ({...d, client_email:e.target.value}))}/></div>
+            <div className="field"><label>Company</label><input value={invoiceDraft.client_company} onChange={e => setInvoiceDraft(d => ({...d, client_company:e.target.value}))}/></div>
+            <div className="field"><label>Due date</label><input type="date" value={invoiceDraft.due_at} onChange={e => setInvoiceDraft(d => ({...d, due_at:e.target.value}))}/></div>
+            <div className="field" style={{gridColumn:'span 2'}}><label>Line item</label><input value={invoiceDraft.description} onChange={e => setInvoiceDraft(d => ({...d, description:e.target.value}))}/></div>
+            <div className="field"><label>Amount</label><input type="number" min="0" value={invoiceDraft.amount} onChange={e => setInvoiceDraft(d => ({...d, amount:e.target.value}))}/></div>
+            <div className="field"><label>Platform fee bps</label><input type="number" min="0" max="500" value={invoiceDraft.platform_fee_bps} onChange={e => setInvoiceDraft(d => ({...d, platform_fee_bps:e.target.value}))}/></div>
+            <div style={{gridColumn:'1 / -1',display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}>
+              <div className="text-xs muted">
+                Net to user: {fmtCurrency(Math.max(0, Number(invoiceDraft.amount || 0) * (1 - Number(invoiceDraft.platform_fee_bps || 0) / 10000)), 'USD')} · payment link generated when a payment provider is connected.
+              </div>
+              <div style={{display:'flex',gap:8}}>
+                <button className="btn" type="button">Preview</button>
+                <button className="btn primary" type="submit" disabled={invoiceSaving}>{invoiceSaving ? 'Saving...' : 'Save invoice'}</button>
+              </div>
+            </div>
+          </form>
+          {invoiceResult?.invoice && (
+            <div className="card-b" style={{borderTop:'1px solid var(--border)'}}>
+              <div className="text-xs muted">Invoice tracked: {invoiceResult.invoice.invoice_number} · {fmtCurrency(invoiceResult.invoice.total_cents / 100, invoiceResult.invoice.currency)} · fee {fmtCurrency(invoiceResult.invoice.platform_fee_cents / 100, invoiceResult.invoice.currency)}</div>
+            </div>
+          )}
+        </div>
+        <div className="card">
           <div className="card-h"><div className="ttl">Client invoices</div><span className="text-xs muted">Invoice records and generated files stay attached to the right client.</span></div>
           <table className="tbl">
             <thead><tr><th>Invoice</th><th>Client</th><th>Status</th><th>Total</th><th>Platform fee</th><th>Fee amount</th><th>Net to user</th></tr></thead>
@@ -4661,6 +4982,7 @@ function InvoicingCenterPage() {
 
 function VoiceNotesPage() {
   const [result, setResult] = React.useState(null);
+  const [notes, setNotes] = React.useState([]);
   const [saving, setSaving] = React.useState(false);
   const [listening, setListening] = React.useState(false);
   const [liveTranscript, setLiveTranscript] = React.useState('');
@@ -4669,6 +4991,13 @@ function VoiceNotesPage() {
   const recognitionRef = React.useRef(null);
   const listeningRef = React.useRef(false);
   const finalTranscriptRef = React.useRef('');
+
+  React.useEffect(() => {
+    fetch('/api/voice-notes')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data.voice_notes)) setNotes(data.voice_notes); })
+      .catch(() => {});
+  }, []);
 
   const supportsLiveSpeech = () => typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
@@ -4727,7 +5056,9 @@ function VoiceNotesPage() {
       form.set('transcript_text', transcript);
       form.set('resource_type', 'workspace');
       const response = await fetch('/api/voice-notes', { method: 'POST', body: form });
-      setResult(await response.json());
+      const data = await response.json();
+      setResult(data);
+      if (data.voice_note) setNotes(prev => [data.voice_note, ...prev]);
       setLiveTranscript('');
       setInterimTranscript('');
       finalTranscriptRef.current = '';
@@ -4742,7 +5073,9 @@ function VoiceNotesPage() {
     setSaving(true);
     try {
       const response = await fetch('/api/voice-notes', { method: 'POST', body: form });
-      setResult(await response.json());
+      const data = await response.json();
+      setResult(data);
+      if (data.voice_note) setNotes(prev => [data.voice_note, ...prev]);
       event.currentTarget.reset();
     } finally {
       setSaving(false);
@@ -4751,7 +5084,7 @@ function VoiceNotesPage() {
   return (
     <>
       <div className="page-h">
-        <div><h1>Voice Notes</h1><div className="sub">Speak notes in real time, save the transcript, and attach the result to work in ADGA.</div></div>
+        <div><h1>Voice Notes</h1><div className="sub">Speak, upload audio, let AI transcribe, and attach the result to deals, leads, or contacts.</div></div>
       </div>
       <div style={{padding:'0 32px 28px',display:'grid',gridTemplateColumns:'minmax(0,1fr) 420px',gap:14,overflow:'auto',flex:1}}>
         <div className="card">
@@ -4767,6 +5100,7 @@ function VoiceNotesPage() {
                 <span className="muted">Click Start and speak. Your words will appear here as you talk.</span>
               )}
             </div>
+            <div className="text-xs muted">Live notes save immediately as completed transcripts. Uploaded audio uses Cloudflare AI Whisper when the AI binding is available.</div>
             {liveError && <div className="text-sm" style={{color:'var(--status-amber)'}}>{liveError}</div>}
             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
               {!listening && <button className="btn primary" type="button" onClick={startLiveNote}><Icon name="mic" size={13}/> Start speaking</button>}
@@ -4795,10 +5129,29 @@ function VoiceNotesPage() {
             {result?.voice_note && (
               <dl className="kv">
                 <dt>Status</dt><dd><Pill tone={String(result.voice_note.transcription_status).startsWith('completed') ? 'green' : 'amber'}>{String(result.voice_note.transcription_status).startsWith('completed') ? 'Saved' : 'Processing'}</Pill></dd>
+                <dt>AI model</dt><dd className="mono">{result.voice_note.stt_model || 'browser speech recognition'}</dd>
                 <dt>Words</dt><dd>{result.voice_note.word_count || 0}</dd>
                 <dt>Transcript</dt><dd>{result.voice_note.transcript_text || 'Transcript will appear when processing finishes.'}</dd>
               </dl>
             )}
+          </div>
+        </div>
+        <div className="card" style={{gridColumn:'1 / -1'}}>
+          <div className="card-h"><div><div className="ttl">Voice-note library</div><div className="sub">{notes.length} saved notes · transcripts stay linked to the source record.</div></div></div>
+          <div className="card-b" style={{padding:0}}>
+            {notes.length === 0 && <div className="list-row"><div className="muted">No saved voice notes yet.</div></div>}
+            {notes.slice(0, 12).map(note => (
+              <div key={note.id} className="list-row" style={{height:'auto',padding:'12px 16px'}}>
+                <Icon name="mic" size={14} className="muted"/>
+                <div className="grow">
+                  <b>{note.title || note.file_name || 'Voice note'}</b>
+                  <div className="sub">{note.resource_type || 'workspace'}{note.resource_id ? ' · ' + note.resource_id : ''} · {note.word_count || 0} words</div>
+                </div>
+                <Pill tone={String(note.transcription_status || '').startsWith('completed') ? 'green' : note.transcription_status === 'failed' ? 'red' : 'amber'}>
+                  {String(note.transcription_status || '').startsWith('completed') ? 'Transcribed' : note.transcription_status === 'failed' ? 'Failed' : 'Processing'}
+                </Pill>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -4901,22 +5254,28 @@ function SettingsPage({ tweaks, setTweak, initialSection }) {
         <div className="split-nav">
           <div className="lbl">Personal</div>
           <button type="button" className={section==='profile'?'active':''} onClick={()=>setSection('profile')}>Profile</button>
+          <button type="button" className={section==='user-billing'?'active':''} onClick={()=>setSection('user-billing')}>Payment method</button>
+          <button type="button" className={section==='preferences'?'active':''} onClick={()=>setSection('preferences')}>Preferences</button>
           <button type="button" className={section==='notif'?'active':''} onClick={()=>setSection('notif')}>Notifications</button>
           <button type="button" className={section==='display'?'active':''} onClick={()=>setSection('display')}>Display</button>
           <button type="button" className={section==='shortcuts'?'active':''} onClick={()=>setSection('shortcuts')}>Keyboard shortcuts</button>
 
           <div className="lbl">Workspace</div>
           <button type="button" className={section==='ws'?'active':''} onClick={()=>setSection('ws')}>General</button>
+          <button type="button" className={section==='team-settings'?'active':''} onClick={()=>setSection('team-settings')}>Team settings</button>
           <button type="button" className={section==='brand'?'active':''} onClick={()=>setSection('brand')}>Branding</button>
           <button type="button" className={section==='integrations'?'active':''} onClick={()=>setSection('integrations')}>Integrations</button>
         </div>
 
         <div className="split-content">
           {section === 'profile' && <SettingsProfile/>}
+          {section === 'user-billing' && <SettingsUserBilling/>}
+          {section === 'preferences' && <SettingsPreferences/>}
           {section === 'notif' && <SettingsNotif/>}
           {section === 'display' && <SettingsDisplay/>}
           {section === 'shortcuts' && <SettingsShortcuts/>}
           {section === 'ws' && <SettingsWorkspace/>}
+          {section === 'team-settings' && <SettingsTeam/>}
           {section === 'brand' && <SettingsBranding/>}
           {section === 'integrations' && <SettingsIntegrations/>}
         </div>
@@ -4949,6 +5308,60 @@ function SettingsProfile() {
       <div style={{display:'flex',gap:8}}>
         <button className="btn primary" type="button">Save changes</button>
         <button className="btn" type="button">Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function SettingsUserBilling() {
+  return (
+    <div style={{paddingTop:14,maxWidth:720}}>
+      <h3 style={{margin:'0 0 6px',fontSize:17,fontWeight:600}}>Payment method</h3>
+      <div className="text-sm muted" style={{marginBottom:18}}>Personal payment profile for add-ons, reimbursable invoices, and workspace-billed seats.</div>
+      <div style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) 260px',gap:14}}>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Cards and bank accounts</div><button className="btn primary sm" type="button"><Icon name="plus" size={12}/> Add method</button></div>
+          <div className="card-b" style={{padding:0}}>
+            {[
+              ['Visa ending 4218', 'Default card · expires 09/2028', 'Ready'],
+              ['ACH bank account', 'Payout destination · verification needed', 'Review'],
+            ].map(([name, detail, status]) => (
+              <div key={name} className="list-row" style={{height:'auto',padding:'12px 16px'}}>
+                <Icon name="card" size={15} className="muted"/>
+                <div className="grow"><b>{name}</b><div className="sub">{detail}</div></div>
+                <Pill tone={status === 'Ready' ? 'green' : 'amber'}>{status}</Pill>
+                <button className="btn ghost sm" type="button">Edit</button>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Billing identity</div></div>
+          <div className="card-b" style={{display:'flex',flexDirection:'column',gap:10}}>
+            <div className="field"><label>Billing email</label><input type="email" defaultValue="maren.voss@concorde.co"/></div>
+            <div className="field"><label>Tax region</label><select defaultValue="US"><option>US</option><option>EU</option><option>UK</option></select></div>
+            <button className="btn primary" type="button">Save billing profile</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsPreferences() {
+  return (
+    <div style={{paddingTop:14,maxWidth:720}}>
+      <h3 style={{margin:'0 0 6px',fontSize:17,fontWeight:600}}>Preferences</h3>
+      <div className="text-sm muted" style={{marginBottom:18}}>User-level defaults that travel with your account across workspaces.</div>
+      <div className="card">
+        <div className="card-b" style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:14}}>
+          <div className="field"><label>Default landing page</label><select><option>Pipeline</option><option>Home</option><option>Maps</option><option>Inbox</option></select></div>
+          <div className="field"><label>Default map edge style</label><select><option>Curved</option><option>Straight</option></select></div>
+          <div className="field"><label>AI tone</label><select><option>Direct operator</option><option>Detailed analyst</option><option>Concise closer</option></select></div>
+          <div className="field"><label>Digest cadence</label><select><option>Every weekday morning</option><option>Only Mondays</option><option>Never</option></select></div>
+          <div className="field"><label>Preferred currency</label><select><option>Workspace default</option><option>USD</option><option>EUR</option><option>GBP</option></select></div>
+          <div className="field"><label>Voice-note language</label><select><option>English (US)</option><option>English (UK)</option><option>Spanish</option><option>French</option></select></div>
+        </div>
       </div>
     </div>
   );
@@ -5070,6 +5483,63 @@ function SettingsWorkspace() {
         <h4 style={{margin:'0 0 8px',fontSize:14}}>Danger zone</h4>
         <div className="text-sm muted" style={{marginBottom:10}}>Archive the workspace. Members lose access; data is retained 90 days.</div>
         <button className="btn" type="button" style={{color:'var(--status-red)',borderColor:'color-mix(in srgb, var(--status-red) 30%, var(--border))'}}>Archive workspace</button>
+      </div>
+    </div>
+  );
+}
+
+function SettingsTeam() {
+  return (
+    <div style={{paddingTop:14}}>
+      <h3 style={{margin:'0 0 6px',fontSize:17,fontWeight:600}}>Team settings</h3>
+      <div className="text-sm muted" style={{marginBottom:18}}>Seats, team membership, shared workspace access, and handoff rules.</div>
+      <div style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr)',gap:14}}>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Seat policy</div><button className="btn primary sm" type="button"><Icon name="plus" size={12}/> Invite</button></div>
+          <div className="card-b" style={{padding:0}}>
+            {[
+              ['Pro', '1 owner, no shared team members', 'Individual'],
+              ['Team', 'Shared workspace, deal teams, team settings', 'Enabled'],
+              ['Enterprise', 'Org-wide sharing, SSO, advanced roles', 'Enabled'],
+            ].map(([plan, desc, status]) => (
+              <div key={plan} className="list-row" style={{height:'auto',padding:'12px 16px'}}>
+                <div className="grow"><b>{plan}</b><div className="sub">{desc}</div></div>
+                <Pill tone={status === 'Individual' ? 'gray' : 'green'}>{status}</Pill>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-h"><div className="ttl">Deal teams</div></div>
+          <div className="card-b" style={{padding:0}}>
+            {[
+              ['M&A Principal Pod', '4 members · default for acquisitions'],
+              ['Capital Markets', '3 members · raises and investor relations'],
+              ['Diligence Review', '3 members · documents and requests'],
+            ].map(([name, detail]) => (
+              <div key={name} className="list-row" style={{height:'auto',padding:'12px 16px'}}>
+                <Icon name="users" size={14} className="muted"/>
+                <div className="grow"><b>{name}</b><div className="sub">{detail}</div></div>
+                <button className="btn ghost sm" type="button">Manage</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="card" style={{marginTop:14}}>
+        <div className="card-h"><div className="ttl">Sharing rules</div></div>
+        <div className="card-b" style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:12}}>
+          {[
+            ['Auto-share new maps', 'Team and Enterprise only', true],
+            ['Require owner on external invite', 'Applies to guests and counterparties', true],
+            ['Allow team handoff', 'Move owner and tasks together', true],
+          ].map(([title, desc, on]) => (
+            <div key={title} className="card" style={{padding:14}}>
+              <div style={{display:'flex',justifyContent:'space-between',gap:10}}><b>{title}</b><span className={'switch ' + (on ? 'on' : '')}/></div>
+              <div className="sub" style={{marginTop:6}}>{desc}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

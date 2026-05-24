@@ -1,5 +1,6 @@
 import { deals, documents, intelligence, leads, tasks, workspaces } from "@/lib/data/seed";
 import { newId, nowIso } from "@/lib/server/id";
+import { DEFAULT_ORG_ID } from "@/lib/server/tenant";
 
 export type AgentName =
   | "conductor"
@@ -119,8 +120,6 @@ export interface DocumentMetadata {
   created_at: string;
   updated_at: string;
 }
-
-const DEFAULT_ORG_ID = "org_adga_primary";
 
 const seedCalendarEvents: CalendarEvent[] = [
   {
@@ -387,11 +386,11 @@ function mapIntelligenceRow(row: Record<string, unknown>) {
   };
 }
 
-export async function getSuiteState(db?: D1Database) {
+export async function getSuiteState(db?: D1Database, organizationId = DEFAULT_ORG_ID) {
   // No D1 binding (local dev without remote DB) → use in-memory seed so the UI still has shape.
   if (!db) {
     return {
-      organization: { id: DEFAULT_ORG_ID, name: "ADGA", plan: "suite", subscription_status: "trialing" },
+      organization: { id: organizationId, name: "ADGA", plan: "suite", subscription_status: "trialing" },
       leads,
       deals,
       contacts: [] as ReturnType<typeof mapContactRow>[],
@@ -411,25 +410,31 @@ export async function getSuiteState(db?: D1Database) {
     jobs, events, calendar, approvals, storage,
     leadRows, dealRows, contactRows, taskRows, documentRows, workspaceRows, intelligenceRows,
   ] = await Promise.all([
-    db.prepare("SELECT * FROM agent_jobs ORDER BY created_at DESC LIMIT 25").all<Record<string, unknown>>(),
-    db.prepare("SELECT * FROM events ORDER BY created_at DESC LIMIT 50").all<Record<string, unknown>>(),
-    db.prepare("SELECT * FROM calendar_events ORDER BY starts_at ASC LIMIT 100").all<Record<string, unknown>>(),
-    db.prepare("SELECT * FROM agent_approvals ORDER BY created_at DESC LIMIT 50").all<Record<string, unknown>>(),
-    db.prepare("SELECT * FROM storage_objects ORDER BY created_at DESC LIMIT 50").all<Record<string, unknown>>(),
-    db.prepare("SELECT * FROM leads ORDER BY received_at DESC, created_at DESC LIMIT 200").all<Record<string, unknown>>(),
-    db.prepare("SELECT * FROM deals ORDER BY updated_at DESC LIMIT 200").all<Record<string, unknown>>(),
-    db.prepare("SELECT * FROM contacts ORDER BY updated_at DESC LIMIT 200").all<Record<string, unknown>>(),
-    db.prepare("SELECT * FROM tasks ORDER BY due_at ASC NULLS LAST LIMIT 100").all<Record<string, unknown>>().catch(() =>
-      db.prepare("SELECT * FROM tasks ORDER BY due_at ASC LIMIT 100").all<Record<string, unknown>>()
+    db.prepare("SELECT * FROM agent_jobs WHERE organization_id = ? ORDER BY created_at DESC LIMIT 25").bind(organizationId).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM events WHERE organization_id = ? ORDER BY created_at DESC LIMIT 50").bind(organizationId).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM calendar_events WHERE organization_id = ? ORDER BY starts_at ASC LIMIT 100").bind(organizationId).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM agent_approvals WHERE organization_id = ? ORDER BY created_at DESC LIMIT 50").bind(organizationId).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM storage_objects WHERE organization_id = ? ORDER BY created_at DESC LIMIT 50").bind(organizationId).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM leads WHERE organization_id = ? ORDER BY received_at DESC, created_at DESC LIMIT 200").bind(organizationId).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM deals WHERE organization_id = ? ORDER BY updated_at DESC LIMIT 200").bind(organizationId).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM contacts WHERE organization_id = ? ORDER BY updated_at DESC LIMIT 200").bind(organizationId).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM tasks WHERE organization_id = ? ORDER BY due_at ASC NULLS LAST LIMIT 100").bind(organizationId).all<Record<string, unknown>>().catch(() =>
+      db.prepare("SELECT * FROM tasks WHERE organization_id = ? ORDER BY due_at ASC LIMIT 100").bind(organizationId).all<Record<string, unknown>>()
     ),
-    db.prepare("SELECT * FROM documents ORDER BY created_at DESC LIMIT 100").all<Record<string, unknown>>(),
-    db.prepare("SELECT * FROM knowledge_workspaces ORDER BY created_at DESC LIMIT 50").all<Record<string, unknown>>(),
-    db.prepare("SELECT * FROM intelligence_battlecards ORDER BY updated_at DESC LIMIT 50").all<Record<string, unknown>>().catch(() => ({ results: [] as Record<string, unknown>[] })),
+    db.prepare("SELECT * FROM documents WHERE organization_id = ? ORDER BY created_at DESC LIMIT 100").bind(organizationId).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM knowledge_workspaces WHERE organization_id = ? ORDER BY created_at DESC LIMIT 50").bind(organizationId).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM intelligence_battlecards WHERE organization_id = ? ORDER BY updated_at DESC LIMIT 50").bind(organizationId).all<Record<string, unknown>>().catch(() => ({ results: [] as Record<string, unknown>[] })),
   ]);
+
+  const organization = await db
+    .prepare("SELECT id, name, plan, subscription_status FROM organizations WHERE id = ?")
+    .bind(organizationId)
+    .first<{ id: string; name: string; plan: string; subscription_status: string }>()
+    .catch(() => null);
 
   // When D1 is connected we trust D1 — even empty results mean "real account, no records yet."
   return {
-    organization: { id: DEFAULT_ORG_ID, name: "ADGA", plan: "suite", subscription_status: "trialing" },
+    organization: organization || { id: organizationId, name: "ADGA", plan: "suite", subscription_status: "trialing" },
     leads: (leadRows.results || []).map(mapLeadRow),
     deals: (dealRows.results || []).map(mapDealRow),
     contacts: (contactRows.results || []).map(mapContactRow),

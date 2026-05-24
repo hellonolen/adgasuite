@@ -93,7 +93,7 @@ export function PanelSaveBar({
 const NAV_ITEMS = [
   { href: "/suite/settings/profile", label: "Profile", hint: "Identity, signature, defaults" },
   { href: "/suite/settings/notifications", label: "Notifications", hint: "Digest, alerts, webhooks" },
-  { href: "/suite/settings/integrations", label: "Integrations", hint: "Postmark, Stripe, Whop, R2" },
+  { href: "/suite/settings/integrations", label: "Integrations", hint: "Email, payments, accounting, storage" },
   { href: "/suite/settings/billing", label: "Billing", hint: "Plan, seats, renewal" },
 ] as const;
 

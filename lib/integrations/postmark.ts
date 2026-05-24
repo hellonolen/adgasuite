@@ -11,6 +11,33 @@ export interface PostmarkMessage {
 }
 
 export async function sendPostmarkEmail(message: PostmarkMessage, env: CloudflareEnv = {}) {
+  const cloudflareFrom = env.CLOUDFLARE_EMAIL_FROM || process.env.CLOUDFLARE_EMAIL_FROM;
+  if (env.EMAIL && cloudflareFrom) {
+    try {
+      const response = await env.EMAIL.send({
+        to: message.to,
+        from: cloudflareFrom,
+        subject: message.subject,
+        html: message.htmlBody,
+        text: message.textBody,
+      });
+
+      return {
+        ok: true,
+        provider: "cloudflare-email",
+        status: 202,
+        body: JSON.stringify(response),
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        provider: "cloudflare-email",
+        status: 502,
+        body: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
   const token = env.POSTMARK_SERVER_TOKEN || process.env.POSTMARK_SERVER_TOKEN;
   const from = env.POSTMARK_FROM_EMAIL || process.env.POSTMARK_FROM_EMAIL;
 
@@ -18,7 +45,7 @@ export async function sendPostmarkEmail(message: PostmarkMessage, env: Cloudflar
     return {
       ok: false,
       skipped: true,
-      reason: "Postmark secrets are not configured.",
+      reason: "No outbound email sender is configured. Configure Cloudflare EMAIL + CLOUDFLARE_EMAIL_FROM or Postmark secrets.",
     };
   }
 

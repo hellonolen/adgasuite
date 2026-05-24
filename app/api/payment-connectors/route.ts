@@ -7,7 +7,6 @@ const CONNECTOR_CAPABILITIES: Record<string, string[]> = {
   bank_account: ["payout_destination"],
   stripe: ["payment_links", "card_payments", "payouts"],
   paypal: ["payment_links", "paypal_payments", "payouts"],
-  whop: ["subscriptions", "payment_links", "platform_commerce"],
   quickbooks: ["accounting_sync", "invoice_payment_routing", "payment_status"],
   other: ["custom_connector"],
 };

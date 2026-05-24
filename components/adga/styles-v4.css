@@ -3,8 +3,6 @@
    Loaded AFTER styles.css. Overrides + adds new tokens & blocks.
    ============================================================ */
 
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=GT+Sectra&display=swap");
-
 :root, [data-theme="light"] {
   /* Cool off-white paper, no brown/tan */
   --bg: #f6f6f3;

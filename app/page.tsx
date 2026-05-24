@@ -1,17 +1,19 @@
 "use client";
 
+import { type FormEvent, useState } from "react";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 import { MarketingHero } from "@/components/adga/layout/MarketingHero";
 
 const STAGES: ReadonlyArray<readonly [string, string, string]> = [
-  ["01", "Signal", "Ad, referral, inbound form, QR, call, email, event, partner, or import."],
-  ["02", "Capture", "Match contact, company, source, owner, urgency, and first next action."],
-  ["03", "Qualify", "Confirm fit, timing, value, authority, blockers, and reason to keep moving."],
-  ["04", "Shape", "Define offer, terms, stakeholders, files, close date, and meeting plan."],
-  ["05", "Advance", "Run follow-up, calls, documents, objections, tasks, and commitments."],
-  ["06", "Close", "Track signature, purchase, payment, decision record, and final handoff."],
-  ["07", "Deliver", "Move from closed deal to onboarding, milestones, support route, ownership."],
-  ["08", "Expand", "Identify renewal, repeat purchase, referral, upsell, cross-sell, or partner."],
+  ["01", "Lead", "Ad, referral, inbound form, QR, call, email, event, partner, or import — captured with source, owner, and intent."],
+  ["02", "Qualify", "Confirm fit, budget, authority, need, timing, and the reason to invest sales time."],
+  ["03", "Discover", "Surface the situation, what's been tried, the wall, the future state, and every stakeholder."],
+  ["04", "Scope", "Agree offer, price, timeline, decision path, required files, and the due-diligence checklist."],
+  ["05", "Design", "Draft the proposal, plan, or design. Confirm scope with the represented client."],
+  ["06", "Close", "Land the verbal yes. Accepted terms. Close summary captured on the record."],
+  ["07", "Sign", "Contract signed. Invoice fires. Payment routes through the connected provider."],
+  ["08", "Deliver", "Onboarding, milestones, support route, and the relationship owner attached."],
+  ["09", "Expand", "Renewal, upsell, cross-sell, referral, partner transition, acquire."],
 ];
 
 const ANATOMY = [
@@ -38,7 +40,7 @@ const SUITE_FEATURES = [
     img: "/adga/visual-capture.svg",
     metaText: "LEADS · INTAKE · ROUTE",
     label: "Lead intake",
-    head: "Every signal becomes a record.",
+    head: "Every lead becomes a record.",
     body: "Forms, QR links, imports, manual entries — captured with source, urgency, owner, and first next action attached automatically.",
     bullets: ["Inbound form + QR submissions", "CSV imports", "Routing by source or geography", "Stale-lead detection"],
   },
@@ -56,7 +58,7 @@ const SUITE_FEATURES = [
     label: "Execution",
     head: "Move the deal to close.",
     body: "Track client, internal team, decisions, documents, approvals, invoices, and payment connectors in one record — without leaving the deal.",
-    bullets: ["Secure deal files in R2 storage", "Due-diligence checklists", "Invoicing with Stripe payouts", "Watermark + scoped redaction"],
+    bullets: ["Secure deal files in R2 storage", "Due-diligence checklists", "Invoicing with payment payouts", "Watermark + scoped redaction"],
   },
 ];
 
@@ -78,10 +80,64 @@ const IMPORT_SOURCES = [
   "Call transcript from prior conversations",
 ];
 
+const NEGATIVE_STAKES = [
+  "Hot leads go cold while the next action sits in somebody's head.",
+  "Call notes, files, emails, and decisions scatter across tools before anyone can close.",
+  "Teams lose confidence in the pipeline because stale deals look the same as live ones.",
+  "Invoices and payment steps get handled after the close instead of inside the close path.",
+  "A buyer, investor, or partner feels the delay and moves on to the team that follows through.",
+];
+
+const VALUE_STACK = [
+  {
+    icon: "01",
+    title: "Capture every opportunity",
+    body: "Turn inbound, referrals, imports, calls, emails, QR leads, and manual entries into structured deal records with owner, source, urgency, and next action attached.",
+  },
+  {
+    icon: "02",
+    title: "Keep every deal moving",
+    body: "Surface stale stages, missing proof, upcoming meetings, voice notes, documents, and map activity before momentum slips.",
+  },
+  {
+    icon: "03",
+    title: "Close with the money attached",
+    body: "Keep terms, signatures, invoices, checkout, payment status, and handoff history connected to the same workspace.",
+  },
+];
+
+const GUIDE_PROOF = [
+  "Built around real deal records, not generic tasks",
+  "Cloudflare D1 for workspace data and R2 for files, notes, and generated documents",
+  "Checkout, payment events, and invoicing paths wired into the close flow",
+  "Voice notes, transcripts, deal maps, contacts, calendars, and pipeline activity in one suite",
+];
+
+const SIMPLE_PLAN = [
+  {
+    label: "Pick the plan",
+    body: "Choose Pro, Team, or Enterprise based on how many people work the deal with you.",
+  },
+  {
+    label: "Bring in the pipeline",
+    body: "Start fresh or import contacts, active deals, email context, files, calendars, and notes.",
+  },
+  {
+    label: "Work the next move",
+    body: "Use the workspace to see what needs attention, move stages, send invoices, and close.",
+  },
+];
+
+const LEAD_MAGNET_BENEFITS = [
+  "Find the leads and deals most likely to stall this week",
+  "Spot missing owners, next actions, follow-ups, proof, invoices, and close blockers",
+  "Turn a messy pipeline review into a concrete recovery list",
+];
+
 const FAQ_ITEMS = [
   {
     q: "Who is ADGA for?",
-    a: "Operators running real deals: solo closers, deal teams, capital raisers, M&A advisors, partnership leads, procurement, licensing, and high-ticket sales. If money moves and stakes are real, ADGA is the workspace.",
+    a: "Closers, dealmakers, and operators running real deals — capital raisers, M&A advisors, partnership leads, procurement, licensing, high-ticket sales. If money moves and stakes are real, ADGA is the workspace.",
   },
   {
     q: "Can I bring existing deals over?",
@@ -89,19 +145,83 @@ const FAQ_ITEMS = [
   },
   {
     q: "How does pricing work?",
-    a: "Three plans: Pro for one operator, Team for closing teams, Enterprise for firms. Monthly or annual (2 months free). Add seats anytime. See the pricing page for the full breakdown.",
+    a: "Three plans: Pro for the closer running their own book, Team for closers working deals together, Enterprise for organizations with 15+ closers. Monthly or annual (2 months free). Add seats anytime. See the pricing page for the full breakdown.",
   },
   {
     q: "Where does my data live?",
     a: "Cloudflare D1 for deal records and metadata. Cloudflare R2 for documents, voice notes, and generated files. Encrypted in transit and at rest. Your workspace is yours — no shared tenants in your data.",
   },
   {
-    q: "Does the AI act on its own?",
-    a: "No. Every customer-facing action is prepared and waits for your approval. The AI drafts follow-up, surfaces missing data, suggests next moves, and summarizes calls — you keep the wheel.",
+    q: "Does the workspace act on its own?",
+    a: "No. Every customer-facing action is prepared and waits for your approval. Drafts of follow-ups, missing-data prompts, suggested next moves, and call summaries all surface in the workspace — you keep the wheel.",
   },
 ];
 
+function LeadMagnetForm({ source }: { source: string }) {
+  const [status, setStatus] = useState<"idle" | "submitting" | "sent" | "error">("idle");
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setStatus("submitting");
+
+    const response = await fetch("/api/access/request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: String(form.get("name") || ""),
+        email: String(form.get("email") || ""),
+        notes: `Lead magnet requested: Deal Pipeline Audit Checklist (${source})`,
+      }),
+    }).catch(() => null);
+
+    setStatus(response?.ok ? "sent" : "error");
+  }
+
+  return (
+    <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+        <label style={{ display: "grid", gap: 7, fontSize: 12, color: "var(--adga-text-2)" }}>
+          Name
+          <input
+            name="name"
+            autoComplete="name"
+            placeholder="Your name"
+            style={{ height: 44, border: "1px solid var(--rule)", borderRadius: 10, padding: "0 12px", background: "var(--surface)" }}
+          />
+        </label>
+        <label style={{ display: "grid", gap: 7, fontSize: 12, color: "var(--adga-text-2)" }}>
+          Email
+          <input
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="you@company.com"
+            style={{ height: 44, border: "1px solid var(--rule)", borderRadius: 10, padding: "0 12px", background: "var(--surface)" }}
+          />
+        </label>
+      </div>
+      <button className="btn primary" type="submit" disabled={status === "submitting"} style={{ justifySelf: "start" }}>
+        {status === "submitting" ? "Sending..." : "Get the checklist"}
+      </button>
+      {status === "sent" ? (
+        <p style={{ margin: 0, fontSize: 13, color: "var(--adga-text-2)" }}>
+          Request captured. <a href="/adga/deal-pipeline-audit-checklist.txt">Open the checklist</a>.
+        </p>
+      ) : null}
+      {status === "error" ? (
+        <p style={{ margin: 0, fontSize: 13, color: "#8a1f1a" }}>
+          The form did not submit. Open the checklist and try again from the pricing page.
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
 export default function HomePage() {
+  const [leadMagnetOpen, setLeadMagnetOpen] = useState(false);
+
   return (
     <MarketingLayout>
       <div className="wrap">
@@ -172,11 +292,122 @@ export default function HomePage() {
           </div>
         </MarketingHero>
 
+        <section className="section" id="stakes" style={{ borderTop: 0, paddingTop: 32 }}>
+          <span className="ed-label">The cost of doing nothing</span>
+          <h2 className="title">Deals usually die quietly.</h2>
+          <p style={{ maxWidth: "62ch", marginTop: 12, color: "var(--adga-text-2)" }}>
+            The offer can be strong and the buyer can still drift. When the next move is unclear, the workspace is scattered, or the close path is disconnected from payment, momentum turns into silence.
+          </p>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 14,
+              marginTop: 28,
+              maxWidth: 1080,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            {NEGATIVE_STAKES.map((stake) => (
+              <div key={stake} style={{ border: "1px solid var(--rule)", borderRadius: 12, padding: "18px 20px", background: "var(--surface)" }}>
+                <span style={{ color: "var(--accent)", fontSize: 18, lineHeight: 1 }}>-</span>
+                <p style={{ margin: "8px 0 0", fontSize: 14, lineHeight: 1.55, color: "var(--adga-text)" }}>{stake}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="section" id="value">
+          <span className="ed-label">Deal management platform</span>
+          <h2 className="title">One system for the work that gets deals closed.</h2>
+          <div className="three" style={{ marginTop: 32, maxWidth: 1080, marginLeft: "auto", marginRight: "auto" }}>
+            {VALUE_STACK.map((item) => (
+              <div className="three-card" key={item.title}>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 12,
+                    display: "inline-grid",
+                    placeItems: "center",
+                    background: "var(--accent-soft)",
+                    color: "var(--accent)",
+                    fontFamily: "var(--font-mono, monospace)",
+                    fontSize: 12,
+                    letterSpacing: "0.08em",
+                  }}
+                >
+                  {item.icon}
+                </span>
+                <div className="head">{item.title}</div>
+                <div className="body">{item.body}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="section" id="guide">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 0.9fr) minmax(280px, 1.1fr)",
+              gap: 32,
+              alignItems: "start",
+              maxWidth: 1080,
+              margin: "0 auto",
+            }}
+          >
+            <div>
+              <span className="ed-label">Built for closers</span>
+              <h2 className="title">You should not have to remember the whole deal alone.</h2>
+              <p style={{ marginTop: 14, color: "var(--adga-text-2)", lineHeight: 1.6 }}>
+                ADGA is built for the operator carrying the number, the advisor coordinating the room, and the team that needs every person, file, note, invoice, and decision visible before the next call.
+              </p>
+            </div>
+            <div style={{ background: "var(--surface)", border: "1px solid var(--rule)", borderRadius: 14, padding: 28 }}>
+              <span className="ed-label">Proof points</span>
+              <ul style={{ margin: "18px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 14 }}>
+                {GUIDE_PROOF.map((item) => (
+                  <li key={item} style={{ display: "grid", gridTemplateColumns: "22px 1fr", gap: 10, fontSize: 14, color: "var(--adga-text)", lineHeight: 1.45 }}>
+                    <span style={{ color: "var(--accent)" }}>✓</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section className="section" id="simple-plan">
+          <span className="ed-label">Simple plan</span>
+          <h2 className="title">Open the workspace. Bring in the deal. Move the next action.</h2>
+          <div
+            className="process-rail"
+            style={{
+              marginTop: 32,
+              maxWidth: 1080,
+              marginLeft: "auto",
+              marginRight: "auto",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            }}
+          >
+            {SIMPLE_PLAN.map((step, index) => (
+              <div className="process-step" key={step.label}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <b>{step.label}</b>
+                <small>{step.body}</small>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="section" id="anatomy">
           <span className="ed-label">Inside a deal record</span>
           <h2 className="title">Everything attached. Nothing lost.</h2>
           <p style={{ maxWidth: "60ch", marginTop: 12, color: "var(--adga-text-2)" }}>
-            A deal is more than a card on a board. Every record carries the people, the process, the proof, and the close path — together.
+            A deal is more than a card on a board. People, process, proof, and close path — together in one place.
           </p>
           <div
             className="anatomy-grid"
@@ -215,7 +446,7 @@ export default function HomePage() {
 
         <section className="section" id="process">
           <span className="ed-label">The deal process</span>
-          <h2 className="title">From first signal to repeat purchase.</h2>
+          <h2 className="title">From first lead to repeat purchase.</h2>
           <div
             className="process-rail"
             style={{
@@ -270,8 +501,8 @@ export default function HomePage() {
         </section>
 
         <section className="section" id="use-cases">
-          <span className="ed-label">Built for</span>
-          <h2 className="title">Different deals. One operating path.</h2>
+          <span className="ed-label">Use cases</span>
+          <h2 className="title">Different deals. One path to close.</h2>
           <div
             className="usecase-grid"
             style={{
@@ -329,6 +560,55 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section className="section" id="deal-flow-software">
+          <span className="ed-label">Why ADGA</span>
+          <h2 className="title">Deal flow software for people who have to follow through.</h2>
+          <p style={{ maxWidth: "84ch", marginTop: 18, color: "var(--adga-text-2)", fontSize: 17, lineHeight: 1.75 }}>
+            Closers, dealmakers, advisors, and operators want the same thing: more qualified opportunities moving cleanly toward close. The problem is that real deals do not live in one clean place. A lead starts in an inbox, the first call creates notes, the diligence folder sits somewhere else, the decision maker changes, the invoice gets handled after the fact, and the next follow-up depends on somebody remembering what happened. ADGA brings the external work, the internal confidence, and the financial close path into one deal management platform. Start by choosing a plan, bring in your existing pipeline or capture new leads, then work every next move from the same workspace. The result is a cleaner pipeline, faster follow-up, clearer handoffs, and fewer deals lost to silence. The alternative is the same scattered process: missed commitments, stale opportunities, delayed payments, and a team that cannot trust what the pipeline says.
+          </p>
+          <div className="ctas" style={{ marginTop: 24 }}>
+            <a href="/pricing" className="btn primary lg">Start closing deals</a>
+            <a href="#lead-magnet" className="btn lg">Get the checklist</a>
+          </div>
+        </section>
+
+        <section className="section" id="lead-magnet">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 0.9fr)",
+              gap: 32,
+              alignItems: "center",
+              maxWidth: 1080,
+              margin: "0 auto",
+              background: "var(--surface)",
+              border: "1px solid var(--rule)",
+              borderRadius: 16,
+              padding: 28,
+            }}
+          >
+            <div>
+              <span className="ed-label">Free resource</span>
+              <h2 className="title">Deal Pipeline Audit Checklist</h2>
+              <p style={{ marginTop: 12, color: "var(--adga-text-2)", lineHeight: 1.6 }}>
+                Use this before your next pipeline review to find the deals most likely to stall, the follow-ups most likely to slip, and the payment steps that need to be attached before close.
+              </p>
+              <ul style={{ margin: "18px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
+                {LEAD_MAGNET_BENEFITS.map((benefit) => (
+                  <li key={benefit} style={{ display: "grid", gridTemplateColumns: "20px 1fr", gap: 10, fontSize: 14, color: "var(--adga-text)" }}>
+                    <span style={{ color: "var(--accent)" }}>✓</span>
+                    <span>{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+              <button type="button" className="btn" style={{ marginTop: 22 }} onClick={() => setLeadMagnetOpen(true)}>
+                Open as popup
+              </button>
+            </div>
+            <LeadMagnetForm source="homepage" />
+          </div>
+        </section>
+
         <section className="section" id="faq">
           <div className="faq" style={{ maxWidth: 1080, marginLeft: "auto", marginRight: "auto" }}>
             <div>
@@ -345,6 +625,45 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {leadMagnetOpen ? (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="lead-magnet-title"
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 50,
+              display: "grid",
+              placeItems: "center",
+              padding: 20,
+              background: "rgba(13, 12, 10, 0.42)",
+            }}
+            onClick={() => setLeadMagnetOpen(false)}
+          >
+            <div
+              style={{ width: "min(560px, 100%)", background: "var(--surface)", border: "1px solid var(--rule)", borderRadius: 16, padding: 28, boxShadow: "var(--shadow-lg)" }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "start" }}>
+                <div>
+                  <span className="ed-label">Free resource</span>
+                  <h2 id="lead-magnet-title" style={{ margin: "8px 0 8px", fontSize: 28, lineHeight: 1.1 }}>
+                    Deal Pipeline Audit Checklist
+                  </h2>
+                  <p style={{ margin: "0 0 18px", color: "var(--adga-text-2)", lineHeight: 1.55 }}>
+                    Get the quick checklist for finding stale deals, missing follow-ups, and close blockers.
+                  </p>
+                </div>
+                <button type="button" className="btn" onClick={() => setLeadMagnetOpen(false)} aria-label="Close popup">
+                  Close
+                </button>
+              </div>
+              <LeadMagnetForm source="popup" />
+            </div>
+          </div>
+        ) : null}
 
         <section className="cta">
           <h2>Move every <em>deal forward.</em></h2>

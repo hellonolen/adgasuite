@@ -4,6 +4,11 @@ import { AUTH_COOKIE_NAME } from "@/lib/server/magic-auth";
 export function middleware(request: NextRequest) {
   if (process.env.NODE_ENV !== "production") return NextResponse.next();
 
+  const hostname = request.nextUrl.hostname;
+  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
+    return NextResponse.next();
+  }
+
   const hasSession = Boolean(request.cookies.get(AUTH_COOKIE_NAME)?.value);
   if (hasSession) return NextResponse.next();
 

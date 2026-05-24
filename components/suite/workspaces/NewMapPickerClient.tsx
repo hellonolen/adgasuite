@@ -21,7 +21,8 @@ type CreateState =
   | { kind: "error"; message: string };
 
 interface CreatedMap {
-  id: string;
+  map?: { id: string };
+  id?: string;
 }
 
 async function postJSON<T>(url: string, body: unknown): Promise<T> {
@@ -43,32 +44,41 @@ async function postJSON<T>(url: string, body: unknown): Promise<T> {
 
 async function createMapFromTemplate(template: DealTemplate, name: string): Promise<string> {
   // 1. Create the map shell
-  const map = await postJSON<CreatedMap>("/api/maps", {
+  const created = await postJSON<CreatedMap>("/api/maps", {
     name,
     template: template.id,
     deal_id: null,
   });
+  const mapId = created.map?.id || created.id;
+  if (!mapId) throw new Error("Map was created but no map id was returned.");
+  const nodeIdFor = (templateNodeId: string) =>
+    templateNodeId === "deal" ? mapId : `${mapId}_${templateNodeId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
 
   // 2. Materialize each template node
-  for (const node of template.nodes) {
-    await postJSON(`/api/maps/${map.id}/nodes`, {
-      template_node_id: node.id,
+  const center = { x: 480, y: 320 };
+  const radius = template.nodes.length > 8 ? 430 : 330;
+  for (const [index, node] of template.nodes.entries()) {
+    const angle = ((index / Math.max(template.nodes.length, 1)) * Math.PI * 2) - Math.PI / 2;
+    await postJSON(`/api/maps/${mapId}/nodes`, {
+      id: nodeIdFor(node.id),
       kind: node.kind,
       label: node.label,
       sublabel: node.sublabel,
       status: node.status ?? "neutral",
+      position_x: center.x + Math.cos(angle) * radius,
+      position_y: center.y + Math.sin(angle) * radius,
     });
   }
 
   // 3. Materialize each edge (default: deal -> every node)
   for (const edge of template.edges) {
-    await postJSON(`/api/maps/${map.id}/edges`, {
-      source: edge.source,
-      target: edge.target,
+    await postJSON(`/api/maps/${mapId}/edges`, {
+      source_node_id: nodeIdFor(edge.source),
+      target_node_id: nodeIdFor(edge.target),
     });
   }
 
-  return map.id;
+  return mapId;
 }
 
 export default function NewMapPickerClient() {

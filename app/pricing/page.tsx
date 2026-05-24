@@ -56,20 +56,20 @@ const COMPARISON_GROUPS: Array<{ section: string; rows: Array<[string, string | 
     rows: [
       ["Seats", "1", `${TEAM_INCLUDED_SEATS}–${TEAM_MAX_SEATS}`, `${ENTERPRISE_INCLUDED_SEATS}+`],
       ["Shared pipeline and calendar", "—", true, true],
-      ["Invoicing with Stripe payouts", "—", true, true],
+      ["Invoicing with payment payouts", "—", true, true],
       ["Approval queue with audit trail", "—", true, true],
       ["Shareable deal maps for clients", "—", true, true],
       ["Watermarked client shares", "—", "—", true],
     ],
   },
   {
-    section: "Intelligence and AI",
+    section: "Intelligence and automation",
     rows: [
-      ["ADGA AI assistant (Kimi 2.6)", true, true, true],
-      ["AI agents (8 specialists)", true, true, true],
+      ["In-workspace deal copilot", true, true, true],
+      ["Domain workflows across the deal lifecycle", true, true, true],
       ["Forecast and weighted pipeline", true, true, true],
       ["Approval-gated actions", true, true, true],
-      ["Custom agent skills", "—", "—", true],
+      ["Custom workflow configuration", "—", "—", true],
     ],
   },
   {
@@ -89,7 +89,7 @@ const COMPARISON_GROUPS: Array<{ section: string; rows: Array<[string, string | 
 const FAQ_ITEMS = [
   {
     q: "How is this structured?",
-    a: `Pro is one operator. Team includes ${TEAM_INCLUDED_SEATS} seats with additional seats at $${TEAM_SEAT_ADD}/mo up to ${TEAM_MAX_SEATS} total. Enterprise includes ${ENTERPRISE_INCLUDED_SEATS} seats with additional seats at $${ENTERPRISE_SEAT_ADD}/mo, no cap, and adds role permissions, immutable audit logs, and watermarked client shares.`,
+    a: `Pro is for the closer running their own book. Team includes ${TEAM_INCLUDED_SEATS} seats with additional seats at $${TEAM_SEAT_ADD}/mo up to ${TEAM_MAX_SEATS} total. Enterprise includes ${ENTERPRISE_INCLUDED_SEATS} seats with additional seats at $${ENTERPRISE_SEAT_ADD}/mo, no cap, and adds role permissions, immutable audit logs, and watermarked client shares.`,
   },
   {
     q: "What does annual save?",
@@ -101,7 +101,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "What happens after checkout?",
-    a: "Stripe processes the payment, ADGA provisions the workspace, and the magic-link email lands in your inbox. Click it and you are inside the suite.",
+    a: "Checkout processes the payment, ADGA provisions the workspace, and the magic-link email lands in your inbox. Click it and you are inside the suite.",
   },
   {
     q: "Can I move between plans?",
@@ -181,7 +181,7 @@ export default function PricingPage() {
         <MarketingHero
           variant="compact"
           headline="Join our community."
-          deck="Whether you run your book alone, close with a team, or operate across an enterprise — ADGA scales with the way you already close. Same deal flow, every tier. No record caps, no per-contact fees, no AI add-ons."
+          deck="Whether you run your book alone, close with a team, or operate across an enterprise — ADGA scales with the way you already close. Same deal flow, every tier. No record caps, no per-contact fees, no add-on fees."
         />
 
         {/* CADENCE SWITCHER — its own section so it has real breathing room above and below. */}
@@ -219,7 +219,7 @@ export default function PricingPage() {
                 <li>1 user · everything in every plan</li>
                 <li>20 GB document storage</li>
                 <li>Voice notes with auto-transcription</li>
-                <li>ADGA AI assistant + 8 agents</li>
+                <li>In-workspace deal copilot</li>
                 <li>Live deal map per deal</li>
               </ul>
               <a href={proHref} className="btn">Start closing deals</a>
@@ -369,7 +369,7 @@ export default function PricingPage() {
         <section className="section" style={{ paddingTop: 80 }}>
           <div style={{ textAlign: "center", marginBottom: 36 }}>
             <span className="ed-label">Compare plans</span>
-            <h2 className="title" style={{ marginTop: 10 }}>Pick the shape of your deal flow.</h2>
+            <h2 className="title" style={{ marginTop: 10 }}>Pick your deal flow configuration.</h2>
           </div>
           <div style={{ maxWidth: 1120, marginLeft: "auto", marginRight: "auto", overflowX: "auto" }}>
             <table

@@ -11,6 +11,8 @@
     "preview": "npm run build:cf && wrangler dev",
     "cloudflare:production": "node scripts/cloudflare-production-setup.mjs",
     "verify:production": "node scripts/verify-production.mjs",
+    "verify:launch": "node scripts/verify-launch-readiness.mjs",
+    "test:real": "node scripts/test-real-deal-flow.mjs",
     "typecheck": "tsc --noEmit",
     "setup:stripe": "bash scripts/setup-stripe.sh"
   },

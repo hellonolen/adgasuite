@@ -3,7 +3,8 @@ import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true
+  reactStrictMode: true,
+  outputFileTracingRoot: __dirname,
 };
 
 export default function config(phase: string): NextConfig {

@@ -1,0 +1,254 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - link "ADGA" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e5]:
+        - link "Plan" [ref=e6] [cursor=pointer]:
+          - /url: /plan
+        - link "Process" [ref=e7] [cursor=pointer]:
+          - /url: /process
+        - link "Use Cases" [ref=e8] [cursor=pointer]:
+          - /url: /cases
+        - link "Resources" [ref=e9] [cursor=pointer]:
+          - /url: /resources/deal-pipeline-audit
+        - link "Pricing" [ref=e10] [cursor=pointer]:
+          - /url: /pricing
+      - generic [ref=e11]:
+        - generic [ref=e12]: Deal flow platform
+        - link "Sign in" [ref=e13] [cursor=pointer]:
+          - /url: /login
+        - link "Start closing deals" [ref=e14] [cursor=pointer]:
+          - /url: /pricing
+    - generic [ref=e15]:
+      - region "Payroll help for growing teams." [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - generic [ref=e19]: Payroll support
+            - generic [ref=e20]: HR options
+          - heading "Payroll help for growing teams." [level=1] [ref=e21]
+          - paragraph [ref=e22]: Tell us what you need and we will connect you with the right payroll support for your company.
+          - generic "Offer highlights" [ref=e23]:
+            - generic [ref=e24]:
+              - strong [ref=e25]: Up to 6 months
+              - generic [ref=e26]: Free payroll may be available for eligible companies
+            - generic [ref=e27]:
+              - strong [ref=e28]: Payroll
+              - generic [ref=e29]: Processing, tax filing, and support
+            - generic [ref=e30]:
+              - strong [ref=e31]: HR
+              - generic [ref=e32]: Hiring, onboarding, and compliance options
+          - generic [ref=e33]:
+            - generic [ref=e34]: Best fit for
+            - strong [ref=e35]: Small-business payroll and HR
+            - paragraph [ref=e36]: Companies that need cleaner payroll, tax, hiring, or employee administration support.
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]: Payroll inquiry
+            - heading "Get payroll help" [level=2] [ref=e40]
+            - paragraph [ref=e41]: Share a few details and a payroll specialist will follow up with options that fit your company.
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - generic [ref=e44]: Full name
+              - textbox [ref=e45]
+            - generic [ref=e46]:
+              - generic [ref=e47]: Email
+              - textbox [ref=e48]
+            - generic [ref=e49]:
+              - generic [ref=e50]: Phone
+              - textbox [ref=e51]
+            - generic [ref=e52]:
+              - generic [ref=e53]: Company
+              - textbox [ref=e54]
+            - generic [ref=e55]:
+              - generic [ref=e56]: Role
+              - textbox [ref=e57]
+            - generic [ref=e58]:
+              - generic [ref=e59]: Company size
+              - combobox [ref=e60]:
+                - option "Select size" [selected]
+                - option "1-9"
+                - option "10-24"
+                - option "25-49"
+                - option "50-99"
+                - option "100-249"
+                - option "250+"
+            - generic [ref=e61]:
+              - generic [ref=e62]: State
+              - textbox "State" [ref=e63]
+            - generic [ref=e64]:
+              - generic [ref=e65]: Payroll timing
+              - combobox [ref=e66]:
+                - option "Select timing" [selected]
+                - option "Immediately"
+                - option "This month"
+                - option "This quarter"
+                - option "Exploring options"
+            - generic [ref=e67]:
+              - generic [ref=e68]: Current payroll provider
+              - textbox "ADP, Gusto, Paychex, QuickBooks, none..." [ref=e69]
+          - group [ref=e70]:
+            - generic [ref=e71]: Payroll needs
+            - generic [ref=e72]:
+              - generic [ref=e73]:
+                - checkbox "Payroll" [ref=e74]
+                - generic [ref=e75]: Payroll
+              - generic [ref=e76]:
+                - checkbox "Payroll tax filing" [ref=e77]
+                - generic [ref=e78]: Payroll tax filing
+              - generic [ref=e79]:
+                - checkbox "Hiring and onboarding" [ref=e80]
+                - generic [ref=e81]: Hiring and onboarding
+              - generic [ref=e82]:
+                - checkbox "Time and attendance" [ref=e83]
+                - generic [ref=e84]: Time and attendance
+              - generic [ref=e85]:
+                - checkbox "Benefits administration" [ref=e86]
+                - generic [ref=e87]: Benefits administration
+              - generic [ref=e88]:
+                - checkbox "Workers' compensation" [ref=e89]
+                - generic [ref=e90]: Workers' compensation
+              - generic [ref=e91]:
+                - checkbox "Retirement plan support" [ref=e92]
+                - generic [ref=e93]: Retirement plan support
+              - generic [ref=e94]:
+                - checkbox "HR compliance" [ref=e95]
+                - generic [ref=e96]: HR compliance
+          - generic [ref=e97]:
+            - generic [ref=e98]: Notes
+            - textbox "Anything the payroll specialist should know..." [ref=e99]
+          - generic [ref=e100]:
+            - checkbox "I agree that ADGA may share this information with a payroll specialist so they can follow up about payroll or HR services." [ref=e101]
+            - generic [ref=e102]: I agree that ADGA may share this information with a payroll specialist so they can follow up about payroll or HR services.
+          - button "Request payroll help" [ref=e104] [cursor=pointer]
+      - region "ADP offer details" [ref=e105]:
+        - article [ref=e106]:
+          - generic [ref=e107]: Payroll support
+          - paragraph [ref=e108]: Get help with payroll processing, payroll taxes, employee records, pay schedules, and the administrative pieces that slow teams down.
+        - article [ref=e109]:
+          - generic [ref=e110]: HR options
+          - paragraph [ref=e111]: Ask about hiring, onboarding, time tracking, benefits administration, workers' compensation, and compliance support.
+        - article [ref=e112]:
+          - generic [ref=e113]: Next step
+          - paragraph [ref=e114]: Submit the form and a specialist will review your company size, current provider, timing, and payroll needs before reaching out.
+      - generic [ref=e115]:
+        - generic [ref=e116]:
+          - generic [ref=e117]: Payroll and HR support
+          - heading "Bring payroll, tax, hiring, and employee administration into a cleaner conversation." [level=2] [ref=e118]
+          - paragraph [ref=e119]: Payroll is recurring operational work that has to be correct every pay period. This inquiry helps a payroll specialist understand your company size, current provider, timing, payroll needs, and HR priorities before the first call.
+        - generic "Payroll support coverage" [ref=e120]:
+          - generic [ref=e121]:
+            - strong [ref=e122]: Payroll processing
+            - generic [ref=e123]: Pay schedules, employee records, direct deposit, and day-to-day payroll administration.
+          - generic [ref=e124]:
+            - strong [ref=e125]: Payroll tax support
+            - generic [ref=e126]: Federal, state, and local payroll tax filing needs that come with running payroll.
+          - generic [ref=e127]:
+            - strong [ref=e128]: Hiring and onboarding
+            - generic [ref=e129]: Employee setup, new-hire paperwork, onboarding workflows, and HR administration.
+          - generic [ref=e130]:
+            - strong [ref=e131]: Benefits and compliance
+            - generic [ref=e132]: Benefits administration, workers' compensation, time tracking, and HR compliance questions.
+      - generic [ref=e133]:
+        - generic [ref=e134]:
+          - generic [ref=e135]: Switching providers
+          - heading "When the current payroll setup is not working." [level=3] [ref=e136]
+          - paragraph [ref=e137]: Share what is broken, what has to change, employee count, current provider, and how quickly the company needs a better process.
+        - generic [ref=e138]:
+          - generic [ref=e139]: Setting up payroll
+          - heading "When the company needs payroll stood up cleanly." [level=3] [ref=e140]
+          - paragraph [ref=e141]: Bring company size, state, hiring plans, pay frequency, employee structure, and the payroll timeline into one intake.
+        - generic [ref=e142]:
+          - generic [ref=e143]: Adding HR support
+          - heading "When payroll needs more than pay runs." [level=3] [ref=e144]
+          - paragraph [ref=e145]: Ask about onboarding, time tracking, benefits administration, workers' compensation, employee records, and compliance support.
+      - generic [ref=e146]:
+        - generic [ref=e147]:
+          - generic [ref=e148]: Offer eligibility
+          - heading "Eligible companies may qualify for up to six months free payroll." [level=2] [ref=e149]
+        - list [ref=e150]:
+          - listitem [ref=e151]: Companies switching from another payroll provider may qualify with 3-49 employees.
+          - listitem [ref=e152]: Companies not switching from another payroll provider may qualify with 5-49 employees.
+          - listitem [ref=e153]: Eligibility depends on ADP program terms, payroll setup, processing requirements, and service fit.
+          - listitem [ref=e154]: A payroll specialist can confirm what applies after reviewing the company details.
+      - region "Payroll inquiry process" [ref=e155]:
+        - generic [ref=e156]:
+          - generic [ref=e157]: "01"
+          - strong [ref=e158]: Submit the inquiry
+          - paragraph [ref=e159]: Use the form to share company, timing, current provider, and payroll or HR needs.
+        - generic [ref=e160]:
+          - generic [ref=e161]: "02"
+          - strong [ref=e162]: Review fit
+          - paragraph [ref=e163]: A payroll specialist reviews eligibility, service needs, payroll timing, and the best next step.
+        - generic [ref=e164]:
+          - generic [ref=e165]: "03"
+          - strong [ref=e166]: Move payroll forward
+          - paragraph [ref=e167]: If there is a fit, the specialist can walk through setup, migration, or a cleaner payroll process.
+      - region "Program terms" [ref=e168]:
+        - paragraph [ref=e169]: Eligibility and service terms apply. ADP, the ADP logo, RUN Powered by ADP, and Always Designing for People are trademarks of ADP, Inc.
+    - contentinfo [ref=e170]:
+      - generic [ref=e171]:
+        - link "ADGA" [ref=e172] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=e173]: Designed for the closers, dealmakers, and operators who carry the number.
+      - generic [ref=e174]:
+        - generic [ref=e175]:
+          - heading "Product" [level=4] [ref=e176]
+          - list [ref=e177]:
+            - listitem [ref=e178]:
+              - link "Plan" [ref=e179] [cursor=pointer]:
+                - /url: /plan
+            - listitem [ref=e180]:
+              - link "Process" [ref=e181] [cursor=pointer]:
+                - /url: /process
+            - listitem [ref=e182]:
+              - link "Use Cases" [ref=e183] [cursor=pointer]:
+                - /url: /cases
+            - listitem [ref=e184]:
+              - link "Free Checklist" [ref=e185] [cursor=pointer]:
+                - /url: /resources/deal-pipeline-audit
+            - listitem [ref=e186]:
+              - link "Pricing" [ref=e187] [cursor=pointer]:
+                - /url: /pricing
+        - generic [ref=e188]:
+          - heading "Company" [level=4] [ref=e189]
+          - list [ref=e190]:
+            - listitem [ref=e191]:
+              - link "About" [ref=e192] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e193]:
+              - link "Stories" [ref=e194] [cursor=pointer]:
+                - /url: /stories
+            - listitem [ref=e195]:
+              - link "Contact" [ref=e196] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e197]:
+              - link "Sign in" [ref=e198] [cursor=pointer]:
+                - /url: /login
+        - generic [ref=e199]:
+          - heading "Home" [level=4] [ref=e200]
+          - list [ref=e201]:
+            - listitem [ref=e202]:
+              - link "Start closing deals" [ref=e203] [cursor=pointer]:
+                - /url: /pricing
+        - generic [ref=e204]:
+          - heading "Legal" [level=4] [ref=e205]
+          - list [ref=e206]:
+            - listitem [ref=e207]:
+              - link "Security" [ref=e208] [cursor=pointer]:
+                - /url: /security
+            - listitem [ref=e209]:
+              - link "Policy Center" [ref=e210] [cursor=pointer]:
+                - /url: /policies
+    - generic [ref=e211]:
+      - generic [ref=e212]: © 2026 ADGA · All rights reserved
+      - generic [ref=e213]:
+        - link "Policy Center" [ref=e214] [cursor=pointer]:
+          - /url: /policies
+        - link "Support" [ref=e215] [cursor=pointer]:
+          - /url: /support
+        - link "Contact" [ref=e216] [cursor=pointer]:
+          - /url: /contact
+  - button "Open Next.js Dev Tools" [ref=e222] [cursor=pointer]:
+    - img [ref=e223]
+  - alert [ref=e226]

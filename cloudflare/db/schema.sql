@@ -30,6 +30,18 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 
 CREATE INDEX IF NOT EXISTS idx_subscriptions_org ON subscriptions (organization_id);
 
+CREATE TABLE IF NOT EXISTS organization_settings (
+  organization_id TEXT NOT NULL,
+  panel TEXT NOT NULL,
+  values_json TEXT NOT NULL DEFAULT '{}',
+  updated_by TEXT,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (organization_id, panel),
+  FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_organization_settings_updated ON organization_settings(organization_id, updated_at);
+
 CREATE TABLE IF NOT EXISTS affiliates (
   id TEXT PRIMARY KEY,
   organization_id TEXT NOT NULL,
@@ -113,6 +125,8 @@ CREATE TABLE IF NOT EXISTS partner_referral_leads (
   organization_id TEXT NOT NULL,
   partner_slug TEXT NOT NULL,
   partner_name TEXT NOT NULL,
+  affiliate_code TEXT,
+  affiliate_url TEXT,
   full_name TEXT NOT NULL,
   email TEXT NOT NULL,
   phone TEXT,

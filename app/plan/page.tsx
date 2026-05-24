@@ -20,7 +20,7 @@ type Feature = {
 const FEATURES: ReadonlyArray<Feature> = [
   {
     label: "Lead intake",
-    head: "Every signal becomes a record.",
+    head: "Every lead becomes a record.",
     body: "Inbound forms, QR submissions, CSV imports, manual entries, and partner referrals all land as a complete lead — with source, urgency, owner, and the first next action attached on capture.",
     bullets: [
       "Source attribution preserved across form, QR, import, and manual entry",
@@ -43,7 +43,7 @@ const FEATURES: ReadonlyArray<Feature> = [
   {
     label: "Deal record",
     head: "Everything attached to the deal.",
-    body: "The deal record carries the source signal, primary contact, company, owner, stage, stage confidence, next action, due date, commitments, risks, approvals, payment, and follow-on opportunity in one place.",
+    body: "The deal record carries the source, primary contact, company, owner, stage, stage confidence, next action, due date, commitments, risks, approvals, payment, and follow-on opportunity in one place.",
     bullets: [
       "Source, stage, confidence, owner, and next action on every record",
       "Commitments, blockers, and risks tracked against the deal timeline",
@@ -54,7 +54,7 @@ const FEATURES: ReadonlyArray<Feature> = [
   {
     label: "Contacts & accounts",
     head: "People and the companies they belong to.",
-    body: "Contacts are people. Accounts are organizations. Each one carries every touch, every deal, every document, and every purchase — for as long as the relationship lasts.",
+    body: "Contacts are people. Accounts are organizations. Touches, deals, documents, and purchases stay linked to the contact and the account — for as long as the relationship lasts.",
     bullets: [
       "Linked contact ↔ account structure with role and decision authority",
       "Preferred contact method, best time, time zone, and social profiles",
@@ -76,12 +76,12 @@ const FEATURES: ReadonlyArray<Feature> = [
   {
     label: "Voice notes + transcripts",
     head: "Speak it. Find it. Act on it.",
-    body: "Drop a voice note on a lead, contact, deal, or meeting. Audio lands in R2, transcripts run through Cloudflare Workers AI, and the text is searchable across the workspace within seconds.",
+    body: "Drop a voice note on a lead, contact, deal, or meeting. Audio lands in R2, transcripts process automatically, and the text is searchable across the workspace within seconds.",
     bullets: [
-      "Whisper-based speech-to-text via Cloudflare Workers AI",
-      "Transcripts power agent summaries and follow-up tasks",
+      "Speech-to-text transcripts attached to the voice note",
+      "Transcripts power summaries and follow-up tasks",
       "Voice notes attach to lead, deal, meeting, contact, or task",
-      "Queued for transcription when AI capacity is unavailable",
+      "Queued for transcription when processing capacity is unavailable",
     ],
   },
   {
@@ -91,14 +91,14 @@ const FEATURES: ReadonlyArray<Feature> = [
     bullets: [
       "ICS attachments on every invite for cross-client compatibility",
       "Invite delivery state: sent, accepted, declined, tentative, canceled",
-      "Meeting records show attendees, link, source lead/deal, and agent prep",
+      "Meeting records show attendees, link, source lead or deal, and the pre-meeting brief",
       "Pre-meeting briefs and post-meeting summaries on the record",
     ],
   },
   {
     label: "Communication lanes",
     head: "Internal team. Client view. Same deal.",
-    body: "Every deal has two communication lanes. Internal stays private — notes, voice memos, decisions, agent summaries. Client-facing is explicit — updates, meeting invites, documents, signatures.",
+    body: "Two communication lanes per deal. Internal stays private — notes, voice memos, decisions, summary records. Client-facing is explicit — updates, meeting invites, documents, signatures.",
     bullets: [
       "Internal team lane: private notes, decisions, blockers, voice memos",
       "Client lane: status updates, documents, signatures, meeting invites",
@@ -109,9 +109,9 @@ const FEATURES: ReadonlyArray<Feature> = [
   {
     label: "Invoicing center",
     head: "Invoice clients. Get paid. Track every dollar.",
-    body: "Create, send, and track invoices against any deal. Line items, taxes, discounts, due dates, and payment links — with payouts routed through your connected Stripe, PayPal, Whop, or bank account.",
+    body: "Create, send, and track invoices against any deal. Line items, taxes, discounts, due dates, and payment links — with payouts routed through your payment processor, accounting system, PayPal, or a connected bank account.",
     bullets: [
-      "Stripe, PayPal, Whop, QuickBooks, and bank-account connectors",
+      "Payment processor, PayPal, QuickBooks, and bank-account connectors",
       "Invoice PDFs stored in R2, full metadata in D1",
       "Bank-account payout setup for companies and individuals",
       "Gross amount, platform fee, net to user, and payment status tracked",
@@ -120,23 +120,23 @@ const FEATURES: ReadonlyArray<Feature> = [
   {
     label: "Intelligence + battlecards",
     head: "Context surfaced before the call.",
-    body: "Company profiles, battlecards, market notes, and prior-deal context pulled into the deal record before you dial. Surveys and signal capture feed the same workspace search.",
+    body: "Company profiles, battlecards, market notes, and prior-deal context pulled into the deal record before you dial. Surveys and survey responses feed the same workspace search.",
     bullets: [
       "Company profile and battlecard attached to the deal",
       "Prior deal history and account intelligence on the contact card",
       "Workspace search across notes, calls, documents, voice notes, meetings",
-      "Survey and signal capture write back to the same record graph",
+      "Survey responses write back to the same record graph",
     ],
   },
   {
-    label: "Approvals + agent actions",
-    head: "AI drafts. You approve.",
-    body: "Agents surface the next move, draft follow-up, summarize calls, and prepare client-facing actions. Every customer-facing action waits in an approval lane until you sign off.",
+    label: "Approval lane",
+    head: "Drafts prepared. You approve.",
+    body: "Every customer-facing action — follow-up emails, SMS, invoices, signature requests — lands in an approval lane with the draft, the reasoning, and the risk class. Approve, edit, or reject. Always reversible inside the grace window.",
     bullets: [
       "Prepared-action queue with approve, edit, or reject",
-      "Agent summary and recommended next move on every lead and deal",
-      "Activity log for every status change, note, document, and agent action",
-      "Conductor routing across Sales, Operations, Documents, Communication, Payments",
+      "Suggested next move and draft surfaced on every lead and deal",
+      "Activity log for every status change, note, document, and approval",
+      "Drafts routed by domain — sales, operations, documents, communication, payments",
     ],
   },
   {

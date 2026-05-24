@@ -119,7 +119,7 @@ const STAGES: ReadonlyArray<Stage> = [
     label: "Expand",
     body: "The customer is evaluated for renewal, repeat purchase, referral, upsell, cross-sell, or partner transition. Outcome and next offer attach to the same record without losing context.",
     bullets: [
-      "Review outcome and capture satisfaction signal",
+      "Review outcome and capture satisfaction",
       "Identify renewal, upsell, cross-sell, and referral paths",
       "Trigger expansion offers from prior deal history",
       "Open the next deal record without losing relationship context",
@@ -134,7 +134,7 @@ export default function ProcessPage() {
       <div className="wrap">
         <MarketingHero
           headline="Dealmakers close deals."
-          deck="Designed to help closers, dealmakers, and operators run every deal through the same proven path. Lead, qualify, discover, scope, design, close, sign, deliver, expand — one record, one path, every deal."
+          deck="Designed to help closers, dealmakers, and operators run their deals through the same proven path. Lead, qualify, discover, scope, design, close, sign, deliver, expand — one record, one path."
           primaryCta={{ label: "Start closing deals", href: "/pricing" }}
           paddingBottom={24}
         />
@@ -143,7 +143,7 @@ export default function ProcessPage() {
           <span className="ed-label">Deal process</span>
           <h2 className="title">From first lead to <em>repeat purchase.</em></h2>
           <p style={{ maxWidth: "60ch", marginTop: 12, color: "var(--ink-2)" }}>
-            ADGA gives every deal a visible operating path. Nine stages keep people, proof, documents, stage confidence, and the next move attached to the same record — whether the deal starts fresh or arrives from an existing pipeline.
+            Nine stages from first lead to repeat purchase. Closers see where the deal is, what's blocking it, and what to do next — whether the deal starts fresh or arrives from an existing pipeline.
           </p>
 
           <div
@@ -285,7 +285,7 @@ export default function ProcessPage() {
           </h2>
           <div className="right">
             <p>
-              Pick a plan, open the workspace, and run the nine-stage process on real deals — from the first lead through repeat purchase.
+              Pick a plan, open the workspace, and run the process on real deals — from the first lead through repeat purchase.
             </p>
             <div className="ctas">
               <a href="/pricing" className="btn primary lg">Start closing deals</a>

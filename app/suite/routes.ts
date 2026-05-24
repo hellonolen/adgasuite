@@ -52,10 +52,10 @@ export const SUITE_ROUTES: SuiteRoute[] = [
   { id: "documents",    path: "/suite/documents",   label: "Documents",    section: "VIEWS",     capabilities: ["document.read", "document.upload"] },
   { id: "calendar",     path: "/suite/calendar",    label: "Calendar",     section: "VIEWS",     badge: 3, capabilities: ["calendar.read", "meeting.schedule"] },
   { id: "inbox",        path: "/suite/inbox",       label: "Inbox",        section: "VIEWS",     badge: 7, capabilities: ["message.read"] },
-  { id: "pending",      path: "/suite/pending",     label: "Approvals",    section: "VIEWS",     badge: 8, indicator: "accent", capabilities: ["approval.read", "approval.decide"] },
+  { id: "pending",      path: "/suite/pending",     label: "Approvals",    section: "HIDDEN",    badge: 8, indicator: "accent", capabilities: ["approval.read", "approval.decide"] },
 
   { id: "knowledge",    path: "/suite/templates",   label: "Templates",    section: "LIBRARY",   capabilities: ["template.read"] },
-  { id: "intelligence", path: "/suite/intelligence",label: "Intelligence", section: "LIBRARY",   capabilities: ["forecast.read", "analytics.read"] },
+  { id: "intelligence", path: "/suite/intelligence",label: "Analytics",    section: "LIBRARY",   capabilities: ["forecast.read", "analytics.read"] },
 
   {
     id: "settings",

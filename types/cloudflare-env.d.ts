@@ -26,6 +26,20 @@ declare global {
     delete(key: string): Promise<void>;
   }
 
+  interface CloudflareEmailBinding {
+    send(message: {
+      to: string | string[];
+      from: string | { email: string; name?: string };
+      subject: string;
+      html?: string;
+      text?: string;
+      replyTo?: string | { email: string; name?: string };
+      cc?: string | string[];
+      bcc?: string | string[];
+      headers?: Record<string, string>;
+    }): Promise<{ messageId?: string }>;
+  }
+
   interface CloudflareEnv {
     DB?: D1Database;
     DOCUMENTS_BUCKET?: R2Bucket;
@@ -37,8 +51,22 @@ declare global {
     ADGA_ADMIN_EMAILS?: string;
     ADGA_LOCAL_ADMIN_BYPASS?: string;
     ADP_REFERRAL_TO_EMAIL?: string;
+    CLOUDFLARE_EMAIL_FROM?: string;
+    EMAIL?: CloudflareEmailBinding;
     POSTMARK_SERVER_TOKEN?: string;
     POSTMARK_FROM_EMAIL?: string;
+    STRIPE_SECRET_KEY?: string;
+    STRIPE_WEBHOOK_SECRET?: string;
+    STRIPE_PRICE_PRO_MONTHLY?: string;
+    STRIPE_PRICE_PRO_ANNUAL?: string;
+    STRIPE_PRICE_TEAM_BASE_MONTHLY?: string;
+    STRIPE_PRICE_TEAM_BASE_ANNUAL?: string;
+    STRIPE_PRICE_TEAM_SEAT_MONTHLY?: string;
+    STRIPE_PRICE_TEAM_SEAT_ANNUAL?: string;
+    STRIPE_PRICE_ENTERPRISE_BASE_MONTHLY?: string;
+    STRIPE_PRICE_ENTERPRISE_BASE_ANNUAL?: string;
+    STRIPE_PRICE_ENTERPRISE_SEAT_MONTHLY?: string;
+    STRIPE_PRICE_ENTERPRISE_SEAT_ANNUAL?: string;
     SMS_GATEWAY_URL?: string;
     SMS_GATEWAY_API_KEY?: string;
     SMS_GATEWAY_PROVIDER?: string;
