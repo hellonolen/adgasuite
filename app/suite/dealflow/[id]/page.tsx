@@ -92,31 +92,6 @@ function statusForMeeting(row: CalendarRow): "neutral" | "active" | "warning" {
   return "active";
 }
 
-const SAMPLE_DEAL: DealFlowDeal = {
-  id: "DEAL-1224",
-  name: "Capital raise — Series B",
-  stage: "Negotiation",
-  value: "$24M",
-  nextAction: "Send counter offer · today",
-};
-
-const SAMPLE_ENTITIES: DealFlowEntity[] = [
-  { id: "contact:1", kind: "contact", label: "Aurore Chastain", sublabel: "Head of Corp Dev · Sutter Maritime", status: "neutral" },
-  { id: "contact:2", kind: "contact", label: "Beni Okonkwo",   sublabel: "CFO · Foundry Helix",            status: "neutral" },
-  { id: "company:1", kind: "company", label: "Sutter Maritime", sublabel: "Logistics · NYC",                status: "neutral" },
-  { id: "action:1",  kind: "action",  label: "Counter offer ready", sublabel: "Due today",                   status: "active" },
-  { id: "doc:1",     kind: "document",label: "Term sheet v3",   sublabel: "Signed",                          status: "done" },
-  { id: "doc:2",     kind: "document",label: "Diligence summary",sublabel: "Draft",                          status: "active" },
-  { id: "doc:3",     kind: "document",label: "Cap table",       sublabel: "Sent",                            status: "neutral" },
-  { id: "task:1",    kind: "task",    label: "Banker call",     sublabel: "Due Thu · high",                  status: "active" },
-  { id: "task:2",    kind: "task",    label: "Counsel review",  sublabel: "Due Fri · high",                  status: "warning" },
-  { id: "task:3",    kind: "task",    label: "Reference calls", sublabel: "Overdue",                         status: "overdue" },
-  { id: "call:1",    kind: "call",    label: "Discovery call",  sublabel: "Transcribed",                     status: "done" },
-  { id: "call:2",    kind: "call",    label: "Tech call",       sublabel: "Recorded",                        status: "done" },
-  { id: "meeting:1", kind: "meeting", label: "Mgmt presentation", sublabel: "Thu 3:00pm",                   status: "active" },
-  { id: "meeting:2", kind: "meeting", label: "IC review",       sublabel: "Next week",                       status: "neutral" },
-];
-
 export default async function DealDetailPage({ params }: PageProps) {
   const { id } = await params;
   const context = getRuntimeContext(new Request("http://localhost/"));
@@ -300,7 +275,16 @@ export default async function DealDetailPage({ params }: PageProps) {
 // inside its shell. No <main>, no <SuiteClient> — the layout already provided both.
 
 function renderSample(_id: string, _banner: string) {
-  return <DealFlowClient deal={SAMPLE_DEAL} entities={SAMPLE_ENTITIES} />;
+  return (
+    <div className="min-h-screen bg-[#f9f7f4] p-8">
+      <div className="mx-auto max-w-3xl rounded-2xl border border-[var(--rule,#e8e4de)] bg-white p-8">
+        <h1 className="text-xl font-semibold text-[#0d0c0a]">DealFlow unavailable</h1>
+        <p className="mt-2 text-sm text-[#6b6760]">
+          {_banner} Requested deal <span className="font-mono">{_id}</span> was not found, so no sample deal is shown.
+        </p>
+      </div>
+    </div>
+  );
 }
 
 function renderMap(

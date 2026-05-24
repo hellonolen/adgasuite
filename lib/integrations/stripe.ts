@@ -10,6 +10,7 @@ export interface StripeCheckoutInput {
   plan: string;
   seats?: number;
   cadence?: BillingCadence;
+  organizationId?: string;
   prices: Partial<Record<StripePriceKey, string | undefined>>;
 }
 
@@ -97,10 +98,12 @@ export async function createStripeCheckout(input: StripeCheckoutInput) {
   params.set("metadata[plan]", plan);
   params.set("metadata[seats]", String(seats));
   params.set("metadata[cadence]", cadence);
+  if (input.organizationId) params.set("metadata[organization_id]", input.organizationId);
   params.set("subscription_data[metadata][email]", input.email);
   params.set("subscription_data[metadata][plan]", plan);
   params.set("subscription_data[metadata][seats]", String(seats));
   params.set("subscription_data[metadata][cadence]", cadence);
+  if (input.organizationId) params.set("subscription_data[metadata][organization_id]", input.organizationId);
   lineItems.forEach((item, index) => {
     params.set(`line_items[${index}][price]`, item.price);
     params.set(`line_items[${index}][quantity]`, String(item.quantity));

@@ -4,6 +4,7 @@ import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { bulkUpdateDealFlowNodePositions, createDealFlowNode, getDealFlow } from "@/lib/server/repository";
 import { storeJsonPayload } from "@/lib/server/payload-storage";
+import { publish } from "@/lib/events/bus";
 
 const DEFAULT_ORG_ID = "org_adga_primary";
 
@@ -69,6 +70,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       .bind(stored.r2_key, stored.storage_object_id, node.id, id)
       .run();
   }
+  await publish(auth.context.env.DB, {
+    organization_id: DEFAULT_ORG_ID,
+    event_type: "dealflow.node_added",
+    actor_type: "user",
+    actor_id: auth.sessionUser?.email || auth.context.user.email || null,
+    resource_type: "dealflow_node",
+    resource_id: node.id,
+    payload: { dealflow_id: id, node_id: node.id, kind: parsed.data.kind },
+  });
 
   return json({ ok: true, node: { ...node, ...payload, payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null } }, { status: 201 });
 }
@@ -97,5 +107,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!parsed.success) return errorJson("Invalid payload.", 400, parsed.error.flatten());
 
   const updated = await bulkUpdateDealFlowNodePositions(auth.context.env.DB, id, parsed.data.positions);
+  if (updated > 0) {
+    await publish(auth.context.env.DB, {
+      organization_id: DEFAULT_ORG_ID,
+      event_type: "dealflow.nodes_moved",
+      actor_type: "user",
+      actor_id: auth.sessionUser?.email || auth.context.user.email || null,
+      resource_type: "dealflow",
+      resource_id: id,
+      payload: {
+        dealflow_id: id,
+        node_ids: parsed.data.positions.map((position) => position.id),
+        count: updated,
+      },
+    });
+  }
   return json({ ok: true, updated });
 }

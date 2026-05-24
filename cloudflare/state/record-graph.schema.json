@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/record-graph.schema.json",
+  "title": "Record Graph",
+  "description": "Workspace relationship graph connecting leads, contacts, companies, deals, documents, calls, meetings, invoices, maps, tasks, and communications.",
+  "type": "object",
+  "required": ["id", "organization_id", "subject", "nodes", "edges", "created_at", "updated_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "subject": {
+      "type": "object",
+      "required": ["resource_type", "resource_id"],
+      "properties": {
+        "resource_type": {
+          "type": "string",
+          "enum": ["workspace", "lead", "contact", "company", "deal", "document", "calendar-event", "voice-call", "invoice", "map", "task"]
+        },
+        "resource_id": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "resource_type", "resource_id", "label"],
+        "properties": {
+          "id": { "type": "string" },
+          "resource_type": {
+            "type": "string",
+            "enum": ["lead", "contact", "company", "deal", "document", "calendar-event", "voice-call", "invoice", "map", "task", "communication", "storage-object"]
+          },
+          "resource_id": { "type": "string" },
+          "label": { "type": "string" },
+          "status": { "type": ["string", "null"] },
+          "summary": { "type": ["string", "null"] },
+          "last_seen_at": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "source_node_id", "target_node_id", "relationship"],
+        "properties": {
+          "id": { "type": "string" },
+          "source_node_id": { "type": "string" },
+          "target_node_id": { "type": "string" },
+          "relationship": {
+            "type": "string",
+            "enum": ["owns", "belongs_to", "represents", "participates_in", "mentioned_in", "attached_to", "scheduled_for", "generated_from", "paid_by", "blocks", "follows", "duplicates"]
+          },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "evidence_event_id": { "type": ["string", "null"] },
+          "created_at": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "generated_by_agent": {
+      "type": "string",
+      "enum": ["conductor", "sales", "intelligence", "documents", "operations", "communication", "payments", "voice"]
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "events_emitted": [
+    { "type": "record_graph.generated", "description": "Graph generated or refreshed for a workspace resource." },
+    { "type": "record_graph.relationship.detected", "description": "Agent detected a new relationship requiring persistence or review." }
+  ],
+  "owners": ["conductor", "intelligence"],
+  "related_resources": ["workspace-search", "deal-memory", "dealflow-map"]
+}

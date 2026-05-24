@@ -15,6 +15,7 @@ Communication actions should never stand alone. SMS, voice notes, calls, emails,
 - `message`: outbound text, email body, call summary, or note body
 - `audio_r2_key`: R2 key for voice-note audio when applicable
 - `transcript_text`: speech-to-text output when applicable
+- `prepared_action_id`: approval-lane record for outbound or external-facing messages when applicable
 - `requested_by`: user or agent initiating the action
 
 ## Workflow
@@ -37,8 +38,18 @@ Communication actions should never stand alone. SMS, voice notes, calls, emails,
 - Do not send an outbound message without a resource trace unless the user explicitly creates a general message.
 - Internal deal-team communication stays private unless a user explicitly marks it client-visible.
 - Client-visible deal communication must attach to both the represented client and the deal.
+- Customer-facing outbound email, SMS, calendar invite copy, and post-call follow-up must route through `cloudflare/state/prepared-action.schema.json` unless policy explicitly marks it safe.
+- Communication touchpoints that change deal context should update or reference `cloudflare/state/deal-memory.schema.json`.
 - Do not store audio file bodies in D1.
 - Do not treat Postmark as SMS.
 - Do not depend on Twilio or Telnyx.
 - SMS uses the configured self-hosted open-source gateway.
 - Voice notes use R2 for audio and Cloudflare Workers AI STT when available.
+
+## State Contracts
+
+- `cloudflare/state/deal-communication.state.json`
+- `cloudflare/state/prepared-action.schema.json`
+- `cloudflare/state/calendar-event.schema.json`
+- `cloudflare/state/deal-memory.schema.json`
+- `cloudflare/state/audit-log.schema.json`

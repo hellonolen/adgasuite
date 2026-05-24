@@ -5638,6 +5638,7 @@ function HomePage({ deals, openDeal, setRoute }) {
     return d;
   }, []);
   const active = deals.filter(d => d.stage !== 'won' && d.stage !== 'lost');
+  const hasActiveDeals = active.length > 0;
   const totalValue = active.reduce((s,d) => s + d.value, 0);
   const weighted = active.reduce((s,d) => s + d.value * d.prob / 100, 0);
   const focusStages = new Set(['close', 'sign', 'design', 'scope']);
@@ -5694,10 +5695,10 @@ function HomePage({ deals, openDeal, setRoute }) {
       </div>
 
       <div className="kpis">
-        <KPI label="Pipeline value"    value={'$' + compactNum(totalValue)} delta={<><Icon name="arrow-up" size={11}/> +11.2% wk</>} deltaTone="up"/>
-        <KPI label="Weighted forecast" value={'$' + compactNum(weighted)}   delta={<><Icon name="arrow-up" size={11}/> +$24.1M</>} deltaTone="up"/>
-        <KPI label="Active deals"      value={active.length}                 delta={<><Icon name="arrow-up" size={11}/> +2 this wk</>} deltaTone="up"/>
-        <KPI label="Avg. days in stage" value="14.2"                         delta={<><Icon name="arrow-dn" size={11}/> -2.1d</>} deltaTone="up"/>
+        <KPI label="Pipeline value"    value={'$' + compactNum(totalValue)} delta={hasActiveDeals ? <><Icon name="arrow-up" size={11}/> +11.2% wk</> : 'No active deals'} deltaTone={hasActiveDeals ? 'up' : undefined}/>
+        <KPI label="Weighted forecast" value={'$' + compactNum(weighted)}   delta={hasActiveDeals ? <><Icon name="arrow-up" size={11}/> +$24.1M</> : 'No forecast yet'} deltaTone={hasActiveDeals ? 'up' : undefined}/>
+        <KPI label="Active deals"      value={active.length}                 delta={hasActiveDeals ? <><Icon name="arrow-up" size={11}/> +2 this wk</> : 'Create or import deals'} deltaTone={hasActiveDeals ? 'up' : undefined}/>
+        <KPI label="Avg. days in stage" value={hasActiveDeals ? "14.2" : "—"} delta={hasActiveDeals ? <><Icon name="arrow-dn" size={11}/> -2.1d</> : 'Not enough data'} deltaTone={hasActiveDeals ? 'up' : undefined}/>
       </div>
 
       <div className="home-content-grid home-focus-stack" style={{display:'grid',gridTemplateColumns:'minmax(0, 1fr)',gap:14,padding:'0 32px 28px',flex:1,overflow:'auto'}}>
@@ -8599,10 +8600,10 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
               would skip the fallback and leave the workspace empty. As more workspaces
               extract into their own page.tsx files, add their route ids to CHILDREN_ROUTES. */}
           {(() => {
-            const CHILDREN_ROUTES = new Set(['map', 'maps', 'settings', 'onboarding']);
+            const CHILDREN_ROUTES = new Set(['map', 'maps', 'settings', 'onboarding', 'pending']);
             return CHILDREN_ROUTES.has(route) || (route === 'admin' && sectionFromUrl === 'audit') ? children : null;
           })()}
-          {!(new Set(['map', 'maps', 'settings', 'onboarding']).has(route) || (route === 'admin' && sectionFromUrl === 'audit')) && (<>
+          {!(new Set(['map', 'maps', 'settings', 'onboarding', 'pending']).has(route) || (route === 'admin' && sectionFromUrl === 'audit')) && (<>
           {route === 'home'      && <HomePage deals={deals} openDeal={openDealInMap} setRoute={navigate}/>}
           {route === 'pending'   && <PendingPage deals={deals} openDeal={openDealInMap}/>}
           {route === 'inbox'     && <InboxPage openDeal={openDealInMap} deals={deals} meetingInbox={meetingInbox}/>}

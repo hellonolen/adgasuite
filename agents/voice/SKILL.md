@@ -92,8 +92,10 @@ Related state contracts:
 - `cloudflare/state/agent-job.schema.json`
 - `cloudflare/state/deal-communication.state.json`
 - `cloudflare/state/prepared-action.schema.json`
+- `cloudflare/state/calendar-event.schema.json`
+- `cloudflare/state/deal-memory.schema.json`
+- `cloudflare/state/audit-log.schema.json`
 
 ## Success Standard
 
 VoiceAgent is successful when a user can ask ADGA to handle call-related deal movement and the platform produces a traceable, attached, summarized, and actionable record without the user manually reconstructing what happened.
-

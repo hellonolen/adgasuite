@@ -18,6 +18,23 @@ async function assertFetch(url, options = {}) {
   return response;
 }
 
+async function assertStatus(url, expectedStatus, options = {}) {
+  const response = await fetch(url, {
+    redirect: "manual",
+    headers: {
+      accept: "application/json, text/html, */*",
+      "user-agent": "adga-production-verifier/1.0",
+    },
+    ...options,
+  });
+
+  if (response.status !== expectedStatus) {
+    throw new Error(`${url} returned ${response.status}; expected ${expectedStatus}`);
+  }
+
+  return response;
+}
+
 async function assertDns(provider, url) {
   const response = await fetch(url, {
     headers: {
@@ -70,6 +87,9 @@ console.log(`${origin}/suite is reachable`);
 await assertFetch(`${origin}/5-secrets`);
 console.log(`${origin}/5-secrets is reachable`);
 
+await assertFetch(`${origin}/login`);
+console.log(`${origin}/login is reachable`);
+
 const accessResponse = await fetch(`${origin}/5-secrets/access`, {
   redirect: "manual",
   headers: {
@@ -88,6 +108,25 @@ if (healthJson.ok !== true || healthJson.platform !== "ADGA Suite") {
   throw new Error(`Unexpected health response: ${JSON.stringify(healthJson)}`);
 }
 console.log(`${origin}/api/health is ready`);
+
+await assertStatus(`${origin}/api/agent/cron/tick`, 403, {
+  method: "POST",
+  headers: {
+    accept: "application/json",
+    "content-type": "application/json",
+    "user-agent": "adga-production-verifier/1.0",
+  },
+  body: "{}",
+});
+console.log(`${origin}/api/agent/cron/tick rejects unauthenticated requests`);
+
+await assertStatus(`${origin}/api/dealflows`, 401, {
+  headers: {
+    accept: "application/json",
+    "user-agent": "adga-production-verifier/1.0",
+  },
+});
+console.log(`${origin}/api/dealflows is auth-protected`);
 
 const assets = assetUrls(homeHtml).slice(0, 8);
 if (assets.length === 0) {

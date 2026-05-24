@@ -70,6 +70,29 @@ export interface CalendarEvent {
   updated_at: string;
 }
 
+export interface VoiceCall {
+  id: string;
+  organization_id: string;
+  direction: "inbound" | "outbound";
+  status: "scheduled" | "ringing" | "active" | "completed" | "missed" | "failed" | "cancelled";
+  started_at: string | null;
+  ended_at: string | null;
+  duration_seconds: number | null;
+  participants: Array<{ role: string; phone?: string; name?: string | null; email?: string | null; recordId?: string | null }>;
+  consent: Record<string, unknown>;
+  recording: Record<string, unknown>;
+  transcript: Record<string, unknown>;
+  transcript_text: string | null;
+  summary: string | null;
+  related_records: Record<string, unknown>;
+  agentic_outputs: Record<string, unknown>;
+  provider: string | null;
+  provider_call_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AgentApproval {
   id: string;
   organization_id: string;
@@ -117,6 +140,22 @@ export interface DocumentMetadata {
   status: string;
   r2_key: string | null;
   created_by_user_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DealRecord {
+  id: string;
+  organization_id: string;
+  contact_id: string | null;
+  name: string;
+  company: string | null;
+  value_cents: number;
+  stage: string;
+  probability: number;
+  expected_close_at: string | null;
+  payload_r2_key: string | null;
+  storage_object_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -189,9 +228,11 @@ const memory = {
   events: [] as AgentEvent[],
   workflows: [] as WorkflowState[],
   calendarEvents: [...seedCalendarEvents] as CalendarEvent[],
+  voiceCalls: [] as VoiceCall[],
   approvals: [] as AgentApproval[],
   storageObjects: [] as StorageObject[],
   documentRecords: [] as DocumentMetadata[],
+  dealRecords: [] as DealRecord[],
 };
 
 function parseJson<T>(value: string | null | undefined, fallback: T): T {
@@ -235,6 +276,31 @@ function mapCalendarEvent(row: Record<string, unknown>): CalendarEvent {
     contact_id: row.contact_id ? String(row.contact_id) : null,
     attendees: parseJson(String(row.attendees_json || "[]"), []),
     notes: row.notes ? String(row.notes) : null,
+    created_by: row.created_by ? String(row.created_by) : null,
+    created_at: String(row.created_at),
+    updated_at: String(row.updated_at),
+  };
+}
+
+function mapVoiceCall(row: Record<string, unknown>): VoiceCall {
+  return {
+    id: String(row.id),
+    organization_id: String(row.organization_id),
+    direction: String(row.direction || "inbound") as VoiceCall["direction"],
+    status: String(row.status || "scheduled") as VoiceCall["status"],
+    started_at: row.started_at ? String(row.started_at) : null,
+    ended_at: row.ended_at ? String(row.ended_at) : null,
+    duration_seconds: row.duration_seconds == null ? null : Number(row.duration_seconds),
+    participants: parseJson(String(row.participants_json || "[]"), []),
+    consent: parseJson(String(row.consent_json || "{}"), {}),
+    recording: parseJson(String(row.recording_json || "{}"), {}),
+    transcript: parseJson(String(row.transcript_json || "{}"), {}),
+    transcript_text: row.transcript_text ? String(row.transcript_text) : null,
+    summary: row.summary ? String(row.summary) : null,
+    related_records: parseJson(String(row.related_records_json || "{}"), {}),
+    agentic_outputs: parseJson(String(row.agentic_outputs_json || "{}"), {}),
+    provider: row.provider ? String(row.provider) : null,
+    provider_call_id: row.provider_call_id ? String(row.provider_call_id) : null,
     created_by: row.created_by ? String(row.created_by) : null,
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
@@ -327,6 +393,24 @@ function mapDealRow(row: Record<string, unknown>) {
   };
 }
 
+function mapDealRecord(row: Record<string, unknown>): DealRecord {
+  return {
+    id: String(row.id),
+    organization_id: String(row.organization_id || DEFAULT_ORG_ID),
+    contact_id: row.contact_id ? String(row.contact_id) : null,
+    name: String(row.name || ""),
+    company: row.company ? String(row.company) : null,
+    value_cents: Number(row.value_cents || 0),
+    stage: String(row.stage || "lead").toLowerCase(),
+    probability: Number(row.probability || 0),
+    expected_close_at: row.expected_close_at ? String(row.expected_close_at) : null,
+    payload_r2_key: row.payload_r2_key ? String(row.payload_r2_key) : null,
+    storage_object_id: row.storage_object_id ? String(row.storage_object_id) : null,
+    created_at: String(row.created_at || nowIso()),
+    updated_at: String(row.updated_at || nowIso()),
+  };
+}
+
 function mapContactRow(row: Record<string, unknown>) {
   return {
     id: String(row.id),
@@ -392,7 +476,7 @@ export async function getSuiteState(db?: D1Database, organizationId = DEFAULT_OR
     return {
       organization: { id: organizationId, name: "ADGA", plan: "suite", subscription_status: "trialing" },
       leads,
-      deals,
+      deals: [...deals, ...memory.dealRecords.filter((deal) => deal.organization_id === organizationId).map((deal) => mapDealRow(deal as unknown as Record<string, unknown>))],
       contacts: [] as ReturnType<typeof mapContactRow>[],
       tasks,
       documents,
@@ -470,6 +554,156 @@ export async function listAgentApprovals(db?: D1Database) {
   if (!db) return memory.approvals.slice(-100).reverse();
   const result = await db.prepare("SELECT * FROM agent_approvals ORDER BY created_at DESC LIMIT 100").all<Record<string, unknown>>();
   return (result.results || []).map(mapApproval);
+}
+
+export async function createDeal(
+  db: D1Database | undefined,
+  input: Pick<DealRecord, "name"> &
+    Partial<Pick<DealRecord, "id" | "organization_id" | "contact_id" | "company" | "value_cents" | "stage" | "probability" | "expected_close_at">>,
+): Promise<DealRecord> {
+  const timestamp = nowIso();
+  const record: DealRecord = {
+    id: input.id || newId("deal"),
+    organization_id: input.organization_id || DEFAULT_ORG_ID,
+    contact_id: input.contact_id || null,
+    name: input.name,
+    company: input.company || null,
+    value_cents: input.value_cents ?? 0,
+    stage: input.stage || "lead",
+    probability: input.probability ?? 0,
+    expected_close_at: input.expected_close_at || null,
+    payload_r2_key: null,
+    storage_object_id: null,
+    created_at: timestamp,
+    updated_at: timestamp,
+  };
+
+  if (!db) {
+    memory.dealRecords.push(record);
+    return record;
+  }
+
+  await db
+    .prepare(
+      `INSERT INTO deals
+        (id, organization_id, contact_id, name, company, value_cents, stage, probability, expected_close_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      record.id,
+      record.organization_id,
+      record.contact_id,
+      record.name,
+      record.company,
+      record.value_cents,
+      record.stage,
+      record.probability,
+      record.expected_close_at,
+      record.created_at,
+      record.updated_at,
+    )
+    .run();
+
+  return record;
+}
+
+export async function updateDeal(
+  db: D1Database | undefined,
+  id: string,
+  organizationId: string,
+  patch: Partial<Pick<DealRecord, "name" | "contact_id" | "company" | "value_cents" | "stage" | "probability" | "expected_close_at">>,
+): Promise<DealRecord | null> {
+  const timestamp = nowIso();
+
+  if (!db) {
+    const index = memory.dealRecords.findIndex((deal) => deal.id === id && deal.organization_id === organizationId);
+    const current =
+      index >= 0
+        ? memory.dealRecords[index]
+        : (() => {
+            const seed = (deals as Array<Record<string, unknown>>).find((deal) => String(deal.id) === id);
+            if (!seed) return null;
+            return mapDealRecord({
+              id,
+              organization_id: organizationId,
+              name: seed.name,
+              company: seed.company,
+              value_cents: Math.round(Number(seed.value || 0) * 100),
+              stage: seed.stage,
+              probability: seed.prob,
+              expected_close_at: seed.close,
+              created_at: timestamp,
+              updated_at: timestamp,
+            });
+          })();
+    if (!current) return null;
+    const next: DealRecord = {
+      ...current,
+      ...(patch.name !== undefined ? { name: patch.name } : {}),
+      ...(patch.contact_id !== undefined ? { contact_id: patch.contact_id } : {}),
+      ...(patch.company !== undefined ? { company: patch.company } : {}),
+      ...(patch.value_cents !== undefined ? { value_cents: patch.value_cents } : {}),
+      ...(patch.stage !== undefined ? { stage: patch.stage } : {}),
+      ...(patch.probability !== undefined ? { probability: patch.probability } : {}),
+      ...(patch.expected_close_at !== undefined ? { expected_close_at: patch.expected_close_at } : {}),
+      updated_at: timestamp,
+    };
+    if (index >= 0) {
+      memory.dealRecords[index] = next;
+    } else {
+      const seed = (deals as Array<Record<string, unknown>>).find((deal) => String(deal.id) === id);
+      if (seed) {
+        if (patch.name !== undefined) seed.name = patch.name;
+        if (patch.company !== undefined) seed.company = patch.company || "";
+        if (patch.value_cents !== undefined) seed.value = patch.value_cents / 100;
+        if (patch.stage !== undefined) seed.stage = patch.stage;
+        if (patch.probability !== undefined) seed.prob = patch.probability;
+        if (patch.expected_close_at !== undefined) seed.close = patch.expected_close_at || "";
+        seed.updated = "just now";
+      }
+    }
+    return next;
+  }
+
+  const existing = await db
+    .prepare("SELECT * FROM deals WHERE id = ? AND organization_id = ? LIMIT 1")
+    .bind(id, organizationId)
+    .first<Record<string, unknown>>();
+  if (!existing) return null;
+  const current = mapDealRecord(existing);
+  const next: DealRecord = {
+    ...current,
+    name: patch.name ?? current.name,
+    contact_id: patch.contact_id === undefined ? current.contact_id : patch.contact_id,
+    company: patch.company === undefined ? current.company : patch.company,
+    value_cents: patch.value_cents ?? current.value_cents,
+    stage: patch.stage ?? current.stage,
+    probability: patch.probability ?? current.probability,
+    expected_close_at: patch.expected_close_at === undefined ? current.expected_close_at : patch.expected_close_at,
+    updated_at: timestamp,
+  };
+
+  await db
+    .prepare(
+      `UPDATE deals
+       SET contact_id = ?, name = ?, company = ?, value_cents = ?, stage = ?, probability = ?, expected_close_at = ?, updated_at = ?
+       WHERE id = ? AND organization_id = ?`,
+    )
+    .bind(
+      next.contact_id,
+      next.name,
+      next.company,
+      next.value_cents,
+      next.stage,
+      next.probability,
+      next.expected_close_at,
+      next.updated_at,
+      id,
+      organizationId,
+    )
+    .run();
+
+  return next;
 }
 
 export async function createAgentApproval(
@@ -610,6 +844,50 @@ export async function createStorageObject(
     return object;
   }
 
+  const existing = await db
+    .prepare("SELECT * FROM storage_objects WHERE r2_key = ? LIMIT 1")
+    .bind(object.r2_key)
+    .first<Record<string, unknown>>()
+    .catch(() => null);
+  if (existing) {
+    await db
+      .prepare(
+        `UPDATE storage_objects
+         SET organization_id = ?, bucket = ?, file_name = ?, mime_type = ?, size_bytes = ?, sha256 = ?, category = ?,
+             resource_type = ?, resource_id = ?, visibility = ?, created_by = ?
+         WHERE r2_key = ?`,
+      )
+      .bind(
+        object.organization_id,
+        object.bucket,
+        object.file_name,
+        object.mime_type,
+        object.size_bytes,
+        object.sha256,
+        object.category,
+        object.resource_type,
+        object.resource_id,
+        object.visibility,
+        object.created_by,
+        object.r2_key,
+      )
+      .run();
+    return {
+      ...mapStorageObject(existing),
+      organization_id: object.organization_id,
+      bucket: object.bucket,
+      file_name: object.file_name,
+      mime_type: object.mime_type,
+      size_bytes: object.size_bytes,
+      sha256: object.sha256,
+      category: object.category,
+      resource_type: object.resource_type,
+      resource_id: object.resource_id,
+      visibility: object.visibility,
+      created_by: object.created_by,
+    };
+  }
+
   try {
     await db.prepare(
       `INSERT INTO storage_objects
@@ -634,10 +912,27 @@ export async function createStorageObject(
       )
       .run();
   } catch {
+    const stored = await db
+      .prepare("SELECT * FROM storage_objects WHERE r2_key = ? LIMIT 1")
+      .bind(object.r2_key)
+      .first<Record<string, unknown>>()
+      .catch(() => null);
+    if (stored) return mapStorageObject(stored);
     memory.storageObjects.push(object);
   }
 
   return object;
+}
+
+export async function getStorageObjectById(db: D1Database | undefined, id: string | null | undefined): Promise<StorageObject | null> {
+  if (!id) return null;
+  if (!db) return memory.storageObjects.find((object) => object.id === id) || null;
+  const row = await db
+    .prepare("SELECT * FROM storage_objects WHERE id = ? LIMIT 1")
+    .bind(id)
+    .first<Record<string, unknown>>()
+    .catch(() => null);
+  return row ? mapStorageObject(row) : null;
 }
 
 export async function createDocumentMetadata(
@@ -696,10 +991,23 @@ export async function createDocumentMetadata(
   return document;
 }
 
-export async function listCalendarEvents(db?: D1Database) {
-  if (!db) return memory.calendarEvents.sort((a, b) => a.starts_at.localeCompare(b.starts_at));
-  const result = await db.prepare("SELECT * FROM calendar_events ORDER BY starts_at ASC LIMIT 200").all<Record<string, unknown>>();
+export async function listCalendarEvents(db?: D1Database, organizationId = DEFAULT_ORG_ID) {
+  if (!db) return memory.calendarEvents.filter((event) => event.organization_id === organizationId).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+  const result = await db
+    .prepare("SELECT * FROM calendar_events WHERE organization_id = ? ORDER BY starts_at ASC LIMIT 200")
+    .bind(organizationId)
+    .all<Record<string, unknown>>();
   return (result.results || []).map(mapCalendarEvent);
+}
+
+export async function getCalendarEvent(db: D1Database | undefined, id: string, organizationId = DEFAULT_ORG_ID) {
+  if (!db) return memory.calendarEvents.find((event) => event.id === id && event.organization_id === organizationId) || null;
+  const row = await db
+    .prepare("SELECT * FROM calendar_events WHERE id = ? AND organization_id = ? LIMIT 1")
+    .bind(id, organizationId)
+    .first<Record<string, unknown>>()
+    .catch(() => null);
+  return row ? mapCalendarEvent(row) : null;
 }
 
 export async function createCalendarEvent(
@@ -764,6 +1072,257 @@ export async function createCalendarEvent(
   }
 
   return event;
+}
+
+export async function updateCalendarEvent(
+  db: D1Database | undefined,
+  id: string,
+  input: Partial<Pick<CalendarEvent, "title" | "starts_at" | "ends_at" | "timezone" | "location" | "meeting_url" | "status" | "event_type" | "deal_id" | "contact_id" | "attendees" | "notes">>,
+  organizationId = DEFAULT_ORG_ID,
+) {
+  const existing = await getCalendarEvent(db, id, organizationId);
+  if (!existing) return null;
+
+  const updated: CalendarEvent = {
+    ...existing,
+    ...input,
+    location: input.location === undefined ? existing.location : input.location || null,
+    meeting_url: input.meeting_url === undefined ? existing.meeting_url : input.meeting_url || null,
+    deal_id: input.deal_id === undefined ? existing.deal_id : input.deal_id || null,
+    contact_id: input.contact_id === undefined ? existing.contact_id : input.contact_id || null,
+    notes: input.notes === undefined ? existing.notes : input.notes || null,
+    attendees: input.attendees || existing.attendees,
+    updated_at: nowIso(),
+  };
+
+  if (!db) {
+    const index = memory.calendarEvents.findIndex((event) => event.id === id && event.organization_id === organizationId);
+    if (index >= 0) memory.calendarEvents[index] = updated;
+    return updated;
+  }
+
+  await db.prepare(
+    `UPDATE calendar_events
+     SET title = ?, starts_at = ?, ends_at = ?, timezone = ?, location = ?, meeting_url = ?, status = ?, event_type = ?,
+         deal_id = ?, contact_id = ?, attendees_json = ?, notes = ?, updated_at = ?
+     WHERE id = ? AND organization_id = ?`,
+  )
+    .bind(
+      updated.title,
+      updated.starts_at,
+      updated.ends_at,
+      updated.timezone,
+      updated.location,
+      updated.meeting_url,
+      updated.status,
+      updated.event_type,
+      updated.deal_id,
+      updated.contact_id,
+      JSON.stringify(updated.attendees),
+      updated.notes,
+      updated.updated_at,
+      id,
+      organizationId,
+    )
+    .run();
+
+  return updated;
+}
+
+export async function deleteCalendarEvent(db: D1Database | undefined, id: string, organizationId = DEFAULT_ORG_ID) {
+  const existing = await getCalendarEvent(db, id, organizationId);
+  if (!existing) return null;
+  if (!db) {
+    memory.calendarEvents = memory.calendarEvents.filter((event) => event.id !== id || event.organization_id !== organizationId);
+    return existing;
+  }
+  await db.prepare("DELETE FROM calendar_events WHERE id = ? AND organization_id = ?").bind(id, organizationId).run();
+  return existing;
+}
+
+export async function listCalendarAvailability(
+  db: D1Database | undefined,
+  input: { starts_at: string; ends_at: string; duration_minutes?: number; organization_id?: string },
+) {
+  const organizationId = input.organization_id || DEFAULT_ORG_ID;
+  const rows = db
+    ? await db
+        .prepare(
+          `SELECT * FROM calendar_events
+           WHERE organization_id = ? AND status NOT IN ('canceled', 'cancelled') AND starts_at < ? AND ends_at > ?
+           ORDER BY starts_at ASC LIMIT 200`,
+        )
+        .bind(organizationId, input.ends_at, input.starts_at)
+        .all<Record<string, unknown>>()
+        .catch(() => ({ results: [] as Record<string, unknown>[] }))
+    : null;
+  const events = rows
+    ? (rows.results || []).map(mapCalendarEvent)
+    : memory.calendarEvents.filter(
+        (event) =>
+          event.organization_id === organizationId &&
+          event.status !== "canceled" &&
+          String(event.status) !== "cancelled" &&
+          event.starts_at < input.ends_at &&
+          event.ends_at > input.starts_at,
+      );
+
+  const windowStart = new Date(input.starts_at).getTime();
+  const windowEnd = new Date(input.ends_at).getTime();
+  const durationMs = Math.max(input.duration_minutes || 30, 1) * 60 * 1000;
+  const busy = events.map((event) => ({ id: event.id, title: event.title, starts_at: event.starts_at, ends_at: event.ends_at }));
+  const available: Array<{ starts_at: string; ends_at: string }> = [];
+  let cursor = windowStart;
+
+  for (const event of events.sort((a, b) => a.starts_at.localeCompare(b.starts_at))) {
+    const eventStart = new Date(event.starts_at).getTime();
+    const eventEnd = new Date(event.ends_at).getTime();
+    if (eventStart - cursor >= durationMs) {
+      available.push({ starts_at: new Date(cursor).toISOString(), ends_at: new Date(eventStart).toISOString() });
+    }
+    cursor = Math.max(cursor, eventEnd);
+  }
+  if (windowEnd - cursor >= durationMs) {
+    available.push({ starts_at: new Date(cursor).toISOString(), ends_at: new Date(windowEnd).toISOString() });
+  }
+
+  return { busy, available };
+}
+
+export async function listVoiceCalls(db?: D1Database, organizationId = DEFAULT_ORG_ID) {
+  if (!db) return memory.voiceCalls.filter((call) => call.organization_id === organizationId).sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const result = await db
+    .prepare("SELECT * FROM voice_calls WHERE organization_id = ? ORDER BY created_at DESC LIMIT 100")
+    .bind(organizationId)
+    .all<Record<string, unknown>>()
+    .catch(() => ({ results: [] as Record<string, unknown>[] }));
+  return (result.results || []).map(mapVoiceCall);
+}
+
+export async function getVoiceCall(db: D1Database | undefined, id: string, organizationId = DEFAULT_ORG_ID) {
+  if (!db) return memory.voiceCalls.find((call) => call.id === id && call.organization_id === organizationId) || null;
+  const row = await db
+    .prepare("SELECT * FROM voice_calls WHERE id = ? AND organization_id = ? LIMIT 1")
+    .bind(id, organizationId)
+    .first<Record<string, unknown>>()
+    .catch(() => null);
+  return row ? mapVoiceCall(row) : null;
+}
+
+export async function createVoiceCall(
+  db: D1Database | undefined,
+  input: Partial<Omit<VoiceCall, "id" | "organization_id" | "created_at" | "updated_at">> & { organization_id?: string },
+) {
+  const timestamp = nowIso();
+  const call: VoiceCall = {
+    id: newId("vcall"),
+    organization_id: input.organization_id || DEFAULT_ORG_ID,
+    direction: input.direction || "inbound",
+    status: input.status || "scheduled",
+    started_at: input.started_at || null,
+    ended_at: input.ended_at || null,
+    duration_seconds: input.duration_seconds ?? null,
+    participants: input.participants || [],
+    consent: input.consent || { recordingAllowed: false, transcriptionAllowed: false, mode: "unknown" },
+    recording: input.recording || { enabled: false, status: "not_started", r2Key: null },
+    transcript: input.transcript || { enabled: false, status: "not_started", r2Key: null },
+    transcript_text: input.transcript_text || null,
+    summary: input.summary || null,
+    related_records: input.related_records || {},
+    agentic_outputs: input.agentic_outputs || {},
+    provider: input.provider || null,
+    provider_call_id: input.provider_call_id || null,
+    created_by: input.created_by || null,
+    created_at: timestamp,
+    updated_at: timestamp,
+  };
+
+  if (!db) {
+    memory.voiceCalls.push(call);
+    return call;
+  }
+
+  await db.prepare(
+    `INSERT INTO voice_calls
+      (id, organization_id, direction, status, started_at, ended_at, duration_seconds, participants_json, consent_json,
+       recording_json, transcript_json, transcript_text, summary, related_records_json, agentic_outputs_json,
+       provider, provider_call_id, created_by, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      call.id,
+      call.organization_id,
+      call.direction,
+      call.status,
+      call.started_at,
+      call.ended_at,
+      call.duration_seconds,
+      JSON.stringify(call.participants),
+      JSON.stringify(call.consent),
+      JSON.stringify(call.recording),
+      JSON.stringify(call.transcript),
+      call.transcript_text,
+      call.summary,
+      JSON.stringify(call.related_records),
+      JSON.stringify(call.agentic_outputs),
+      call.provider,
+      call.provider_call_id,
+      call.created_by,
+      call.created_at,
+      call.updated_at,
+    )
+    .run();
+
+  return call;
+}
+
+export async function updateVoiceCall(
+  db: D1Database | undefined,
+  id: string,
+  input: Partial<Omit<VoiceCall, "id" | "organization_id" | "created_at" | "updated_at">>,
+  organizationId = DEFAULT_ORG_ID,
+) {
+  const existing = await getVoiceCall(db, id, organizationId);
+  if (!existing) return null;
+  const updated: VoiceCall = { ...existing, ...input, updated_at: nowIso() };
+
+  if (!db) {
+    const index = memory.voiceCalls.findIndex((call) => call.id === id && call.organization_id === organizationId);
+    if (index >= 0) memory.voiceCalls[index] = updated;
+    return updated;
+  }
+
+  await db.prepare(
+    `UPDATE voice_calls
+     SET direction = ?, status = ?, started_at = ?, ended_at = ?, duration_seconds = ?, participants_json = ?,
+         consent_json = ?, recording_json = ?, transcript_json = ?, transcript_text = ?, summary = ?,
+         related_records_json = ?, agentic_outputs_json = ?, provider = ?, provider_call_id = ?, created_by = ?, updated_at = ?
+     WHERE id = ? AND organization_id = ?`,
+  )
+    .bind(
+      updated.direction,
+      updated.status,
+      updated.started_at,
+      updated.ended_at,
+      updated.duration_seconds,
+      JSON.stringify(updated.participants),
+      JSON.stringify(updated.consent),
+      JSON.stringify(updated.recording),
+      JSON.stringify(updated.transcript),
+      updated.transcript_text,
+      updated.summary,
+      JSON.stringify(updated.related_records),
+      JSON.stringify(updated.agentic_outputs),
+      updated.provider,
+      updated.provider_call_id,
+      updated.created_by,
+      updated.updated_at,
+      id,
+      organizationId,
+    )
+    .run();
+
+  return updated;
 }
 
 export async function createEvent(

@@ -3,7 +3,7 @@
 > Project conforms to the canonical structure in `~/.claude/rules/common/agentic-backbone.md`.
 > This file lists project-specific overrides only. Read the canonical doc for the framework.
 
-Last audited: 2026-05-23
+Last audited: 2026-05-24
 
 ## North star
 $1,000,000/month ARR. Every architectural decision ties back to closing deals on the platform.
@@ -30,9 +30,38 @@ roles aligned per the canonical doc:
 | Sales        | `agents/sales/`                 | Lead qualification, nurture sequences, close timing |
 | Intelligence | `agents/intelligence/`          | Revenue monitoring, gap escalation, win-rate analysis |
 
-Additional folders (`agents/operations/`, `agents/payments/`, `agents/voice/`) wrap third-party tool
-adapters and lean toward "skills" rather than full agents per the canonical decision rule. They are
-slated to be merged into the appropriate canonical agent in a follow-up.
+Additional folders (`agents/operations/`, `agents/payments/`, `agents/voice/`) wrap operational
+surfaces and third-party tool boundaries. They remain first-class job owners in ADGA state contracts
+so scheduling, payments, calls, and approvals can be audited directly, while the canonical 7-agent
+mapping above remains the reasoning framework.
+
+## Runtime job owner enum
+Agent jobs may be owned by:
+
+- `conductor`
+- `sales`
+- `intelligence`
+- `documents`
+- `operations`
+- `communication`
+- `payments`
+- `voice`
+
+This enum is locked in `cloudflare/state/agent-job.schema.json` and shared by prepared actions,
+deal memory, record graph generation, and outcome rollups.
+
+## State contract index
+Backbone/state contracts live under `cloudflare/state/`:
+
+- `prepared-action.schema.json` — approval lanes for agent-prepared work
+- `record-graph.schema.json` — relationships across records
+- `workspace-search.schema.json` — search/retrieval result shape
+- `deal-memory.schema.json` — persistent deal context
+- `agentic-outcomes.schema.json` — measurable agent work rollups
+- `audit-log.schema.json` — append-only audit record shape
+- `document.schema.json` — document metadata and R2 version boundary
+- `calendar-event.schema.json` — calendar events and invite delivery
+- `dealflow-map.schema.json` — map nodes, edges, positions, and resource bindings
 
 ## Skills (`skills/*.skill.md`)
 - `lead-scoring` — owner: Sales — scores inbound leads against ICP
@@ -40,6 +69,8 @@ slated to be merged into the appropriate canonical agent in a follow-up.
 - `proposal-generation` — owner: Creative — drafts proposals from a deal record
 - `battlecard-generation` — owner: Research — competitive context per deal
 - `knowledge-summary` — owner: Research — summarizes uploaded docs
+- `prepared-action` — owner: Conductor / Operations — queues approval-lane work
+- `deal-memory` — owner: Sales / Conductor — maintains persistent deal context
 
 ## Suite route contract
 `app/suite/routes.ts` is the single source of truth for every `/suite/*` URL — sidebar, breadcrumbs,

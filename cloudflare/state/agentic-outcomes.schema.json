@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/agentic-outcomes.schema.json",
+  "title": "Agentic Outcomes",
+  "description": "Outcome dashboard contract for measurable agentic work: monitored records, prepared actions, approvals, completed work, blocked work, and revenue at risk.",
+  "type": "object",
+  "required": ["id", "organization_id", "window_start", "window_end", "metrics", "by_agent", "created_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "window_start": { "type": "string", "format": "date-time" },
+    "window_end": { "type": "string", "format": "date-time" },
+    "metrics": {
+      "type": "object",
+      "required": ["records_monitored", "actions_prepared", "actions_applied", "actions_blocked", "calls_summarized", "followups_drafted", "risks_detected", "value_at_risk_cents"],
+      "properties": {
+        "records_monitored": { "type": "integer", "minimum": 0 },
+        "actions_prepared": { "type": "integer", "minimum": 0 },
+        "actions_applied": { "type": "integer", "minimum": 0 },
+        "actions_blocked": { "type": "integer", "minimum": 0 },
+        "calls_summarized": { "type": "integer", "minimum": 0 },
+        "followups_drafted": { "type": "integer", "minimum": 0 },
+        "risks_detected": { "type": "integer", "minimum": 0 },
+        "value_at_risk_cents": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "by_agent": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["agent", "jobs_completed", "actions_prepared", "actions_applied", "blocked_count"],
+        "properties": {
+          "agent": {
+            "type": "string",
+            "enum": ["conductor", "sales", "intelligence", "documents", "operations", "communication", "payments", "voice"]
+          },
+          "jobs_completed": { "type": "integer", "minimum": 0 },
+          "actions_prepared": { "type": "integer", "minimum": 0 },
+          "actions_applied": { "type": "integer", "minimum": 0 },
+          "blocked_count": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "owners": ["intelligence", "operations", "conductor"],
+  "related_resources": ["agent-job", "prepared-action", "audit-log", "deal-memory"]
+}

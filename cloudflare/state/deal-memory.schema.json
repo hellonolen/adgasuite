@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/deal-memory.schema.json",
+  "title": "Deal Memory",
+  "description": "Persistent, agent-maintained deal summary used to carry context across calls, documents, meetings, follow-ups, and close-risk monitoring.",
+  "type": "object",
+  "required": ["id", "organization_id", "deal_id", "stage", "summary", "facts", "open_questions", "next_moves", "risk_signals", "source_event_ids", "created_at", "updated_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "deal_id": { "type": "string" },
+    "stage": {
+      "type": "string",
+      "enum": ["Lead", "Qualify", "Discover", "Scope", "Design", "Close", "Sign", "Deliver", "Expand"]
+    },
+    "summary": { "type": "string" },
+    "facts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["text", "source_type", "source_id"],
+        "properties": {
+          "text": { "type": "string" },
+          "source_type": { "type": "string" },
+          "source_id": { "type": "string" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "commitments": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "objections": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "next_moves": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description", "owner_agent", "lane"],
+        "properties": {
+          "description": { "type": "string" },
+          "owner_agent": {
+            "type": "string",
+            "enum": ["conductor", "sales", "intelligence", "documents", "operations", "communication", "payments", "voice"]
+          },
+          "due_at": { "type": ["string", "null"], "format": "date-time" },
+          "lane": { "type": "string", "enum": ["safe_internal", "review_recommended", "approval_required", "restricted"] },
+          "prepared_action_id": { "type": ["string", "null"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "risk_signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "severity", "description"],
+        "properties": {
+          "type": { "type": "string" },
+          "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+          "description": { "type": "string" },
+          "detected_at": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "source_event_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "events_emitted": [
+    { "type": "deal_memory.updated", "description": "Persistent deal memory changed after a record, meeting, call, document, or payment event." },
+    { "type": "deal_memory.risk_detected", "description": "Sales or Intelligence detected risk that should route through Conductor." }
+  ],
+  "owners": ["sales", "conductor"],
+  "related_resources": ["deal", "record-graph", "prepared-action", "workspace-search"]
+}

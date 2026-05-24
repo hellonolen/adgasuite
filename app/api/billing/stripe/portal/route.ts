@@ -1,22 +1,18 @@
 import { errorJson, json } from "@/lib/server/http";
-import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { getRuntimeContext } from "@/lib/server/runtime";
-import { organizationIdForSession } from "@/lib/server/tenant";
+import { resolveTenantSession } from "@/lib/server/tenant";
 
 const STRIPE_API_VERSION = "2026-02-25.clover";
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
-  const sessionUser = await validateSession(context.env.DB, readSessionCookie(request));
-  if (!sessionUser && !context.user.isLocalAdminBypass) {
-    return errorJson("Authentication required.", 401);
-  }
+  const session = await resolveTenantSession(context, request);
+  if (!session) return errorJson("Authentication required.", 401);
   if (!context.env.STRIPE_SECRET_KEY) {
     return errorJson("Stripe billing portal is not configured.", 503);
   }
 
-  const organizationId = organizationIdForSession(sessionUser);
-  const customerId = await findStripeCustomerId(context.env.DB, organizationId);
+  const customerId = await findStripeCustomerId(context.env.DB, session.organizationId);
   if (!customerId) {
     return errorJson("No Stripe customer is attached to this workspace yet.", 404);
   }

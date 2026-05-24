@@ -2,6 +2,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { decideAgentApproval } from "@/lib/server/repository";
 import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
 import { publish } from "@/lib/events/bus";
+import { executePreparedAction, normalizePreparedAction } from "@/lib/agents/prepared-actions";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const context = getRuntimeContext(request);
@@ -11,16 +12,23 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     status?: "approved" | "rejected" | "edited";
     proposed_action?: string;
     payload?: Record<string, unknown>;
+    prepared_action?: Record<string, unknown>;
   }>(request);
 
   if (!body.status || !["approved", "rejected", "edited"].includes(body.status)) {
     return errorJson("status must be approved, rejected, or edited.");
   }
 
+  const preparedActionInput = body.prepared_action || body.payload?.prepared_action;
+  const preparedAction = preparedActionInput ? normalizePreparedAction(preparedActionInput) : null;
+  if (preparedActionInput && !preparedAction) {
+    return errorJson("prepared_action is invalid or missing required fields.");
+  }
+
   const approval = await decideAgentApproval(context.env.DB, routeParams.id, {
     status: body.status,
     proposed_action: body.proposed_action,
-    payload: body.payload,
+    payload: preparedAction ? { ...(body.payload || {}), prepared_action: preparedAction } : body.payload,
     decided_by: context.user.email,
   });
 
@@ -42,5 +50,19 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     },
   });
 
-  return json({ ok: true, approval });
+  if (approval.status !== "approved") return json({ ok: true, approval });
+
+  const execution = await executePreparedAction({
+    db: context.env.DB,
+    approval,
+    actorEmail: context.user.email,
+  });
+  const updated = await decideAgentApproval(context.env.DB, approval.id, {
+    status: approval.status,
+    proposed_action: approval.proposed_action,
+    payload: { prepared_action_execution: execution },
+    decided_by: context.user.email,
+  });
+
+  return json({ ok: true, approval: updated || { ...approval, payload: { ...approval.payload, prepared_action_execution: execution } }, execution });
 }

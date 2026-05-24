@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/audit-log.schema.json",
+  "title": "Audit Log",
+  "description": "Append-only audit record for material workspace changes, prepared action approvals, applied actions, connector events, and public share events.",
+  "type": "object",
+  "required": ["id", "organization_id", "actor_type", "action", "resource_type", "resource_id", "created_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "actor_type": {
+      "type": "string",
+      "enum": ["user", "agent", "system", "webhook", "cron"]
+    },
+    "actor_id": { "type": ["string", "null"] },
+    "action": { "type": "string" },
+    "resource_type": {
+      "type": "string",
+      "enum": ["lead", "contact", "company", "deal", "document", "invoice", "calendar-event", "voice-call", "map", "map-share", "prepared-action", "payment-connector", "workspace", "agent-job"]
+    },
+    "resource_id": { "type": "string" },
+    "before": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "after": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "ip_hash": { "type": ["string", "null"] },
+    "user_agent": { "type": ["string", "null"] },
+    "event_id": { "type": ["string", "null"] },
+    "prepared_action_id": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "owners": ["conductor", "operations"],
+  "related_resources": ["agent-event", "prepared-action"]
+}

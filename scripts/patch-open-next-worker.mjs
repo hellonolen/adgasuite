@@ -4,11 +4,20 @@ const workerPath = ".open-next/worker.js";
 let source = readFileSync(workerPath, "utf8");
 
 const ORIGINAL_DEFAULT_OPEN = "export default {\n    async fetch(request, env, ctx) {";
+const STATIC_HOOK = "            const url = new URL(request.url);\n";
+
+function replaceRequired(haystack, needle, replacement, label) {
+  if (!haystack.includes(needle)) {
+    throw new Error(`Unable to patch OpenNext worker: missing ${label}.`);
+  }
+  return haystack.replace(needle, replacement);
+}
 
 // Step 1: inject R2 static-asset serving + rename the default export object to
 // `defaultHandler` so we can wrap it with additional handlers (scheduled, etc.).
 if (!source.includes("async function serveR2StaticAsset")) {
-  source = source.replace(
+  source = replaceRequired(
+    source,
     ORIGINAL_DEFAULT_OPEN,
     `function contentType(pathname) {
     if (pathname.endsWith(".js")) return "text/javascript; charset=utf-8";
@@ -41,16 +50,19 @@ async function serveR2StaticAsset(url, env) {
 
 const defaultHandler = {
     async fetch(request, env, ctx) {`,
+    "default export fetch handler",
   );
 
-  source = source.replace(
-    "            const url = new URL(request.url);\n",
+  source = replaceRequired(
+    source,
+    STATIC_HOOK,
     `            const url = new URL(request.url);
             const staticResponse = await serveR2StaticAsset(url, env);
             if (staticResponse) {
                 return staticResponse;
             }
 `,
+    "request URL construction hook",
   );
 }
 
@@ -62,10 +74,16 @@ if (!source.includes("async function runScheduledCron")) {
   // missing), we still need to convert the export-default object into a named
   // handler so we can wrap it.
   if (source.includes(ORIGINAL_DEFAULT_OPEN)) {
-    source = source.replace(
+    source = replaceRequired(
+      source,
       ORIGINAL_DEFAULT_OPEN,
       "const defaultHandler = {\n    async fetch(request, env, ctx) {",
+      "default export fetch handler for scheduled wrapper",
     );
+  }
+
+  if (!source.includes("const defaultHandler = {")) {
+    throw new Error("Unable to patch OpenNext worker: defaultHandler was not created.");
   }
 
   // Append the cron driver and replace the final export-default block.

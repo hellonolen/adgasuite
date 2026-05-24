@@ -1,8 +1,24 @@
 import { z } from "zod";
 
+import { publish } from "@/lib/events/bus";
 import { runChatTurn, type ChatMessage } from "@/lib/agents/engine";
 import { errorJson, json, readJson } from "@/lib/server/http";
+import {
+  createDeal,
+  createDealFlow,
+  createDealFlowEdge,
+  createDealFlowNode,
+  deleteDealFlowNode,
+  getDealFlow,
+  updateDeal,
+  updateDealFlow,
+  updateDealFlowNode,
+  type DealFlowNodeKind,
+  type DealFlowNodeStatus,
+} from "@/lib/server/repository";
 import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
+import { DEFAULT_ORG_ID } from "@/lib/server/tenant";
+import { formatSearchContext, searchWorkspace } from "@/lib/server/workspace-search";
 
 const MessageSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),
@@ -44,6 +60,39 @@ const BodySchema = z.object({
   messages: z.array(MessageSchema).min(1).max(40),
   context: ContextSchema,
 });
+
+const NODE_KINDS = [
+  "deal",
+  "group",
+  "contact",
+  "company",
+  "bank",
+  "document",
+  "email",
+  "website",
+  "audio",
+  "video",
+  "task",
+  "call",
+  "call_step",
+  "meeting",
+  "journey_step",
+  "invoice",
+  "financial",
+  "action",
+] as const;
+const NODE_STATUSES = ["neutral", "active", "warning", "overdue", "done"] as const;
+const DEAL_STAGES = new Set(["lead", "qualify", "discover", "scope", "design", "close", "sign", "deliver", "expand", "won", "lost"]);
+const EXTERNAL_ACTIONS = new Set([
+  "send_email",
+  "send_sms",
+  "send_invoice",
+  "collect_payment",
+  "process_payment",
+  "sign_contract",
+  "execute_legal_document",
+  "file_legal_document",
+]);
 
 // Per-session sliding-window rate limit (10 messages / minute).
 const RATE_LIMIT = 10;
@@ -225,11 +274,341 @@ function buildSystemPrompt(contextBlock: string): string {
     onMap
       ? "The user is currently looking at dealflow, a canvas of people, files, calls, tasks, and meetings. Reference what is on the canvas. Suggest the next node to add when the next move is obvious."
       : "The user is in the suite workspace (lists, pipeline, inbox). Reference live data, not the canvas.",
-    "When the user implies a structured dealflow mutation, append a fenced ```json``` code block at the end. Use add_node actions with kinds: contact, company, bank, document, email, website, audio, video, task, call, call_step, meeting, journey_step, invoice, financial, action, or group. Use group for large collections, for example {\"actions\":[{\"type\":\"add_node\",\"kind\":\"group\",\"label\":\"Banks & lenders\",\"sublabel\":\"Capital sources tied to this deal\",\"data\":{\"child_kind\":\"bank\",\"children_count\":12}}]}. Use group nodes for the 9-step customer journey and 9-step call framework instead of dumping every child onto the canvas. Only include the block when an action is actually proposed.",
+    "When the user implies a structured internal mutation, append a fenced ```json``` code block at the end with an actions array. Supported actions: create_deal, update_deal, create_dealflow, update_dealflow, add_node, update_node, delete_node, add_edge. Use add_node kinds: contact, company, bank, document, email, website, audio, video, task, call, call_step, meeting, journey_step, invoice, financial, action, or group. Use group for large collections, for example {\"actions\":[{\"type\":\"add_node\",\"kind\":\"group\",\"label\":\"Banks & lenders\",\"sublabel\":\"Capital sources tied to this deal\",\"data\":{\"child_kind\":\"bank\",\"children_count\":12}}]}. Use group nodes for the 9-step customer journey and 9-step call framework instead of dumping every child onto the canvas.",
+    "Never execute or imply execution of external communication, payment, or legal actions from chat. For send_email, send_sms, send_invoice, collect_payment, process_payment, sign_contract, execute_legal_document, and file_legal_document, only prepare them for explicit approval.",
     "Keep the visible reply free of JSON. Use plain text with optional **bold** or *italic* for emphasis. Do not use headings or bullet lists unless explicitly asked.",
     "",
     contextBlock,
   ].join("\n");
+}
+
+function latestUserMessage(messages: Array<{ role: string; content: string }>) {
+  return [...messages].reverse().find((message) => message.role === "user")?.content || "";
+}
+
+type ChatActionRecord = { type: string; [key: string]: unknown };
+
+interface ChatActionExecution {
+  status: "executed" | "blocked" | "failed" | "skipped";
+  action_type: string;
+  resource_type?: string;
+  resource_id?: string;
+  message: string;
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function nullableString(value: unknown): string | null {
+  const text = stringValue(value);
+  return text || null;
+}
+
+function numberValue(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value.replace(/[$,]/g, ""));
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return undefined;
+}
+
+function moneyCents(value: unknown): number | undefined {
+  const numeric = numberValue(value);
+  if (numeric === undefined) return undefined;
+  return Math.round(numeric * 100);
+}
+
+function objectValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+function actionDealFlowId(action: ChatActionRecord, ctx: z.infer<typeof ContextSchema>): string {
+  return (
+    stringValue(action.dealFlowId) ||
+    stringValue(action.dealflow_id) ||
+    stringValue(action.deal_flow_id) ||
+    stringValue(action.map_id) ||
+    ctx?.dealFlowId ||
+    (ctx?.kind === "dealflow" || ctx?.kind === "map" ? ctx.id || "" : "")
+  );
+}
+
+function normalizeNodeKind(value: unknown): DealFlowNodeKind | null {
+  return NODE_KINDS.includes(value as DealFlowNodeKind) ? (value as DealFlowNodeKind) : null;
+}
+
+function normalizeNodeStatus(value: unknown): DealFlowNodeStatus | null | undefined {
+  if (value == null || value === "") return undefined;
+  return NODE_STATUSES.includes(value as DealFlowNodeStatus) ? (value as DealFlowNodeStatus) : null;
+}
+
+function normalizeDealPatch(action: ChatActionRecord) {
+  const patch: {
+    name?: string;
+    contact_id?: string | null;
+    company?: string | null;
+    value_cents?: number;
+    stage?: string;
+    probability?: number;
+    expected_close_at?: string | null;
+  } = {};
+  const name = stringValue(action.name);
+  const contactId = nullableString(action.contact_id);
+  const company = nullableString(action.company);
+  const valueCents = action.value_cents === undefined ? moneyCents(action.value) : numberValue(action.value_cents);
+  const stage = stringValue(action.stage).toLowerCase();
+  const probability = numberValue(action.probability ?? action.prob);
+  const expectedCloseAt = nullableString(action.expected_close_at ?? action.close ?? action.close_date);
+
+  if (name) patch.name = name;
+  if (action.contact_id !== undefined) patch.contact_id = contactId;
+  if (action.company !== undefined) patch.company = company;
+  if (valueCents !== undefined) patch.value_cents = Math.max(0, Math.round(valueCents));
+  if (stage && DEAL_STAGES.has(stage)) patch.stage = stage;
+  if (probability !== undefined) patch.probability = Math.max(0, Math.min(100, Math.round(probability)));
+  if (action.expected_close_at !== undefined || action.close !== undefined || action.close_date !== undefined) {
+    patch.expected_close_at = expectedCloseAt;
+  }
+  return patch;
+}
+
+async function executeChatAction(input: {
+  db: D1Database | undefined;
+  action: ChatActionRecord;
+  context: z.infer<typeof ContextSchema>;
+  actorEmail: string | null;
+  index: number;
+}): Promise<ChatActionExecution> {
+  const { action, db, context, actorEmail, index } = input;
+  const type = action.type.trim();
+
+  if (EXTERNAL_ACTIONS.has(type)) {
+    return {
+      status: "blocked",
+      action_type: type,
+      message: "External communication, payment, and legal actions require explicit approval and were not executed from chat.",
+    };
+  }
+
+  if (type === "create_deal") {
+    const name = stringValue(action.name || action.label);
+    if (!name) return { status: "skipped", action_type: type, message: "create_deal requires a name." };
+    const deal = await createDeal(db, {
+      ...normalizeDealPatch(action),
+      id: stringValue(action.id) || undefined,
+      organization_id: DEFAULT_ORG_ID,
+      name,
+    });
+    await publish(db, {
+      organization_id: DEFAULT_ORG_ID,
+      event_type: "deal.created",
+      actor_type: "user",
+      actor_id: actorEmail,
+      resource_type: "deal",
+      resource_id: deal.id,
+      payload: { source: "agent_chat", deal_id: deal.id },
+    });
+    return { status: "executed", action_type: type, resource_type: "deal", resource_id: deal.id, message: "Deal created." };
+  }
+
+  if (type === "update_deal" || type === "update_deal_stage") {
+    const dealId = stringValue(action.deal_id || action.dealId || action.id) || context?.deal?.id || (context?.kind === "deal" ? context.id || "" : "");
+    if (!dealId) return { status: "skipped", action_type: type, message: "update_deal requires a deal id." };
+    const patch = normalizeDealPatch(action);
+    if (type === "update_deal_stage" && !patch.stage) {
+      const stage = stringValue(action.stage).toLowerCase();
+      if (DEAL_STAGES.has(stage)) patch.stage = stage;
+    }
+    if (Object.keys(patch).length === 0) return { status: "skipped", action_type: type, message: "update_deal had no supported fields." };
+    const deal = await updateDeal(db, dealId, DEFAULT_ORG_ID, patch);
+    if (!deal) return { status: "failed", action_type: type, resource_type: "deal", resource_id: dealId, message: "Deal not found." };
+    await publish(db, {
+      organization_id: DEFAULT_ORG_ID,
+      event_type: patch.stage ? "deal.stage_changed" : "deal.updated",
+      actor_type: "user",
+      actor_id: actorEmail,
+      resource_type: "deal",
+      resource_id: deal.id,
+      payload: { source: "agent_chat", deal_id: deal.id, changed_fields: Object.keys(patch) },
+    });
+    return { status: "executed", action_type: type, resource_type: "deal", resource_id: deal.id, message: "Deal updated." };
+  }
+
+  if (type === "create_dealflow" || type === "create_map") {
+    const name = stringValue(action.name || action.label);
+    if (!name) return { status: "skipped", action_type: type, message: "create_dealflow requires a name." };
+    const dealFlow = await createDealFlow(db, {
+      organization_id: DEFAULT_ORG_ID,
+      name,
+      deal_id: nullableString(action.deal_id ?? action.dealId) || context?.deal?.id || null,
+      template: nullableString(action.template),
+      created_by_user_id: actorEmail,
+    });
+    await publish(db, {
+      organization_id: DEFAULT_ORG_ID,
+      event_type: "dealflow.created",
+      actor_type: "user",
+      actor_id: actorEmail,
+      resource_type: "dealflow",
+      resource_id: dealFlow.id,
+      payload: { source: "agent_chat", dealflow_id: dealFlow.id },
+    });
+    return { status: "executed", action_type: type, resource_type: "dealflow", resource_id: dealFlow.id, message: "DealFlow created." };
+  }
+
+  if (type === "update_dealflow" || type === "update_map") {
+    const dealFlowId = actionDealFlowId(action, context);
+    if (!dealFlowId) return { status: "skipped", action_type: type, message: "update_dealflow requires a DealFlow id." };
+    const patch = {
+      ...(action.name !== undefined ? { name: stringValue(action.name) } : {}),
+      ...(action.deal_id !== undefined || action.dealId !== undefined ? { deal_id: nullableString(action.deal_id ?? action.dealId) } : {}),
+      ...(action.template !== undefined ? { template: nullableString(action.template) } : {}),
+    };
+    const dealFlow = await updateDealFlow(db, dealFlowId, DEFAULT_ORG_ID, patch);
+    if (!dealFlow) return { status: "failed", action_type: type, resource_type: "dealflow", resource_id: dealFlowId, message: "DealFlow not found." };
+    await publish(db, {
+      organization_id: DEFAULT_ORG_ID,
+      event_type: "dealflow.updated",
+      actor_type: "user",
+      actor_id: actorEmail,
+      resource_type: "dealflow",
+      resource_id: dealFlow.id,
+      payload: { source: "agent_chat", dealflow_id: dealFlow.id, changed_fields: Object.keys(patch) },
+    });
+    return { status: "executed", action_type: type, resource_type: "dealflow", resource_id: dealFlow.id, message: "DealFlow updated." };
+  }
+
+  if (type === "add_node" || type === "create_node") {
+    const dealFlowId = actionDealFlowId(action, context);
+    if (!dealFlowId) return { status: "skipped", action_type: type, message: "add_node requires a DealFlow id." };
+    const existing = await getDealFlow(db, dealFlowId, DEFAULT_ORG_ID);
+    if (!existing) return { status: "failed", action_type: type, resource_type: "dealflow", resource_id: dealFlowId, message: "DealFlow not found." };
+    const kind = normalizeNodeKind(action.kind);
+    const label = stringValue(action.label || action.name || action.title);
+    if (!kind || !label) return { status: "skipped", action_type: type, message: "add_node requires a supported kind and label." };
+    const status = normalizeNodeStatus(action.status);
+    if (status === null) return { status: "skipped", action_type: type, message: "add_node has an unsupported status." };
+    const node = await createDealFlowNode(db, dealFlowId, {
+      id: stringValue(action.id) || undefined,
+      kind,
+      label,
+      sublabel: nullableString(action.sublabel || action.subtitle || action.detail),
+      status: status ?? null,
+      position_x: numberValue(action.position_x ?? action.x) ?? 160 + ((context?.nodeCount ?? 0) + index) * 32,
+      position_y: numberValue(action.position_y ?? action.y) ?? 160 + ((context?.nodeCount ?? 0) + index) * 24,
+      data: objectValue(action.data),
+    });
+    await publish(db, {
+      organization_id: DEFAULT_ORG_ID,
+      event_type: "dealflow.node_added",
+      actor_type: "user",
+      actor_id: actorEmail,
+      resource_type: "dealflow_node",
+      resource_id: node.id,
+      payload: { source: "agent_chat", dealflow_id: dealFlowId, node_id: node.id, kind },
+    });
+    return { status: "executed", action_type: type, resource_type: "dealflow_node", resource_id: node.id, message: "DealFlow node added." };
+  }
+
+  if (type === "update_node") {
+    const dealFlowId = actionDealFlowId(action, context);
+    const nodeId = stringValue(action.node_id || action.nodeId || action.id) || context?.selectedNode?.id || "";
+    if (!dealFlowId || !nodeId) return { status: "skipped", action_type: type, message: "update_node requires a DealFlow id and node id." };
+    const kind = action.kind === undefined ? undefined : normalizeNodeKind(action.kind);
+    const status = normalizeNodeStatus(action.status);
+    if (kind === null || status === null) return { status: "skipped", action_type: type, message: "update_node has an unsupported kind or status." };
+    const patch = {
+      ...(action.label !== undefined || action.name !== undefined || action.title !== undefined ? { label: stringValue(action.label || action.name || action.title) } : {}),
+      ...(action.sublabel !== undefined || action.subtitle !== undefined || action.detail !== undefined ? { sublabel: nullableString(action.sublabel || action.subtitle || action.detail) } : {}),
+      ...(status !== undefined ? { status } : {}),
+      ...(action.position_x !== undefined || action.x !== undefined ? { position_x: numberValue(action.position_x ?? action.x) ?? 0 } : {}),
+      ...(action.position_y !== undefined || action.y !== undefined ? { position_y: numberValue(action.position_y ?? action.y) ?? 0 } : {}),
+      ...(kind !== undefined ? { kind } : {}),
+      ...(action.data !== undefined ? { data: objectValue(action.data) } : {}),
+    };
+    const node = await updateDealFlowNode(db, dealFlowId, nodeId, patch);
+    if (!node) return { status: "failed", action_type: type, resource_type: "dealflow_node", resource_id: nodeId, message: "Node not found." };
+    await publish(db, {
+      organization_id: DEFAULT_ORG_ID,
+      event_type: "dealflow.node_updated",
+      actor_type: "user",
+      actor_id: actorEmail,
+      resource_type: "dealflow_node",
+      resource_id: node.id,
+      payload: { source: "agent_chat", dealflow_id: dealFlowId, node_id: node.id, changed_fields: Object.keys(patch) },
+    });
+    return { status: "executed", action_type: type, resource_type: "dealflow_node", resource_id: node.id, message: "DealFlow node updated." };
+  }
+
+  if (type === "delete_node" || type === "remove_node") {
+    const dealFlowId = actionDealFlowId(action, context);
+    const nodeId = stringValue(action.node_id || action.nodeId || action.id) || context?.selectedNode?.id || "";
+    if (!dealFlowId || !nodeId) return { status: "skipped", action_type: type, message: "delete_node requires a DealFlow id and node id." };
+    const removed = await deleteDealFlowNode(db, dealFlowId, nodeId);
+    if (!removed) return { status: "failed", action_type: type, resource_type: "dealflow_node", resource_id: nodeId, message: "Node not found." };
+    await publish(db, {
+      organization_id: DEFAULT_ORG_ID,
+      event_type: "dealflow.node_removed",
+      actor_type: "user",
+      actor_id: actorEmail,
+      resource_type: "dealflow_node",
+      resource_id: nodeId,
+      payload: { source: "agent_chat", dealflow_id: dealFlowId, node_id: nodeId },
+    });
+    return { status: "executed", action_type: type, resource_type: "dealflow_node", resource_id: nodeId, message: "DealFlow node deleted." };
+  }
+
+  if (type === "add_edge" || type === "create_edge") {
+    const dealFlowId = actionDealFlowId(action, context);
+    const sourceNodeId = stringValue(action.source_node_id || action.sourceNodeId || action.source);
+    const targetNodeId = stringValue(action.target_node_id || action.targetNodeId || action.target);
+    if (!dealFlowId || !sourceNodeId || !targetNodeId) return { status: "skipped", action_type: type, message: "add_edge requires a DealFlow id, source node id, and target node id." };
+    if (sourceNodeId === targetNodeId) return { status: "skipped", action_type: type, message: "add_edge source and target must differ." };
+    const existing = await getDealFlow(db, dealFlowId, DEFAULT_ORG_ID);
+    if (!existing) return { status: "failed", action_type: type, resource_type: "dealflow", resource_id: dealFlowId, message: "DealFlow not found." };
+    const edge = await createDealFlowEdge(db, dealFlowId, {
+      id: stringValue(action.id) || undefined,
+      source_node_id: sourceNodeId,
+      target_node_id: targetNodeId,
+      label: nullableString(action.label),
+      style: action.style === undefined ? null : objectValue(action.style),
+    });
+    await publish(db, {
+      organization_id: DEFAULT_ORG_ID,
+      event_type: "dealflow.edge_added",
+      actor_type: "user",
+      actor_id: actorEmail,
+      resource_type: "dealflow_edge",
+      resource_id: edge.id,
+      payload: { source: "agent_chat", dealflow_id: dealFlowId, edge_id: edge.id, source_node_id: sourceNodeId, target_node_id: targetNodeId },
+    });
+    return { status: "executed", action_type: type, resource_type: "dealflow_edge", resource_id: edge.id, message: "DealFlow edge added." };
+  }
+
+  return { status: "blocked", action_type: type, message: `Unsupported chat action type: ${type}.` };
+}
+
+async function executeChatActions(input: {
+  db: D1Database | undefined;
+  actions: Array<{ type: string }>;
+  context: z.infer<typeof ContextSchema>;
+  actorEmail: string | null;
+}): Promise<ChatActionExecution[]> {
+  const results: ChatActionExecution[] = [];
+  for (const [index, action] of input.actions.entries()) {
+    try {
+      results.push(await executeChatAction({ ...input, action: action as ChatActionRecord, index }));
+    } catch (error) {
+      results.push({
+        status: "failed",
+        action_type: action.type,
+        message: error instanceof Error ? error.message : "Chat action execution failed.",
+      });
+    }
+  }
+  return results;
 }
 
 export async function POST(request: Request) {
@@ -253,7 +632,14 @@ export async function POST(request: Request) {
     return errorJson("Rate limit reached. Please slow down.", 429);
   }
 
-  const contextBlock = await buildContextBlock(context.env.DB, parsed.data.context);
+  const baseContextBlock = await buildContextBlock(context.env.DB, parsed.data.context);
+  const retrieval = await searchWorkspace(context.env, {
+    query: latestUserMessage(parsed.data.messages),
+    organizationId: DEFAULT_ORG_ID,
+    limit: 5,
+  }).catch(() => null);
+  const retrievalBlock = retrieval ? formatSearchContext(retrieval, 5) : "";
+  const contextBlock = [baseContextBlock, retrievalBlock].filter(Boolean).join("\n\n");
   const systemPrompt = buildSystemPrompt(contextBlock);
 
   const messages: ChatMessage[] = parsed.data.messages.map((m) => ({
@@ -265,11 +651,18 @@ export async function POST(request: Request) {
     { AI: context.env.AI, ADGA_AI_MODEL: context.env.ADGA_AI_MODEL },
     { systemPrompt, messages },
   );
+  const actionResults = await executeChatActions({
+    db: context.env.DB,
+    actions: result.actions,
+    context: parsed.data.context,
+    actorEmail: context.user.email || null,
+  });
 
   return json({
     ok: true,
     message: result.message,
     actions: result.actions,
+    action_results: actionResults,
     meta: {
       model: result.model,
       source: result.source,

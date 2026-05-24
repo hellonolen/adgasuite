@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/document.schema.json",
+  "title": "Document",
+  "description": "D1 document metadata plus R2-backed storage object/version references for proposals, invoices, contracts, uploads, and generated summaries.",
+  "type": "object",
+  "required": ["id", "organization_id", "type", "title", "status", "created_at", "updated_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "type": {
+      "type": "string",
+      "enum": ["proposal", "invoice", "contract", "summary", "upload", "brief", "other"]
+    },
+    "title": { "type": "string" },
+    "recipient_name": { "type": ["string", "null"] },
+    "recipient_company": { "type": ["string", "null"] },
+    "recipient_email": { "type": ["string", "null"], "format": "email" },
+    "total_cents": { "type": ["integer", "null"], "minimum": 0 },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "prepared", "sent", "viewed", "signed", "paid", "archived", "failed"]
+    },
+    "r2_key": { "type": ["string", "null"] },
+    "created_by_user_id": { "type": ["string", "null"] },
+    "related": {
+      "type": "object",
+      "properties": {
+        "deal_id": { "type": ["string", "null"] },
+        "contact_id": { "type": ["string", "null"] },
+        "invoice_id": { "type": ["string", "null"] },
+        "voice_call_id": { "type": ["string", "null"] },
+        "calendar_event_id": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "versions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "storage_object_id", "version_label", "created_at"],
+        "properties": {
+          "id": { "type": "string" },
+          "storage_object_id": { "type": "string" },
+          "version_label": { "type": "string" },
+          "r2_key": { "type": ["string", "null"] },
+          "mime_type": { "type": ["string", "null"] },
+          "size_bytes": { "type": ["integer", "null"], "minimum": 0 },
+          "created_at": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "agent_summary": { "type": ["string", "null"] },
+    "prepared_action_id": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "events_emitted": [
+    { "type": "document.created", "description": "Document metadata created in D1." },
+    { "type": "document.version.created", "description": "New R2-backed version attached." },
+    { "type": "document.summary.created", "description": "Documents agent produced a summary or extraction." }
+  ],
+  "owners": ["documents", "conductor"],
+  "related_resources": ["storage-object", "prepared-action", "deal", "invoice"]
+}

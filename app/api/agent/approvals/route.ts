@@ -2,6 +2,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { createAgentApproval, listAgentApprovals, type AgentName } from "@/lib/server/repository";
 import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
 import { publish } from "@/lib/events/bus";
+import { normalizePreparedAction } from "@/lib/agents/prepared-actions";
 
 const agents = new Set(["conductor", "sales", "intelligence", "documents", "operations", "communication", "payments"]);
 
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
     resource_type?: string;
     resource_id?: string;
     payload?: Record<string, unknown>;
+    prepared_action?: Record<string, unknown>;
   }>(request);
 
   if (!body.title || !body.proposed_action) {
@@ -29,6 +31,12 @@ export async function POST(request: Request) {
   }
 
   const agent = agents.has(body.agent || "") ? (body.agent as AgentName) : "conductor";
+  const preparedActionInput = body.prepared_action || body.payload?.prepared_action;
+  const preparedAction = preparedActionInput ? normalizePreparedAction(preparedActionInput) : null;
+  if (preparedActionInput && !preparedAction) {
+    return errorJson("prepared_action is invalid or missing required fields.");
+  }
+
   const approval = await createAgentApproval(context.env.DB, {
     agent,
     title: body.title,
@@ -36,7 +44,7 @@ export async function POST(request: Request) {
     risk: body.risk || "medium",
     resource_type: body.resource_type || null,
     resource_id: body.resource_id || null,
-    payload: body.payload || {},
+    payload: preparedAction ? { ...(body.payload || {}), prepared_action: preparedAction } : body.payload || {},
   });
 
   await publish(context.env.DB, {

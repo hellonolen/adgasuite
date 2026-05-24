@@ -1,20 +1,22 @@
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { newId, nowIso } from "@/lib/server/id";
-import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
+import { getRuntimeContext } from "@/lib/server/runtime";
 import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
+import { resolveTenantSession } from "@/lib/server/tenant";
 
 const MAX_PLATFORM_FEE_BPS = 500;
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);
-  requireUser(context);
+  const session = await resolveTenantSession(context, request);
+  if (!session) return errorJson("Authentication required.", 401);
   if (!context.env.DB) return json({ ok: true, invoices: [] });
 
   try {
     const result = await context.env.DB.prepare(
       "SELECT * FROM client_invoices WHERE organization_id = ? ORDER BY created_at DESC LIMIT 250",
-    ).bind("org_adga_primary").all();
+    ).bind(session.organizationId).all();
     const invoices = await Promise.all((result.results || []).map(async (row: Record<string, unknown>) => {
       const payload = await readJsonPayload<Record<string, unknown>>(context.env, String(row.payload_r2_key || ""));
       return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
@@ -27,7 +29,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
-  requireUser(context);
+  const session = await resolveTenantSession(context, request);
+  if (!session) return errorJson("Authentication required.", 401);
   const body = await readJson<{
     client_name?: string;
     client_email?: string;
@@ -54,9 +57,9 @@ export async function POST(request: Request) {
   const platformFee = Math.round(total * platformFeeBps / 10000);
   const invoice = {
     id: newId("inv"),
-    organization_id: "org_adga_primary",
+    organization_id: session.organizationId,
     invoice_number: `ADGA-${Date.now()}`,
-    owner_user_id: context.user.email,
+    owner_user_id: session.email,
     client_name: body.client_name,
     client_email: body.client_email || null,
     client_company: body.client_company || null,
@@ -76,7 +79,7 @@ export async function POST(request: Request) {
     notes: body.notes || null,
     line_items_json: JSON.stringify(lineItems),
     document_links_json: JSON.stringify(body.document_links || []),
-    activity_history_json: JSON.stringify([{ type: "invoice.created", at: timestamp, actor: context.user.email }]),
+    activity_history_json: JSON.stringify([{ type: "invoice.created", at: timestamp, actor: session.email }]),
     created_at: timestamp,
     updated_at: timestamp,
   };
@@ -88,7 +91,7 @@ export async function POST(request: Request) {
         resource_type: "client_invoice",
         resource_id: invoice.id,
         payload: invoice,
-        created_by: context.user.email,
+        created_by: session.email,
       })
     : null;
 
@@ -116,7 +119,7 @@ export async function POST(request: Request) {
     organization_id: invoice.organization_id,
     event_type: "client_invoice.created",
     actor_type: "user",
-    actor_id: context.user.email,
+    actor_id: session.email,
     resource_type: "client_invoice",
     resource_id: invoice.id,
     payload: { invoice_id: invoice.id, payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null },

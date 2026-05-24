@@ -4,6 +4,7 @@ import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { deleteDealFlowNode, getDealFlow, updateDealFlowNode } from "@/lib/server/repository";
 import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
+import { publish } from "@/lib/events/bus";
 
 const DEFAULT_ORG_ID = "org_adga_primary";
 
@@ -74,6 +75,19 @@ export async function PATCH(
       .bind(stored.r2_key, stored.storage_object_id, nodeId, id)
       .run();
   }
+  await publish(auth.context.env.DB, {
+    organization_id: DEFAULT_ORG_ID,
+    event_type: "dealflow.node_updated",
+    actor_type: "user",
+    actor_id: auth.sessionUser?.email || auth.context.user.email || null,
+    resource_type: "dealflow_node",
+    resource_id: nodeId,
+    payload: {
+      dealflow_id: id,
+      node_id: nodeId,
+      changed_fields: Object.keys(parsed.data),
+    },
+  });
   return json({ ok: true, node: { ...node, ...nextPayload, payload_r2_key: stored?.r2_key || node.payload_r2_key, storage_object_id: stored?.storage_object_id || node.storage_object_id } });
 }
 
@@ -88,5 +102,14 @@ export async function DELETE(
 
   const removed = await deleteDealFlowNode(auth.context.env.DB, id, nodeId);
   if (!removed) return errorJson("Node not found.", 404);
+  await publish(auth.context.env.DB, {
+    organization_id: DEFAULT_ORG_ID,
+    event_type: "dealflow.node_removed",
+    actor_type: "user",
+    actor_id: auth.sessionUser?.email || auth.context.user.email || null,
+    resource_type: "dealflow_node",
+    resource_id: nodeId,
+    payload: { dealflow_id: id, node_id: nodeId },
+  });
   return json({ ok: true });
 }

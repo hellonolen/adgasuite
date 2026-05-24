@@ -3,7 +3,7 @@ import { verifyStripeWebhook } from "@/lib/integrations/stripe";
 import { createEvent } from "@/lib/server/repository";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
-import { orgIdForEmail, orgNameForEmail, orgSlugForEmail } from "@/lib/server/tenant";
+import { DEFAULT_ORG_ID, orgIdForEmail, orgNameForEmail, orgSlugForEmail } from "@/lib/server/tenant";
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
@@ -20,7 +20,10 @@ export async function POST(request: Request) {
   const payload = JSON.parse(rawBody || "{}") as StripeEvent;
   const object = payload.data?.object || {};
   const email = extractEmail(object);
-  const organizationId = email ? orgIdForEmail(email) : "org_adga_primary";
+  const organizationId =
+    normalizedString(object.metadata?.organization_id) ||
+    (await findOrganizationIdForStripeObject(context.env.DB, object)) ||
+    (email ? orgIdForEmail(email) : DEFAULT_ORG_ID);
   const plan = String(object.metadata?.plan || "team");
   const status = subscriptionStatus(payload.type, object);
   const now = nowIso();
@@ -104,6 +107,30 @@ interface StripeObject {
   metadata?: Record<string, string | undefined>;
 }
 
+async function findOrganizationIdForStripeObject(db: D1Database | undefined, object: StripeObject) {
+  if (!db) return null;
+  const customerId = stringValue(object.customer);
+  const subscriptionId = stringValue(object.subscription || object.id);
+  if (!customerId && !subscriptionId) return null;
+
+  const row = await db
+    .prepare(
+      `SELECT organization_id
+       FROM subscriptions
+       WHERE provider = 'stripe'
+         AND (
+           (? IS NOT NULL AND provider_subscription_id = ?)
+           OR (? IS NOT NULL AND provider_customer_id = ?)
+         )
+       ORDER BY updated_at DESC
+       LIMIT 1`,
+    )
+    .bind(subscriptionId, subscriptionId, customerId, customerId)
+    .first<{ organization_id: string | null }>()
+    .catch(() => null);
+  return row?.organization_id || null;
+}
+
 function extractEmail(object: StripeObject) {
   return (
     object.customer_email ||
@@ -137,4 +164,8 @@ function stringValue(value: unknown) {
   if (typeof value === "string" && value.trim()) return value.trim();
   if (typeof value === "number") return String(value);
   return null;
+}
+
+function normalizedString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
 }

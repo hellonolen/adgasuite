@@ -15,10 +15,14 @@
 import type { DomainEvent, DomainEventType } from "./types";
 import { createEvent } from "@/lib/server/repository";
 import { parkDeadLetter, recordDeliveryAttempt, REPLAY_RETRY_BUDGET } from "./replay";
+import { registerEventSubscriptions, type SubscriptionContext } from "./subscriptions";
 
 type EventOf<T extends DomainEventType> = Extract<DomainEvent, { event_type: T }>;
-type Handler<T extends DomainEventType> = (event: EventOf<T>) => void | Promise<void>;
-type AnyHandler = (event: { event_type: string; payload?: Record<string, unknown> } & Record<string, unknown>) => void | Promise<void>;
+type Handler<T extends DomainEventType> = (event: EventOf<T>, context: SubscriptionContext) => void | Promise<void>;
+type AnyHandler = (
+  event: { event_type: string; payload?: Record<string, unknown> } & Record<string, unknown>,
+  context: SubscriptionContext,
+) => void | Promise<void>;
 
 const handlers: Map<string, Set<AnyHandler>> = new Map();
 
@@ -28,6 +32,8 @@ export function subscribe<T extends DomainEventType>(eventType: T, handler: Hand
   handlers.set(eventType, set);
   return () => set.delete(handler as unknown as AnyHandler);
 }
+
+registerEventSubscriptions(subscribe);
 
 export interface PublishInput {
   organization_id: string;
@@ -56,7 +62,7 @@ export async function publish(
   const subscribers = handlers.get(event.event_type);
   if (subscribers && subscribers.size > 0) {
     for (const handler of subscribers) {
-      Promise.resolve(handler(persisted as any))
+      Promise.resolve(handler(persisted as any, { db }))
         .then(async () => {
           await recordDeliveryAttempt(db, (persisted as { id?: string }).id ?? "", null);
         })

@@ -12,6 +12,10 @@ D1 is for metadata only:
 
 Do not store full lead, contact, map, document, message, voice note, customer, or partner-referral payloads in D1. Store those payloads in R2 and keep D1 rows as pointers plus operational metadata.
 
+JSON payload R2 keys must be deterministic and organization-scoped: `payloads/{organization_id}/{resource_type}/{resource_id}.json` unless a route explicitly owns a narrower folder. Rewriting the same logical payload should overwrite the R2 object and reuse the existing `storage_objects` row for that `r2_key`; it must not create a new pointer ID for the same key.
+
+Reads that hydrate payload pointers must use the bucket recorded on the `storage_objects` row when a `storage_object_id` is present. Falling back to the default payload bucket is only acceptable for legacy rows that have a `payload_r2_key` but no storage object metadata.
+
 ADP partner referrals follow this rule: the full submitted lead/contact payload is written to R2 first; D1 keeps the partner referral number, partner metadata, routing status, and the R2 pointer. ADP referral numbers are not ADGA customer IDs and not internal affiliate IDs.
 
 Current implementation coverage:

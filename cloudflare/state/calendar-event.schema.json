@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/calendar-event.schema.json",
+  "title": "Calendar Event",
+  "description": "Calendar event and invite delivery contract for meetings, calls, reminders, and deal deadlines.",
+  "type": "object",
+  "required": ["id", "organization_id", "title", "starts_at", "ends_at", "timezone", "status", "event_type", "attendees", "created_at", "updated_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "title": { "type": "string" },
+    "starts_at": { "type": "string", "format": "date-time" },
+    "ends_at": { "type": "string", "format": "date-time" },
+    "timezone": { "type": "string", "default": "America/New_York" },
+    "location": { "type": ["string", "null"] },
+    "meeting_url": { "type": ["string", "null"] },
+    "status": {
+      "type": "string",
+      "enum": ["tentative", "confirmed", "cancelled", "completed", "no_show"]
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["meeting", "call", "reminder", "deadline", "follow_up"]
+    },
+    "deal_id": { "type": ["string", "null"] },
+    "contact_id": { "type": ["string", "null"] },
+    "voice_call_id": { "type": ["string", "null"] },
+    "attendees": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["email", "role"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "name": { "type": ["string", "null"] },
+          "role": { "type": "string", "enum": ["user", "client", "contact", "counterparty", "agent", "optional"] },
+          "response_status": { "type": ["string", "null"], "enum": ["needs_action", "accepted", "declined", "tentative", null] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "notes": { "type": ["string", "null"] },
+    "invite_deliveries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "recipient_email", "channel", "provider", "status", "created_at"],
+        "properties": {
+          "id": { "type": "string" },
+          "recipient_email": { "type": "string", "format": "email" },
+          "recipient_name": { "type": ["string", "null"] },
+          "channel": { "type": "string", "enum": ["email", "sms"] },
+          "provider": { "type": "string" },
+          "status": { "type": "string", "enum": ["pending", "sent", "delivered", "failed", "cancelled"] },
+          "sent_at": { "type": ["string", "null"], "format": "date-time" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "prepared_action_id": { "type": ["string", "null"] },
+    "created_by": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "events_emitted": [
+    { "type": "calendar_event.created", "description": "Meeting, call, reminder, or deadline created." },
+    { "type": "calendar_invite.queued", "description": "Invite delivery prepared or queued." },
+    { "type": "calendar_event.completed", "description": "Event completed and should update deal memory." }
+  ],
+  "owners": ["operations", "communication", "voice"],
+  "related_resources": ["prepared-action", "voice-call", "deal-memory"]
+}

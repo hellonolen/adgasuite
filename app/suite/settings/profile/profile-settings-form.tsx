@@ -3,15 +3,25 @@
 import { useState } from "react";
 import { PanelSaveBar, useSavePanel } from "@/components/suite/SettingsLayout";
 
-export default function ProfileSettingsForm({ defaults }: { defaults: { email: string; firstName: string } }) {
+type ProfileDefaults = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  title: string;
+  phone: string;
+  timezone: string;
+  signature: string;
+};
+
+export default function ProfileSettingsForm({ defaults }: { defaults: ProfileDefaults }) {
   const [values, setValues] = useState({
     first_name: defaults.firstName,
-    last_name: "",
+    last_name: defaults.lastName,
     email: defaults.email,
-    title: "",
-    phone: "",
-    timezone: "America/New_York",
-    signature: "",
+    title: defaults.title,
+    phone: defaults.phone,
+    timezone: defaults.timezone,
+    signature: defaults.signature,
   });
   const { status, errorMessage, save } = useSavePanel("profile");
 

@@ -9,7 +9,7 @@
     "organization_id": { "type": ["string", "null"] },
     "agent": {
       "type": "string",
-      "enum": ["conductor", "sales", "intelligence", "documents", "operations"]
+      "enum": ["conductor", "sales", "intelligence", "documents", "operations", "communication", "payments", "voice"]
     },
     "job_type": { "type": "string" },
     "status": {
@@ -31,4 +31,3 @@
   },
   "additionalProperties": false
 }
-

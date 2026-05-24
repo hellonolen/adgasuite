@@ -8,9 +8,10 @@
  * handler logic lives in the appropriate `agents/<agent>/` module.
  */
 
-// Subscriptions are wired explicitly by the agents themselves on cold start. This file is the
-// inventory: every event type should appear here with the agents that react to it so the
-// connectivity graph is auditable.
+// This file is both the subscription inventory and the default in-process wiring. Every event
+// type should appear here with the agents that react to it so the connectivity graph is auditable.
+import { createAgentJob, type AgentName } from "@/lib/server/repository";
+import type { DomainEvent, DomainEventType } from "./types";
 
 export const SUBSCRIPTION_INVENTORY = {
   "lead.captured":            ["sales"],
@@ -22,13 +23,16 @@ export const SUBSCRIPTION_INVENTORY = {
   "deal.won":                 ["intelligence", "payments"],
   "deal.lost":                ["intelligence"],
 
-  "map.node_added":           ["conductor"],
-  "map.node_removed":         ["conductor"],
+  "dealflow.node_added":      ["conductor"],
+  "dealflow.node_updated":    ["conductor"],
+  "dealflow.nodes_moved":     ["conductor"],
+  "dealflow.node_removed":    ["conductor"],
 
   "agent_approval.requested": ["conductor", "communication"],
   "agent_approval.approved":  ["conductor"],
   "agent_approval.rejected":  ["conductor"],
 
+  "agent_job.created":        ["conductor"],
   "agent_job.started":        ["intelligence"],
   "agent_job.completed":      ["conductor", "intelligence"],
   "agent_job.failed":         ["conductor", "intelligence"],
@@ -38,6 +42,46 @@ export const SUBSCRIPTION_INVENTORY = {
   "gap.identified":           ["conductor"],
 
   "suite.route_viewed":       ["intelligence"],
-} as const;
+} as const satisfies Partial<Record<DomainEventType, readonly AgentName[]>>;
 
 export type EventSubscriptionKey = keyof typeof SUBSCRIPTION_INVENTORY;
+
+export interface SubscriptionContext {
+  db?: D1Database;
+}
+
+export type EventSubscriber = <T extends DomainEventType>(
+  eventType: T,
+  handler: (event: Extract<DomainEvent, { event_type: T }>, context: SubscriptionContext) => void | Promise<void>,
+) => () => void;
+
+let registered = false;
+
+export function registerEventSubscriptions(subscribe: EventSubscriber): void {
+  if (registered) return;
+  registered = true;
+
+  for (const [eventType, agents] of Object.entries(SUBSCRIPTION_INVENTORY) as Array<
+    [EventSubscriptionKey, readonly AgentName[]]
+  >) {
+    for (const agent of agents) {
+      subscribe(eventType, async (event, context) => {
+        await createAgentJob(context.db, {
+          agent,
+          job_type: `event.${event.event_type}`,
+          organization_id: event.organization_id,
+          input: {
+            event_id: event.id,
+            event_type: event.event_type,
+            resource_type: event.resource_type,
+            resource_id: event.resource_id,
+            actor_type: event.actor_type,
+            actor_id: event.actor_id,
+            payload: event.payload,
+            source: "event_subscription",
+          },
+        });
+      });
+    }
+  }
+}

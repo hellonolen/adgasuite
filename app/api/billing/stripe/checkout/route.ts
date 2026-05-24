@@ -4,6 +4,7 @@ import { createStripeCheckout, type StripePriceKey } from "@/lib/integrations/st
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { getRuntimeContext } from "@/lib/server/runtime";
+import { orgIdForEmail } from "@/lib/server/tenant";
 import { normalizePlan } from "@/lib/plans";
 
 const PLAN_VALUES = ["pro", "team", "enterprise", "individual", "teams", "solo", "essential", "professional", "suite"] as const;
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
   const cadence = parsed.data.cadence || "month";
   const name = parsed.data.name || parsed.data.first_name || "";
   const origin = new URL(request.url).origin;
+  const organizationId = orgIdForEmail(email);
 
   let checkout: Awaited<ReturnType<typeof createStripeCheckout>>;
   try {
@@ -67,6 +69,7 @@ export async function POST(request: Request) {
       plan,
       seats,
       cadence,
+      organizationId,
       prices: stripePrices(context.env),
     });
   } catch (error) {
@@ -74,7 +77,7 @@ export async function POST(request: Request) {
   }
 
   await createEvent(context.env.DB, {
-    organization_id: "org_adga_primary",
+    organization_id: organizationId,
     event_type: "billing.checkout.requested",
     actor_type: "user",
     actor_id: email,

@@ -61,6 +61,14 @@ export interface DealFlowNodeRemovedEvent extends BaseEvent {
   event_type: "dealflow.node_removed";
   payload: { dealflow_id: string; node_id: string };
 }
+export interface DealFlowNodeUpdatedEvent extends BaseEvent {
+  event_type: "dealflow.node_updated";
+  payload: { dealflow_id: string; node_id: string; changed_fields: string[] };
+}
+export interface DealFlowNodesMovedEvent extends BaseEvent {
+  event_type: "dealflow.nodes_moved";
+  payload: { dealflow_id: string; node_ids: string[]; count: number };
+}
 
 // ─── Approval queue ───────────────────────────────────────────────────────────
 export interface ApprovalRequestedEvent extends BaseEvent {
@@ -80,6 +88,10 @@ export interface ApprovalRejectedEvent extends BaseEvent {
 export interface AgentJobStartedEvent extends BaseEvent {
   event_type: "agent_job.started";
   payload: { job_id: string; agent: string; job_type: string };
+}
+export interface AgentJobCreatedEvent extends BaseEvent {
+  event_type: "agent_job.created";
+  payload: { job_id?: string; agent: string; job_type: string };
 }
 export interface AgentJobCompletedEvent extends BaseEvent {
   event_type: "agent_job.completed";
@@ -120,9 +132,12 @@ export type DomainEvent =
   | DealLostEvent
   | DealFlowNodeAddedEvent
   | DealFlowNodeRemovedEvent
+  | DealFlowNodeUpdatedEvent
+  | DealFlowNodesMovedEvent
   | ApprovalRequestedEvent
   | ApprovalApprovedEvent
   | ApprovalRejectedEvent
+  | AgentJobCreatedEvent
   | AgentJobStartedEvent
   | AgentJobCompletedEvent
   | AgentJobFailedEvent

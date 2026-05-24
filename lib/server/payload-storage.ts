@@ -1,6 +1,6 @@
-import { createStorageObject } from "@/lib/server/repository";
+import { createStorageObject, getStorageObjectById } from "@/lib/server/repository";
 
-type PayloadBucketName = "documents" | "uploads";
+type PayloadBucketName = "assets" | "documents" | "uploads";
 
 export type StoredJsonPayload = {
   r2_key: string;
@@ -28,6 +28,23 @@ function payloadBucket(env: CloudflareEnv): { bucket: R2Bucket; name: PayloadBuc
   return null;
 }
 
+function storageBucket(env: CloudflareEnv, name: PayloadBucketName): R2Bucket | null {
+  if (name === "uploads") return env.UPLOADS_BUCKET || null;
+  if (name === "documents") return env.DOCUMENTS_BUCKET || null;
+  if (name === "assets") return env.ASSETS_BUCKET || null;
+  return null;
+}
+
+function payloadReadBuckets(env: CloudflareEnv, bucketName?: PayloadBucketName | null): R2Bucket[] {
+  if (bucketName) {
+    const bucket = storageBucket(env, bucketName);
+    return bucket ? [bucket] : [];
+  }
+
+  const buckets = [payloadBucket(env)?.bucket, env.DOCUMENTS_BUCKET || null, env.UPLOADS_BUCKET || null, env.ASSETS_BUCKET || null];
+  return buckets.filter((bucket, index): bucket is R2Bucket => Boolean(bucket) && buckets.indexOf(bucket) === index);
+}
+
 export async function sha256Hex(value: string) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return Array.from(new Uint8Array(digest))
@@ -40,7 +57,7 @@ export async function storeJsonPayload(input: StoreJsonPayloadInput): Promise<St
   if (!target) throw new Error("R2 payload storage is not configured.");
 
   const folder = input.folder || "payloads";
-  const key = `${folder}/${input.resource_type}/${input.resource_id}.json`;
+  const key = `${folder}/${input.organization_id}/${input.resource_type}/${input.resource_id}.json`;
   const body = JSON.stringify(input.payload);
   const bytes = new TextEncoder().encode(body);
   const sha256 = await sha256Hex(body);
@@ -79,17 +96,32 @@ export async function storeJsonPayload(input: StoreJsonPayloadInput): Promise<St
   };
 }
 
-export async function readJsonPayload<T = Record<string, unknown>>(env: CloudflareEnv, r2Key: string | null | undefined): Promise<T | null> {
+export async function readJsonPayload<T = Record<string, unknown>>(
+  env: CloudflareEnv,
+  r2Key: string | null | undefined,
+  bucketName?: PayloadBucketName | null,
+): Promise<T | null> {
   if (!r2Key) return null;
-  const target = payloadBucket(env);
-  if (!target) return null;
+  const buckets = payloadReadBuckets(env, bucketName);
 
-  const object = await target.bucket.get(r2Key);
-  if (!object) return null;
-
-  try {
-    return JSON.parse(await object.text()) as T;
-  } catch {
-    return null;
+  for (const bucket of buckets) {
+    const object = await bucket.get(r2Key);
+    if (!object) continue;
+    try {
+      return JSON.parse(await object.text()) as T;
+    } catch {
+      return null;
+    }
   }
+  return null;
+}
+
+export async function readStoredJsonPayload<T = Record<string, unknown>>(
+  env: CloudflareEnv,
+  db: D1Database | undefined,
+  r2Key: string | null | undefined,
+  storageObjectId: string | null | undefined,
+): Promise<T | null> {
+  const storageObject = await getStorageObjectById(db, storageObjectId);
+  return readJsonPayload<T>(env, storageObject?.r2_key || r2Key, storageObject?.bucket || null);
 }

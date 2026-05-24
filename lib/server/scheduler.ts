@@ -11,6 +11,7 @@ import {
 const BATCH_LIMIT = 10;
 const STALE_LEAD_DAYS = 7;
 const STALLED_DEAL_DAYS = 14;
+const OPEN_JOB_STATUSES = ["queued", "running"] as const;
 
 export interface SchedulerResult {
   processed: number;
@@ -21,6 +22,39 @@ export interface SchedulerResult {
 export interface MaintenanceResult extends SchedulerResult {
   staleLeadJobsCreated: number;
   stalledDealJobsCreated: number;
+}
+
+async function hasOpenAgentJobForResource(
+  db: D1Database,
+  organizationId: string,
+  jobType: string,
+  resourceKey: string,
+  resourceId: string,
+): Promise<boolean> {
+  const placeholders = OPEN_JOB_STATUSES.map(() => "?").join(", ");
+  const rows = await db
+    .prepare(
+      `SELECT input_json
+         FROM agent_jobs
+        WHERE organization_id = ?
+          AND job_type = ?
+          AND status IN (${placeholders})
+        ORDER BY created_at DESC
+        LIMIT 100`,
+    )
+    .bind(organizationId, jobType, ...OPEN_JOB_STATUSES)
+    .all<{ input_json: string | null }>();
+
+  for (const row of rows.results || []) {
+    try {
+      const input = JSON.parse(row.input_json || "{}") as Record<string, unknown>;
+      if (String(input[resourceKey] || "") === resourceId) return true;
+    } catch {
+      continue;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -149,12 +183,23 @@ export async function runHourlyMaintenance(env: CloudflareEnv): Promise<Maintena
 
     for (const row of stalledDeals.results || []) {
       try {
+        const organizationId = String(row.organization_id);
+        const dealId = String(row.id);
+        const alreadyQueued = await hasOpenAgentJobForResource(
+          env.DB,
+          organizationId,
+          "check_in_stalled_deal",
+          "deal_id",
+          dealId,
+        );
+        if (alreadyQueued) continue;
+
         await createAgentJob(env.DB, {
           agent: "sales",
           job_type: "check_in_stalled_deal",
-          organization_id: String(row.organization_id),
+          organization_id: organizationId,
           input: {
-            deal_id: String(row.id),
+            deal_id: dealId,
             deal_name: String(row.name || ""),
             company: String(row.company || ""),
             stage: String(row.stage || ""),

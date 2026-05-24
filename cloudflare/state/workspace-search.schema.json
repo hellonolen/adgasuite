@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/workspace-search.schema.json",
+  "title": "Workspace Search",
+  "description": "Workspace-wide retrieval contract for searching D1 metadata and R2-backed artifacts without making UI pages the source of truth.",
+  "type": "object",
+  "required": ["id", "organization_id", "query", "requested_by", "scope", "results", "created_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "query": { "type": "string" },
+    "requested_by": {
+      "type": "object",
+      "required": ["actor_type", "actor_id"],
+      "properties": {
+        "actor_type": { "type": "string", "enum": ["user", "agent", "system"] },
+        "actor_id": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["lead", "contact", "company", "deal", "document", "calendar-event", "voice-call", "invoice", "map", "task", "communication", "storage-object"]
+      }
+    },
+    "filters": {
+      "type": "object",
+      "properties": {
+        "deal_id": { "type": ["string", "null"] },
+        "contact_id": { "type": ["string", "null"] },
+        "created_after": { "type": ["string", "null"], "format": "date-time" },
+        "created_before": { "type": ["string", "null"], "format": "date-time" },
+        "visibility": { "type": ["string", "null"], "enum": ["workspace", "internal", "client_visible", null] }
+      },
+      "additionalProperties": true
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["resource_type", "resource_id", "title", "score"],
+        "properties": {
+          "resource_type": { "type": "string" },
+          "resource_id": { "type": "string" },
+          "title": { "type": "string" },
+          "snippet": { "type": ["string", "null"] },
+          "score": { "type": "number", "minimum": 0 },
+          "source": { "type": "string", "enum": ["d1", "r2", "derived"] },
+          "r2_key": { "type": ["string", "null"] },
+          "last_updated_at": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "owners": ["intelligence", "conductor"],
+  "related_resources": ["record-graph", "document", "deal-memory"]
+}

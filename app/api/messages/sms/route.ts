@@ -2,7 +2,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
-import { storeJsonPayload } from "@/lib/server/payload-storage";
+import { readStoredJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);
@@ -16,7 +16,16 @@ export async function GET(request: Request) {
     )
       .bind("org_adga_primary")
       .all();
-    return json({ ok: true, messages: result.results || [] });
+    const messages = await Promise.all((result.results || []).map(async (row: Record<string, unknown>) => {
+      const payload = await readStoredJsonPayload<Record<string, unknown>>(
+        context.env,
+        context.env.DB,
+        row.payload_r2_key ? String(row.payload_r2_key) : null,
+        row.storage_object_id ? String(row.storage_object_id) : null,
+      );
+      return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
+    }));
+    return json({ ok: true, messages });
   } catch {
     return json({ ok: true, messages: [] });
   }

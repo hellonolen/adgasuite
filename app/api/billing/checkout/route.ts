@@ -3,6 +3,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { createWhopCheckout } from "@/lib/integrations/whop";
 import { getRuntimeContext } from "@/lib/server/runtime";
+import { orgIdForEmail } from "@/lib/server/tenant";
 import { normalizePlan } from "@/lib/plans";
 
 const PLAN_VALUES = ["pro", "team", "enterprise", "individual", "teams", "solo", "essential", "professional", "suite"] as const;
@@ -79,6 +80,7 @@ export async function POST(request: Request) {
   const seats = parseSeats(parsed.data.seats);
   const cadence = parsed.data.cadence || "month";
   const email = parsed.data.email.toLowerCase().trim();
+  const organizationId = orgIdForEmail(email);
 
   const checkout = await createWhopCheckout({
     apiKey: context.env.WHOP_API_KEY,
@@ -89,7 +91,7 @@ export async function POST(request: Request) {
   });
 
   await createEvent(context.env.DB, {
-    organization_id: "org_adga_primary",
+    organization_id: organizationId,
     event_type: "billing.checkout.requested",
     actor_type: "user",
     actor_id: email,

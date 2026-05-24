@@ -145,7 +145,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "How does pricing work?",
-    a: "Three plans: Pro for the closer running their own book, Team for closers working deals together, Enterprise for organizations with 15+ closers. Monthly or annual (2 months free). Add seats anytime. See the pricing page for the full breakdown.",
+    a: "Three plans: Pro for the closer running their own book, Team for closers working deals together, Enterprise for organizations with 15+ closers. Monthly or annual (1 month free). Add seats anytime. See the pricing page for the full breakdown.",
   },
   {
     q: "Where does my data live?",

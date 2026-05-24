@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/dealflow-map.schema.json",
+  "title": "Dealflow Map",
+  "description": "Persistent map contract for dealflow nodes, edges, positions, and live resource bindings. This covers the dealflow/map backbone without defining UI behavior.",
+  "type": "object",
+  "required": ["id", "organization_id", "name", "nodes", "edges", "created_at", "updated_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "name": { "type": "string" },
+    "deal_id": { "type": ["string", "null"] },
+    "template": { "type": ["string", "null"] },
+    "created_by_user_id": { "type": ["string", "null"] },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "label", "position"],
+        "properties": {
+          "id": { "type": "string" },
+          "kind": {
+            "type": "string",
+            "enum": ["contact", "company", "document", "task", "call", "meeting", "action", "deal", "invoice", "note"]
+          },
+          "label": { "type": "string" },
+          "sublabel": { "type": ["string", "null"] },
+          "status": { "type": ["string", "null"], "enum": ["neutral", "active", "warning", "overdue", "done", null] },
+          "position": {
+            "type": "object",
+            "required": ["x", "y"],
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" }
+            },
+            "additionalProperties": false
+          },
+          "resource_type": { "type": ["string", "null"] },
+          "resource_id": { "type": ["string", "null"] },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "created_at": { "type": ["string", "null"], "format": "date-time" },
+          "updated_at": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "source_node_id", "target_node_id"],
+        "properties": {
+          "id": { "type": "string" },
+          "source_node_id": { "type": "string" },
+          "target_node_id": { "type": "string" },
+          "label": { "type": ["string", "null"] },
+          "style": { "type": ["string", "null"] },
+          "created_at": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "events_emitted": [
+    { "type": "map.created", "description": "New dealflow map created from blank state or a template." },
+    { "type": "map.node.created", "description": "Map node persisted." },
+    { "type": "map.edge.created", "description": "Map edge persisted." },
+    { "type": "map.node.updated", "description": "Map node label, position, status, or resource binding changed." }
+  ],
+  "owners": ["operations", "conductor"],
+  "related_resources": ["deal-template", "record-graph", "map-share", "deal"]
+}

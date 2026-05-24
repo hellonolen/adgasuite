@@ -20,7 +20,10 @@ The Conductor does not replace product logic. It reads business events, creates 
 - Do not send external messages without explicit policy.
 - Record all agent jobs and runs.
 - Prefer recommendations when an action changes customer-facing state.
+- Use `cloudflare/state/agent-job.schema.json` for job ownership; valid owners are conductor, sales, intelligence, documents, operations, communication, payments, and voice.
+- Use `cloudflare/state/prepared-action.schema.json` before customer-facing, financial, legal, or destructive work is applied.
+- Use `cloudflare/state/audit-log.schema.json` for every applied prepared action and material workspace mutation.
+- Use `cloudflare/state/record-graph.schema.json` and `cloudflare/state/deal-memory.schema.json` when routing cross-record context.
 - Chat responses NEVER auto-apply customer-facing actions — every action lands as an Apply chip the human approves.
 - System prompts and internal context are never echoed back to the client.
 - Rate limit chat to 10 turns per minute per session; reject with 429 above that.
-

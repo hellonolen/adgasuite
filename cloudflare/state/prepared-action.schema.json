@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/prepared-action.schema.json",
+  "title": "Prepared Action",
+  "description": "A traceable action prepared by an agent and held in an approval lane before anything customer-facing, financial, legal, or destructive is applied.",
+  "type": "object",
+  "required": ["id", "organization_id", "agent", "action_type", "lane", "status", "target", "payload", "created_at", "updated_at"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "agent": {
+      "type": "string",
+      "enum": ["conductor", "sales", "intelligence", "documents", "operations", "communication", "payments", "voice"]
+    },
+    "job_id": { "type": ["string", "null"] },
+    "event_id": { "type": ["string", "null"] },
+    "action_type": {
+      "type": "string",
+      "description": "Examples: draft.email, draft.sms, calendar.invite, call.outbound, invoice.payment_link, deal.stage_update, task.create, document.generate."
+    },
+    "lane": {
+      "type": "string",
+      "enum": ["safe_internal", "review_recommended", "approval_required", "restricted"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["prepared", "approved", "applied", "rejected", "expired", "blocked"]
+    },
+    "target": {
+      "type": "object",
+      "required": ["resource_type", "resource_id"],
+      "properties": {
+        "resource_type": {
+          "type": "string",
+          "enum": ["lead", "contact", "company", "deal", "document", "invoice", "calendar-event", "voice-call", "map", "task", "workspace"]
+        },
+        "resource_id": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "reason": { "type": ["string", "null"] },
+    "risk_flags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "requires_actor_type": {
+      "type": "string",
+      "enum": ["none", "workspace_member", "owner", "admin"],
+      "default": "workspace_member"
+    },
+    "approved_by": { "type": ["string", "null"] },
+    "approved_at": { "type": ["string", "null"], "format": "date-time" },
+    "applied_at": { "type": ["string", "null"], "format": "date-time" },
+    "expires_at": { "type": ["string", "null"], "format": "date-time" },
+    "audit_log_id": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "events_emitted": [
+    { "type": "prepared_action.created", "description": "Agent prepared an action and placed it into an approval lane." },
+    { "type": "prepared_action.approved", "description": "Authorized user approved the action." },
+    { "type": "prepared_action.applied", "description": "Approved action was applied and linked to an audit log record." },
+    { "type": "prepared_action.rejected", "description": "Authorized user rejected the action." }
+  ],
+  "owners": ["conductor", "operations"],
+  "related_resources": ["agent-job", "agent-event", "audit-log"]
+}

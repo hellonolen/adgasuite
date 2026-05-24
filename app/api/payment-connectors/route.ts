@@ -1,7 +1,8 @@
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { newId, nowIso } from "@/lib/server/id";
-import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
+import { getRuntimeContext } from "@/lib/server/runtime";
+import { resolveTenantSession } from "@/lib/server/tenant";
 
 const CONNECTOR_CAPABILITIES: Record<string, string[]> = {
   bank_account: ["payout_destination"],
@@ -13,13 +14,14 @@ const CONNECTOR_CAPABILITIES: Record<string, string[]> = {
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);
-  requireUser(context);
+  const session = await resolveTenantSession(context, request);
+  if (!session) return errorJson("Authentication required.", 401);
   if (!context.env.DB) return json({ ok: true, connectors: [] });
 
   try {
     const result = await context.env.DB.prepare(
       "SELECT * FROM tenant_payment_connectors WHERE organization_id = ? ORDER BY created_at DESC LIMIT 100",
-    ).bind("org_adga_primary").all();
+    ).bind(session.organizationId).all();
     return json({ ok: true, connectors: result.results || [] });
   } catch {
     return json({ ok: true, connectors: [] });
@@ -28,7 +30,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
-  requireUser(context);
+  const session = await resolveTenantSession(context, request);
+  if (!session) return errorJson("Authentication required.", 401);
   const body = await readJson<{
     connector_type?: string;
     display_name?: string;
@@ -44,8 +47,8 @@ export async function POST(request: Request) {
   const timestamp = nowIso();
   const connector = {
     id: newId("conn"),
-    organization_id: "org_adga_primary",
-    owner_user_id: context.user.email,
+    organization_id: session.organizationId,
+    owner_user_id: session.email,
     tenant_type: body.tenant_type || "company",
     connector_type: connectorType,
     display_name: body.display_name || connectorType.replace(/_/g, " "),
@@ -81,7 +84,7 @@ export async function POST(request: Request) {
     organization_id: connector.organization_id,
     event_type: "payment_connector.created",
     actor_type: "user",
-    actor_id: context.user.email,
+    actor_id: session.email,
     resource_type: "tenant_payment_connector",
     resource_id: connector.id,
     payload: { connector },

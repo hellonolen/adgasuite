@@ -248,6 +248,30 @@ CREATE TABLE IF NOT EXISTS voice_notes (
   FOREIGN KEY (owner_user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS voice_calls (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL,
+  direction TEXT NOT NULL DEFAULT 'inbound',
+  status TEXT NOT NULL DEFAULT 'scheduled',
+  started_at TEXT,
+  ended_at TEXT,
+  duration_seconds INTEGER,
+  participants_json TEXT NOT NULL DEFAULT '[]',
+  consent_json TEXT NOT NULL DEFAULT '{}',
+  recording_json TEXT NOT NULL DEFAULT '{}',
+  transcript_json TEXT NOT NULL DEFAULT '{}',
+  transcript_text TEXT,
+  summary TEXT,
+  related_records_json TEXT NOT NULL DEFAULT '{}',
+  agentic_outputs_json TEXT NOT NULL DEFAULT '{}',
+  provider TEXT,
+  provider_call_id TEXT,
+  created_by TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS sms_messages (
   id TEXT PRIMARY KEY,
   organization_id TEXT NOT NULL,
@@ -273,6 +297,9 @@ CREATE TABLE IF NOT EXISTS sms_messages (
 CREATE INDEX IF NOT EXISTS idx_voice_notes_org_created ON voice_notes (organization_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_voice_notes_resource ON voice_notes (resource_type, resource_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_voice_notes_payload_storage ON voice_notes (organization_id, storage_object_id);
+CREATE INDEX IF NOT EXISTS idx_voice_calls_org_created ON voice_calls (organization_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_voice_calls_status ON voice_calls (organization_id, status, started_at);
+CREATE INDEX IF NOT EXISTS idx_voice_calls_provider ON voice_calls (provider, provider_call_id);
 CREATE INDEX IF NOT EXISTS idx_sms_messages_org_created ON sms_messages (organization_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sms_messages_resource ON sms_messages (resource_type, resource_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sms_messages_payload_storage ON sms_messages (organization_id, storage_object_id);
