@@ -181,7 +181,7 @@ export default function PricingPage() {
         <MarketingHero
           variant="compact"
           headline="Join our community."
-          deck="Whether you run your book alone, close with a team, or operate across an enterprise — ADGA scales with the way you already close. Same deal flow, every tier. No record caps, no per-contact fees, no add-on fees."
+          deck="You, a team, or enterprise can close more deals."
         />
 
         {/* CADENCE SWITCHER — its own section so it has real breathing room above and below. */}

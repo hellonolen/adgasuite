@@ -21,6 +21,7 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
   React.useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(max-width: 700px)").matches) return;
 
     const root = document.querySelector(".marketing-root");
     if (!root) return;
