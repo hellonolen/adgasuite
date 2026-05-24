@@ -108,7 +108,7 @@ export default function HomePage() {
           <div className="hero-pill">
             <span className="hero-pill-dot" /> For closers, dealmakers, and operators
           </div>
-          <h1 className="hero-display">Discover The 9-Stage Deal System Today&rsquo;s Top Closers Are Using To Move More Deals Forward &mdash; Without Hiring Another Rep Or Changing How They Sell</h1>
+          <h1 className="hero-display">Close more deals.</h1>
           <p className="hero-lede-center">
             Designed for the closers, dealmakers, and operators who carry the number. Every contact, every call, every commitment locked to the deal — surfaced when it&rsquo;s time to act.
           </p>
