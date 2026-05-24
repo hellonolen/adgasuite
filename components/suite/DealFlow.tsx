@@ -24,7 +24,7 @@ import {
 import { Hand, Link2, MousePointer2, Palette, Plus, Search, Share2, SlidersHorizontal, Trash2, X } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 
-export type DealFlowEntityKind = "contact" | "company" | "document" | "task" | "call" | "meeting" | "action";
+export type DealFlowEntityKind = "group" | "contact" | "company" | "document" | "task" | "call" | "meeting" | "action";
 export type DealFlowStatus = "neutral" | "active" | "warning" | "overdue" | "done";
 
 export interface DealFlowDeal {
@@ -42,6 +42,8 @@ export interface DealFlowEntity {
   sublabel?: string;
   status?: DealFlowStatus;
   role?: string;
+  childKind?: DealFlowEntityKind;
+  childrenCount?: number;
 }
 
 export interface DealFlowInitialNode {
@@ -110,6 +112,7 @@ interface ShareInfo {
 }
 
 const KIND_META: Record<DealFlowEntityKind, { label: string; color: string; ring: string; ringSoft: string }> = {
+  group:    { label: "Group",    color: "#5d2cd6", ring: "rgba(93, 44, 214, 0.18)", ringSoft: "rgba(93, 44, 214, 0.08)" },
   contact:  { label: "Contact",  color: "#16a34a", ring: "rgba(22, 163, 74, 0.18)", ringSoft: "rgba(22, 163, 74, 0.08)" },
   company:  { label: "Company",  color: "#0ea5e9", ring: "rgba(14, 165, 233, 0.18)", ringSoft: "rgba(14, 165, 233, 0.08)" },
   document: { label: "File",     color: "#f59e0b", ring: "rgba(245, 158, 11, 0.18)", ringSoft: "rgba(245, 158, 11, 0.08)" },
@@ -188,6 +191,11 @@ function EntityNodeView({ data, selected }: NodeProps) {
   const entity = data as unknown as DealFlowEntity;
   const meta = KIND_META[entity.kind];
   const status = STATUS_META[entity.status || "neutral"];
+  const rawData = data as unknown as { data?: Record<string, unknown> };
+  const childKind = String(rawData.data?.child_kind || entity.childKind || "");
+  const childrenCount = Number(rawData.data?.children_count ?? entity.childrenCount ?? 0);
+  const childMeta = childKind && KIND_META[childKind as DealFlowEntityKind] ? KIND_META[childKind as DealFlowEntityKind] : null;
+  const isGroup = entity.kind === "group";
   return (
     <div
       style={{
@@ -235,6 +243,16 @@ function EntityNodeView({ data, selected }: NodeProps) {
       {entity.sublabel && (
         <div style={{ fontSize: 11.2, color: "#6b6760", marginTop: 4, lineHeight: 1.32 }}>{entity.sublabel}</div>
       )}
+      {isGroup && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 9, padding: "8px 9px", borderRadius: 10, background: "rgba(93, 44, 214, 0.055)", border: "1px solid rgba(93, 44, 214, 0.10)" }}>
+          <span style={{ color: "#4b22bb", fontSize: 10.5, fontWeight: 820 }}>
+            {childrenCount.toLocaleString()} associated
+          </span>
+          <span style={{ color: "#6b6760", fontSize: 10.2, fontWeight: 720 }}>
+            {childMeta?.label || "Records"}
+          </span>
+        </div>
+      )}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 9, paddingTop: 8, borderTop: "1px solid rgba(15, 23, 42, 0.06)" }}>
         <span style={{ minWidth: 0, color: "#6b6760", fontSize: 10.2, fontWeight: 720 }}>
           {status.label}
@@ -276,7 +294,7 @@ function buildInitial(deal: DealFlowDeal, entities: DealFlowEntity[]) {
     },
   ];
   const edges: Edge[] = [];
-  const inner: DealFlowEntityKind[] = ["contact", "company", "action"];
+  const inner: DealFlowEntityKind[] = ["group", "contact", "company", "action"];
   const innerEntities = entities.filter((e) => inner.includes(e.kind));
   const outerEntities = entities.filter((e) => !inner.includes(e.kind));
 
@@ -318,7 +336,7 @@ function nodeKindFromNode(node: Node | null | undefined): DealFlowEntityKind | "
   return data?.kind || null;
 }
 
-const KINDS_TO_ADD: DealFlowEntityKind[] = ["contact", "company", "document", "task", "call", "meeting", "action"];
+const KINDS_TO_ADD: DealFlowEntityKind[] = ["group", "contact", "company", "document", "task", "call", "meeting", "action"];
 
 export function DealFlow({
   deal,
@@ -840,6 +858,76 @@ export function DealFlow({
     }
   };
 
+  const addGroupNode = (childKind: DealFlowEntityKind, childrenCount = 0) => {
+    const id = `mnode_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    const childLabel = KIND_META[childKind]?.label || "Record";
+    const label = `${childLabel}s`;
+    const sourceNode = selectedNode || nodes.find((node) => node.id === deal.id);
+    const position = sourceNode
+      ? { x: sourceNode.position.x + 260, y: sourceNode.position.y + (Math.random() - 0.5) * 160 }
+      : { x: CENTER_X + 220, y: CENTER_Y + (Math.random() - 0.5) * 180 };
+    const data = {
+      child_kind: childKind,
+      children_count: childrenCount,
+      hierarchy: "rollup",
+    };
+    const newNode: Node = {
+      id,
+      type: "entity",
+      position,
+      data: {
+        id,
+        kind: "group",
+        label,
+        sublabel: childrenCount > 0 ? `${childrenCount.toLocaleString()} ${childLabel.toLowerCase()} records associated with this deal` : `Add ${childLabel.toLowerCase()} records without crowding the canvas`,
+        status: "neutral",
+        data,
+      } as unknown as Record<string, unknown>,
+    };
+    const edgeId = `e_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    setNodes((nds) => nds.concat(newNode));
+    setEdges((eds) =>
+      eds.concat({
+        id: edgeId,
+        source: selectedNode?.id || deal.id,
+        target: id,
+        style: { stroke: KIND_META.group.ring, strokeWidth: 1.5 },
+      }),
+    );
+    setSelectedId(id);
+
+    if (onAddNode) onAddNode({ id, kind: "group", label, sublabel: String(newNode.data.sublabel || ""), status: "neutral", position });
+    const base = persistBaseRef.current;
+    if (persistEnabled && base) {
+      knownNodeIdsRef.current.add(id);
+      void fetch(`${base}/nodes`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          kind: "group",
+          label,
+          sublabel: newNode.data.sublabel,
+          status: "neutral",
+          position_x: position.x,
+          position_y: position.y,
+          data,
+        }),
+      }).catch(() => {});
+      void fetch(`${base}/edges`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: edgeId,
+          source_node_id: selectedNode?.id || deal.id,
+          target_node_id: id,
+        }),
+      }).catch(() => {});
+    }
+  };
+
   const removeSelectedLinks = () => {
     if (!selectedId) return;
     const removing = edges.filter((edge) => edge.source === selectedId || edge.target === selectedId);
@@ -980,7 +1068,7 @@ export function DealFlow({
     : `Ask ADGA about ${deal.name}, or tell dealflow what to do...`;
   const visibleNodes = React.useMemo(() => {
     const active = VIEW_MODES.find((mode) => mode.id === viewMode);
-    const activeKinds = new Set(active?.kinds || []);
+    const activeKinds = new Set<string>(active?.kinds || []);
     return nodes.map((node) => {
       const kind = node.type === "deal" ? "deal" : ((node.data as { kind?: string }).kind || "");
       const emphasized = kind === "deal" || activeKinds.has(kind as DealFlowEntityKind);
@@ -1319,7 +1407,7 @@ export function DealFlow({
                         id,
                         type: "entity",
                         position: { x: 100 + Math.random() * 320, y: 100 + Math.random() * 320 },
-                        data: { id, kind: a.kind, label: a.label, sublabel: a.sublabel, status: a.status || "neutral" } as unknown as Record<string, unknown>,
+                        data: { id, kind: a.kind, label: a.label, sublabel: a.sublabel, status: a.status || "neutral", data: a.data || {} } as unknown as Record<string, unknown>,
                       };
                       setNodes((nds) => [...nds, newNode]);
                       const base = persistBaseRef.current;
@@ -1335,6 +1423,7 @@ export function DealFlow({
                             status: a.status || "neutral",
                             position_x: newNode.position.x,
                             position_y: newNode.position.y,
+                            data: a.data || {},
                           }),
                         }).catch(() => {});
                       }
@@ -1494,6 +1583,40 @@ export function DealFlow({
 
             {activeToolPanel === "nodes" && (
               <div style={{ display: "grid", gap: 10 }}>
+                <div style={{ display: "grid", gap: 7 }}>
+                  {[
+                    ["contact", "Contact group", "For 50, 300, or more stakeholders"],
+                    ["document", "Document group", "For diligence files and exhibits"],
+                    ["task", "Workstream group", "For actions, approvals, and owners"],
+                  ].map(([childKind, label, helper]) => (
+                    <button
+                      key={childKind}
+                      type="button"
+                      onClick={() => addGroupNode(childKind as DealFlowEntityKind)}
+                      title={`Create ${label}`}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "12px minmax(0, 1fr)",
+                        alignItems: "center",
+                        gap: 9,
+                        minWidth: 0,
+                        padding: "9px 10px",
+                        background: "rgba(93, 44, 214, 0.055)",
+                        border: "1px solid rgba(93, 44, 214, 0.12)",
+                        borderRadius: 11,
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
+                    >
+                      <span style={{ width: 10, height: 10, borderRadius: 4, background: KIND_META[childKind as DealFlowEntityKind].color }} />
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 12.2, fontWeight: 820, color: "#0d0c0a" }}>{label}</span>
+                        <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 10.8, fontWeight: 650, color: "#6b6760", marginTop: 2 }}>{helper}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div style={{ height: 1, background: "rgba(15, 23, 42, 0.07)" }} />
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 7 }}>
                   {KINDS_TO_ADD.map((kind) => {
                     const meta = KIND_META[kind];
@@ -2126,6 +2249,31 @@ function NodeDetailPanel({
           <div style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5 }}>
             <span style={{ width: 8, height: 8, borderRadius: 999, background: status.dot || "#cbd5e1" }} />
               <span style={{ color: "#6b6760", fontWeight: 720 }}>{status.label}</span>
+          </div>
+        )}
+
+        {!isDeal && data.kind === "group" && !readOnly && (
+          <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <label style={{ display: "grid", gap: 4, fontSize: 10, fontWeight: 800, color: "#6b6760", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+              Child type
+              <select
+                value={String(details.child_kind || "contact")}
+                onChange={(event) => onPatch({ data: { ...details, child_kind: event.target.value } })}
+                style={{ height: 34, border: "1px solid rgba(15, 23, 42, 0.10)", borderRadius: 9, background: "#fff", color: "#0d0c0a", padding: "0 8px", fontSize: 12 }}
+              >
+                {KINDS_TO_ADD.filter((kind) => kind !== "group").map((kind) => <option key={kind} value={kind}>{KIND_META[kind].label}</option>)}
+              </select>
+            </label>
+            <label style={{ display: "grid", gap: 4, fontSize: 10, fontWeight: 800, color: "#6b6760", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+              Records
+              <input
+                type="number"
+                min={0}
+                value={Number(details.children_count || 0)}
+                onChange={(event) => onPatch({ data: { ...details, children_count: Number(event.target.value || 0) } })}
+                style={{ height: 34, border: "1px solid rgba(15, 23, 42, 0.10)", borderRadius: 9, background: "#fff", color: "#0d0c0a", padding: "0 8px", fontSize: 12 }}
+              />
+            </label>
           </div>
         )}
 

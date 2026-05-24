@@ -7,7 +7,7 @@ import { storeJsonPayload } from "@/lib/server/payload-storage";
 
 const DEFAULT_ORG_ID = "org_adga_primary";
 
-const NODE_KINDS = ["deal", "contact", "company", "document", "task", "call", "meeting", "action"] as const;
+const NODE_KINDS = ["deal", "group", "contact", "company", "document", "task", "call", "meeting", "action"] as const;
 const NODE_STATUSES = ["neutral", "active", "warning", "overdue", "done"] as const;
 
 async function requireSessionAndMap(request: Request, mapId: string) {

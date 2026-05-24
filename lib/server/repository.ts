@@ -1024,7 +1024,7 @@ export async function listAgentJobs(db?: D1Database) {
 // DealFlow persistence. Database tables still use the legacy map_* names until a safe migration renames them.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type MapNodeKind = "deal" | "contact" | "company" | "document" | "task" | "call" | "meeting" | "action";
+export type MapNodeKind = "deal" | "group" | "contact" | "company" | "document" | "task" | "call" | "meeting" | "action";
 export type MapNodeStatus = "neutral" | "active" | "warning" | "overdue" | "done";
 
 export interface MapRecord {

@@ -225,7 +225,7 @@ function buildSystemPrompt(contextBlock: string): string {
     onMap
       ? "The user is currently looking at dealflow, a canvas of people, files, calls, tasks, and meetings. Reference what is on the canvas. Suggest the next node to add when the next move is obvious."
       : "The user is in the suite workspace (lists, pipeline, inbox). Reference live data, not the canvas.",
-    "When the user implies a structured dealflow mutation (add a contact, link a company, create a task, advance a stage), append a fenced ```json``` code block at the end with shape: {\"actions\":[{\"type\":\"add_node\",\"kind\":\"contact\",\"label\":\"...\",\"sublabel\":\"...\"}]} or {\"type\":\"add_task\",\"label\":\"...\"} etc. Only include the block when an action is actually proposed.",
+    "When the user implies a structured dealflow mutation (add a contact, add a group of contacts/files/tasks, link a company, create a task, advance a stage), append a fenced ```json``` code block at the end with shape: {\"actions\":[{\"type\":\"add_node\",\"kind\":\"contact\",\"label\":\"...\",\"sublabel\":\"...\"}]} or {\"actions\":[{\"type\":\"add_node\",\"kind\":\"group\",\"label\":\"Contacts\",\"sublabel\":\"300 records associated with this deal\",\"data\":{\"child_kind\":\"contact\",\"children_count\":300}}]}. Only include the block when an action is actually proposed.",
     "Keep the visible reply free of JSON. Use plain text with optional **bold** or *italic* for emphasis. Do not use headings or bullet lists unless explicitly asked.",
     "",
     contextBlock,
