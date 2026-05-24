@@ -13,6 +13,7 @@ tsconfig.tsbuildinfo
 .antigravitycli/
 .mcp.json
 .playwright-mcp/
+.playwright-cli/
 audit-*.jpg
 audit-*.png
 # Local dev screenshots / dump artifacts — never tracked

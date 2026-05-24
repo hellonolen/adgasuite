@@ -48,6 +48,21 @@ assertFileIncludes(
   "Checkout provider did not return a usable checkout URL.",
   "checkout must fail closed when provider response is unusable",
 );
+assertFileIncludes(
+  "app/checkout/page.tsx",
+  "/api/billing/stripe/checkout",
+  "checkout page must start the Stripe checkout flow",
+);
+assertFileIncludes(
+  "app/pricing/page.tsx",
+  "/checkout?plan=team",
+  "pricing must route paying customers to the checkout page",
+);
+assertFileIncludes(
+  "lib/integrations/stripe.ts",
+  "/checkout?plan=",
+  "Stripe cancellation must return customers to checkout, not signup",
+);
 
 if (failures.length) {
   console.error("Launch readiness checks failed:");

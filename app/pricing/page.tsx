@@ -145,9 +145,9 @@ export default function PricingPage() {
   const teamShown = isAnnual ? annualize(teamMonthly) : teamMonthly;
   const enterpriseShown = isAnnual ? annualize(enterpriseMonthly) : enterpriseMonthly;
 
-  const proHref = `/signup?plan=pro&cadence=${cadence}`;
-  const teamHref = `/signup?plan=team&seats=${teamSeats}&cadence=${cadence}`;
-  const enterpriseHref = `/signup?plan=enterprise&seats=${enterpriseSeats}&cadence=${cadence}`;
+  const proHref = `/checkout?plan=pro&cadence=${cadence}`;
+  const teamHref = `/checkout?plan=team&seats=${teamSeats}&cadence=${cadence}`;
+  const enterpriseHref = `/checkout?plan=enterprise&seats=${enterpriseSeats}&cadence=${cadence}`;
 
   const toggleBtn = (active: boolean, label: React.ReactNode, onClick: () => void) => (
     <button

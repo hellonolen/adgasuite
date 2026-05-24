@@ -259,12 +259,12 @@ function SignupInner() {
       </aside>
 
       {/* RIGHT — full-height form panel */}
-      <main className="flex flex-col bg-[#f9f7f4] text-[#0d0c0a]">
-        <div className="flex items-center justify-end gap-4 px-8 pt-8 text-sm text-[#6b6760]">
+      <main className="flex flex-col bg-white text-[#12100d]">
+        <div className="flex items-center justify-end gap-4 px-8 pt-8 text-sm text-[#4d4740]">
           <span>Already have an account?</span>
           <a
             href="/login"
-            className="rounded-full border border-[#e8e4de] bg-white px-4 py-1.5 text-[#0d0c0a] transition hover:border-[#5d2cd6] hover:text-[#5d2cd6]"
+            className="rounded-full border border-[#d8d2c8] bg-white px-4 py-1.5 text-[#12100d] transition hover:border-[#5d2cd6] hover:text-[#5d2cd6]"
           >
             Sign in
           </a>
@@ -277,8 +277,8 @@ function SignupInner() {
                 <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">
                   Check your email
                 </div>
-                <h2 className="text-3xl font-semibold tracking-tight">Your account is ready to activate.</h2>
-                <p className="mt-3 text-[15px] text-[#6b6760]">{status.message}</p>
+                <h2 className="text-3xl font-semibold tracking-tight text-[#12100d]">Your account is ready to activate.</h2>
+                <p className="mt-3 text-[15px] text-[#4d4740]">{status.message}</p>
                 <div className="mt-8">
                   <a
                     href="/login"
@@ -293,14 +293,14 @@ function SignupInner() {
                 <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">
                   Create your account
                 </div>
-                <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Get started in 60 seconds.</h1>
-                <p className="mt-3 text-[15px] text-[#6b6760]">
+                <h1 className="text-3xl font-semibold tracking-tight text-[#12100d] sm:text-4xl">Get started in 60 seconds.</h1>
+                <p className="mt-3 text-[15px] text-[#4d4740]">
                   Confirm your plan, add your details, and continue to checkout.
                 </p>
 
                 <form onSubmit={submit} className="mt-8 grid gap-5" noValidate>
                   <div className="grid gap-2">
-                    <label htmlFor="signup-first-name" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6b6760]">
+                    <label htmlFor="signup-first-name" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#4d4740]">
                       First name
                     </label>
                     <input
@@ -313,11 +313,11 @@ function SignupInner() {
                       placeholder="Maren"
                       required
                       disabled={isSubmitting}
-                      className="rounded-lg border border-[#e8e4de] bg-white px-4 py-3 text-[15px] outline-none transition focus:border-[#5d2cd6] focus:ring-2 focus:ring-[#5d2cd6]/15"
+                      className="rounded-lg border border-[#d8d2c8] bg-white px-4 py-3 text-[15px] text-[#12100d] outline-none transition placeholder:text-[#777067] focus:border-[#5d2cd6] focus:ring-2 focus:ring-[#5d2cd6]/15"
                     />
                   </div>
                   <div className="grid gap-2">
-                    <label htmlFor="signup-email" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6b6760]">
+                    <label htmlFor="signup-email" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#4d4740]">
                       Work email
                     </label>
                     <input
@@ -330,13 +330,14 @@ function SignupInner() {
                       placeholder="you@company.com"
                       required
                       disabled={isSubmitting}
-                      className="rounded-lg border border-[#e8e4de] bg-white px-4 py-3 text-[15px] outline-none transition focus:border-[#5d2cd6] focus:ring-2 focus:ring-[#5d2cd6]/15"
+                      className="rounded-lg border border-[#d8d2c8] bg-white px-4 py-3 text-[15px] text-[#12100d] outline-none transition placeholder:text-[#777067] focus:border-[#5d2cd6] focus:ring-2 focus:ring-[#5d2cd6]/15"
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="rounded-full bg-[#5d2cd6] px-5 py-3.5 text-[15px] font-semibold text-white shadow-[0_10px_30px_-12px_rgba(86,36,199,0.6)] transition hover:bg-[#4920b3] disabled:opacity-60"
+                    className="rounded-full bg-[#5d2cd6] px-5 py-3.5 text-[15px] font-semibold text-white shadow-[0_10px_30px_-12px_rgba(86,36,199,0.6)] transition hover:bg-[#4920b3] disabled:opacity-70"
+                    style={{ background: "#5d2cd6", color: "#fff" }}
                   >
                     {status.kind === "submitting" && "Starting checkout…"}
                     {status.kind === "redirecting" && "Redirecting…"}
@@ -349,7 +350,7 @@ function SignupInner() {
                   )}
                 </form>
 
-                <p className="mt-8 text-xs text-[#6b6760]">
+                <p className="mt-8 text-xs text-[#4d4740]">
                   By continuing you agree to ADGA&apos;s{" "}
                   <a className="underline underline-offset-2" href="/policies">policies</a>.
                 </p>
@@ -358,7 +359,7 @@ function SignupInner() {
           </div>
         </div>
 
-        <footer className="px-8 pb-8 text-xs text-[#9b9eb0]">{getCopyright()}</footer>
+        <footer className="px-8 pb-8 text-xs text-[#6d675f]">{getCopyright()}</footer>
       </main>
     </div>
   );
