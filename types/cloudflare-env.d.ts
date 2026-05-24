@@ -18,6 +18,8 @@ declare global {
     size: number;
     uploaded: Date;
     httpEtag: string;
+    text(): Promise<string>;
+    arrayBuffer(): Promise<ArrayBuffer>;
   }
 
   interface R2Bucket {

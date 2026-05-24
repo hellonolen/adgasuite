@@ -3,6 +3,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { deleteMapNode, getMap, updateMapNode } from "@/lib/server/repository";
+import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
 const DEFAULT_ORG_ID = "org_adga_primary";
 
@@ -43,9 +44,37 @@ export async function PATCH(
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) return errorJson("Invalid payload.", 400, parsed.error.flatten());
 
-  const node = await updateMapNode(auth.context.env.DB, id, nodeId, parsed.data);
+  const current = auth.map;
+  void current;
+  const existingRows = auth.context.env.DB
+    ? await auth.context.env.DB.prepare("SELECT * FROM map_nodes WHERE id = ? AND map_id = ? LIMIT 1").bind(nodeId, id).first<Record<string, unknown>>()
+    : null;
+  const existingPayload = await readJsonPayload<Record<string, unknown>>(auth.context.env, String(existingRows?.payload_r2_key || ""));
+  const nextPayload = { ...(existingPayload || existingRows || {}), ...parsed.data, id: nodeId, map_id: id };
+  const stored = auth.context.env.DB
+    ? await storeJsonPayload({
+        env: auth.context.env,
+        db: auth.context.env.DB,
+        organization_id: DEFAULT_ORG_ID,
+        resource_type: "map_node",
+        resource_id: nodeId,
+        payload: nextPayload,
+        created_by: auth.sessionUser?.email || auth.context.user.email || null,
+      })
+    : null;
+  const node = await updateMapNode(auth.context.env.DB, id, nodeId, {
+    ...parsed.data,
+    label: parsed.data.label ? "Node payload in R2" : undefined,
+    sublabel: parsed.data.sublabel === undefined ? undefined : null,
+    data: parsed.data.data ? {} : undefined,
+  });
   if (!node) return errorJson("Node not found.", 404);
-  return json({ ok: true, node });
+  if (auth.context.env.DB && stored) {
+    await auth.context.env.DB.prepare("UPDATE map_nodes SET payload_r2_key = ?, storage_object_id = ? WHERE id = ? AND map_id = ?")
+      .bind(stored.r2_key, stored.storage_object_id, nodeId, id)
+      .run();
+  }
+  return json({ ok: true, node: { ...node, ...nextPayload, payload_r2_key: stored?.r2_key || node.payload_r2_key, storage_object_id: stored?.storage_object_id || node.storage_object_id } });
 }
 
 export async function DELETE(

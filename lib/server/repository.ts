@@ -1033,6 +1033,8 @@ export interface MapRecord {
   name: string;
   deal_id: string | null;
   template: string | null;
+  payload_r2_key: string | null;
+  storage_object_id: string | null;
   created_by_user_id: string | null;
   created_at: string;
   updated_at: string;
@@ -1048,6 +1050,8 @@ export interface MapNodeRecord {
   position_x: number;
   position_y: number;
   data: Record<string, unknown>;
+  payload_r2_key: string | null;
+  storage_object_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -1059,6 +1063,8 @@ export interface MapEdgeRecord {
   target_node_id: string;
   label: string | null;
   style: Record<string, unknown> | null;
+  payload_r2_key: string | null;
+  storage_object_id: string | null;
   created_at: string;
 }
 
@@ -1081,6 +1087,8 @@ function mapMapRow(row: Record<string, unknown>): MapRecord {
     name: String(row.name),
     deal_id: row.deal_id ? String(row.deal_id) : null,
     template: row.template ? String(row.template) : null,
+    payload_r2_key: row.payload_r2_key ? String(row.payload_r2_key) : null,
+    storage_object_id: row.storage_object_id ? String(row.storage_object_id) : null,
     created_by_user_id: row.created_by_user_id ? String(row.created_by_user_id) : null,
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
@@ -1098,6 +1106,8 @@ function mapMapNodeRow(row: Record<string, unknown>): MapNodeRecord {
     position_x: Number(row.position_x || 0),
     position_y: Number(row.position_y || 0),
     data: parseJson(String(row.data_json || "{}"), {} as Record<string, unknown>),
+    payload_r2_key: row.payload_r2_key ? String(row.payload_r2_key) : null,
+    storage_object_id: row.storage_object_id ? String(row.storage_object_id) : null,
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
   };
@@ -1111,6 +1121,8 @@ function mapMapEdgeRow(row: Record<string, unknown>): MapEdgeRecord {
     target_node_id: String(row.target_node_id),
     label: row.label ? String(row.label) : null,
     style: row.style ? parseJson(String(row.style), {} as Record<string, unknown>) : null,
+    payload_r2_key: row.payload_r2_key ? String(row.payload_r2_key) : null,
+    storage_object_id: row.storage_object_id ? String(row.storage_object_id) : null,
     created_at: String(row.created_at),
   };
 }
@@ -1162,6 +1174,8 @@ export async function createMap(
     name: input.name,
     deal_id: input.deal_id || null,
     template: input.template || null,
+    payload_r2_key: null,
+    storage_object_id: null,
     created_by_user_id: input.created_by_user_id || null,
     created_at: timestamp,
     updated_at: timestamp,
@@ -1283,6 +1297,8 @@ export async function createMapNode(
     position_x: input.position_x,
     position_y: input.position_y,
     data: input.data || {},
+    payload_r2_key: null,
+    storage_object_id: null,
     created_at: timestamp,
     updated_at: timestamp,
   };
@@ -1469,6 +1485,8 @@ export async function createMapEdge(
     target_node_id: input.target_node_id,
     label: input.label ?? null,
     style: input.style ?? null,
+    payload_r2_key: null,
+    storage_object_id: null,
     created_at: nowIso(),
   };
 

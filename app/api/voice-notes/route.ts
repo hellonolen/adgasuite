@@ -2,6 +2,7 @@ import { errorJson, json } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
+import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
 const STT_MODEL = "@cf/openai/whisper";
 
@@ -11,10 +12,14 @@ export async function GET(request: Request) {
   if (!context.env.DB) return json({ ok: true, voice_notes: [] });
 
   try {
-    const result = await context.env.DB.prepare(
-      "SELECT * FROM voice_notes WHERE organization_id = ? ORDER BY created_at DESC LIMIT 100",
-    ).bind("org_adga_primary").all();
-    return json({ ok: true, voice_notes: result.results || [] });
+	    const result = await context.env.DB.prepare(
+	      "SELECT * FROM voice_notes WHERE organization_id = ? ORDER BY created_at DESC LIMIT 100",
+	    ).bind("org_adga_primary").all();
+	    const voiceNotes = await Promise.all((result.results || []).map(async (row: Record<string, unknown>) => {
+	      const payload = await readJsonPayload<Record<string, unknown>>(context.env, String(row.payload_r2_key || ""));
+	      return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
+	    }));
+	    return json({ ok: true, voice_notes: voiceNotes });
   } catch {
     return json({ ok: true, voice_notes: [] });
   }
@@ -67,7 +72,7 @@ export async function POST(request: Request) {
     transcriptionStatus = "stored_no_ai_binding";
   }
 
-  const voiceNote = {
+	  const voiceNote = {
     id,
     organization_id: "org_adga_primary",
     owner_user_id: context.user.email,
@@ -84,22 +89,33 @@ export async function POST(request: Request) {
     word_count: wordCount,
     stt_model: STT_MODEL,
     created_at: timestamp,
-    updated_at: timestamp,
-  };
+	    updated_at: timestamp,
+	  };
+	  const stored = context.env.DB
+	    ? await storeJsonPayload({
+	        env: context.env,
+	        db: context.env.DB,
+	        organization_id: voiceNote.organization_id,
+	        resource_type: "voice_note",
+	        resource_id: voiceNote.id,
+	        payload: voiceNote,
+	        created_by: context.user.email,
+	      })
+	    : null;
 
-  if (context.env.DB) try {
-    await context.env.DB.prepare(
-      `INSERT INTO voice_notes
-        (id, organization_id, owner_user_id, title, resource_type, resource_id, r2_key, file_name, mime_type, size_bytes,
-         transcription_status, transcript_text, transcript_vtt, word_count, stt_model, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    )
-      .bind(
-        voiceNote.id, voiceNote.organization_id, voiceNote.owner_user_id, voiceNote.title, voiceNote.resource_type,
-        voiceNote.resource_id, voiceNote.r2_key, voiceNote.file_name, voiceNote.mime_type, voiceNote.size_bytes,
-        voiceNote.transcription_status, voiceNote.transcript_text, voiceNote.transcript_vtt, voiceNote.word_count,
-        voiceNote.stt_model, voiceNote.created_at, voiceNote.updated_at,
-      )
+	  if (context.env.DB) try {
+	    await context.env.DB.prepare(
+	      `INSERT INTO voice_notes
+	        (id, organization_id, owner_user_id, title, resource_type, resource_id, r2_key, file_name, mime_type, size_bytes,
+	         transcription_status, transcript_text, transcript_vtt, word_count, stt_model, payload_r2_key, storage_object_id, created_at, updated_at)
+	       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+	    )
+	      .bind(
+	        voiceNote.id, voiceNote.organization_id, voiceNote.owner_user_id, voiceNote.title, voiceNote.resource_type,
+	        voiceNote.resource_id, voiceNote.r2_key, voiceNote.file_name, voiceNote.mime_type, voiceNote.size_bytes,
+	        voiceNote.transcription_status, null, null, voiceNote.word_count,
+	        voiceNote.stt_model, stored?.r2_key || null, stored?.storage_object_id || null, voiceNote.created_at, voiceNote.updated_at,
+	      )
       .run();
   } catch {}
 
@@ -107,11 +123,11 @@ export async function POST(request: Request) {
     organization_id: voiceNote.organization_id,
     event_type: "voice_note.created",
     actor_type: "user",
-    actor_id: context.user.email,
-    resource_type: "voice_note",
-    resource_id: voiceNote.id,
-    payload: { voice_note: voiceNote },
-  });
+	    actor_id: context.user.email,
+	    resource_type: "voice_note",
+	    resource_id: voiceNote.id,
+	    payload: { voice_note_id: voiceNote.id, payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null },
+	  });
 
   return json({ ok: true, voice_note: voiceNote });
 }

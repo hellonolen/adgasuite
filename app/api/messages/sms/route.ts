@@ -2,6 +2,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
+import { storeJsonPayload } from "@/lib/server/payload-storage";
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);
@@ -82,15 +83,30 @@ export async function POST(request: Request) {
     created_at: timestamp,
     updated_at: timestamp,
   };
+  const stored = context.env.DB
+    ? await storeJsonPayload({
+        env: context.env,
+        db: context.env.DB,
+        organization_id: sms.organization_id,
+        resource_type: "sms",
+        resource_id: sms.id,
+        payload: sms,
+        created_by: context.user.email,
+      })
+    : null;
 
   if (context.env.DB) try {
     await context.env.DB.prepare(
       `INSERT INTO sms_messages
-        (id, organization_id, provider, direction, to_number, body, status, provider_message_id, provider_response,
+        (id, organization_id, provider, direction, to_number, body, status, provider_message_id, provider_response, payload_r2_key, storage_object_id,
          resource_type, resource_id, created_by, sent_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-      .bind(sms.id, sms.organization_id, sms.provider, sms.direction, sms.to_number, sms.body, sms.status, sms.provider_message_id, sms.provider_response, sms.resource_type, sms.resource_id, sms.created_by, sms.sent_at, sms.created_at, sms.updated_at)
+      .bind(
+        sms.id, sms.organization_id, sms.provider, sms.direction, "sms-recipient-in-r2", "SMS payload in R2",
+        sms.status, sms.provider_message_id, null, stored?.r2_key || null, stored?.storage_object_id || null,
+        sms.resource_type, sms.resource_id, sms.created_by, sms.sent_at, sms.created_at, sms.updated_at,
+      )
       .run();
   } catch {}
 
@@ -101,7 +117,7 @@ export async function POST(request: Request) {
     actor_id: context.user.email,
     resource_type: "sms",
     resource_id: sms.id,
-    payload: { sms },
+    payload: { sms_id: sms.id, payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null, status },
   });
 
   return json({ ok: status === "sent", sms }, { status: status === "failed" ? 502 : 200 });

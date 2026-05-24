@@ -3,6 +3,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { createMapEdge, deleteMapEdge, getMap } from "@/lib/server/repository";
+import { storeJsonPayload } from "@/lib/server/payload-storage";
 
 const DEFAULT_ORG_ID = "org_adga_primary";
 
@@ -39,8 +40,31 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return errorJson("source_node_id and target_node_id must differ.", 400);
   }
 
-  const edge = await createMapEdge(auth.context.env.DB, id, parsed.data);
-  return json({ ok: true, edge }, { status: 201 });
+  const edge = await createMapEdge(auth.context.env.DB, id, {
+    id: parsed.data.id,
+    source_node_id: parsed.data.source_node_id,
+    target_node_id: parsed.data.target_node_id,
+    label: null,
+    style: null,
+  });
+  const payload = { ...edge, label: parsed.data.label ?? null, style: parsed.data.style ?? null };
+  const stored = auth.context.env.DB
+    ? await storeJsonPayload({
+        env: auth.context.env,
+        db: auth.context.env.DB,
+        organization_id: DEFAULT_ORG_ID,
+        resource_type: "map_edge",
+        resource_id: edge.id,
+        payload,
+        created_by: auth.sessionUser?.email || auth.context.user.email || null,
+      })
+    : null;
+  if (auth.context.env.DB && stored) {
+    await auth.context.env.DB.prepare("UPDATE map_edges SET payload_r2_key = ?, storage_object_id = ? WHERE id = ? AND map_id = ?")
+      .bind(stored.r2_key, stored.storage_object_id, edge.id, id)
+      .run();
+  }
+  return json({ ok: true, edge: { ...edge, ...payload, payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null } }, { status: 201 });
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {

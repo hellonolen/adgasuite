@@ -4,6 +4,7 @@ import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { newId, nowIso } from "@/lib/server/id";
 import { createEvent } from "@/lib/server/repository";
+import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
 const ORG_ID = "org_adga_primary";
 
@@ -80,7 +81,7 @@ export async function GET(request: Request) {
           `SELECT id, full_name, first_name, last_name, email, phone, company, title,
                   industry, city, state_region, country, status, owner_user_id,
                   linkedin_url, x_url, instagram_url, facebook_url,
-                  last_contacted_at, received_at, created_at, updated_at
+                  payload_r2_key, storage_object_id, last_contacted_at, received_at, created_at, updated_at
            FROM contacts
            WHERE ${where}
            ORDER BY COALESCE(updated_at, created_at) DESC
@@ -113,9 +114,14 @@ export async function GET(request: Request) {
         .filter((item) => item.length > 0)
         .sort();
 
+    const contacts = await Promise.all((rows.results || []).map(async (row) => {
+      const payload = await readJsonPayload<Record<string, unknown>>(context.env, String(row.payload_r2_key || ""));
+      return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
+    }));
+
     return json({
       ok: true,
-      contacts: rows.results || [],
+      contacts,
       total: Number(totalRow?.total || 0),
       limit,
       offset,
@@ -148,30 +154,53 @@ export async function POST(request: Request) {
   const id = newId("con");
   const timestamp = nowIso();
   const fullName = `${data.first_name} ${data.last_name}`.trim();
+  const payload = {
+    id,
+    organization_id: ORG_ID,
+    ...data,
+    full_name: fullName,
+    owner_user_id: user.email,
+    status: data.status || "lead",
+    received_at: timestamp,
+    created_at: timestamp,
+    updated_at: timestamp,
+  };
 
   try {
+    const stored = await storeJsonPayload({
+      env: context.env,
+      db,
+      organization_id: ORG_ID,
+      resource_type: "contact",
+      resource_id: id,
+      payload,
+      created_by: user.email,
+    });
+
     await db
       .prepare(
         `INSERT INTO contacts
           (id, organization_id, first_name, last_name, full_name, email, phone, company, title,
-           linkedin_url, role_authority, source, owner_user_id, status, received_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           linkedin_url, role_authority, source, owner_user_id, status, payload_r2_key, storage_object_id, received_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         id,
         ORG_ID,
-        data.first_name,
-        data.last_name,
-        fullName,
-        data.email || null,
-        data.phone || null,
-        data.company || null,
-        data.title || null,
-        data.linkedin_url || null,
-        data.role_authority || null,
-        data.source || null,
+        "Contact",
+        id.slice(-8),
+        `Contact ${id.slice(-8)}`,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        data.source || "manual",
         user.email,
         data.status || "lead",
+        stored.r2_key,
+        stored.storage_object_id,
         timestamp,
         timestamp,
         timestamp,
@@ -185,7 +214,7 @@ export async function POST(request: Request) {
       actor_id: user.email,
       resource_type: "contact",
       resource_id: id,
-      payload: { full_name: fullName, company: data.company || null, source: data.source || null },
+      payload: { contact_id: id, payload_r2_key: stored.r2_key, storage_object_id: stored.storage_object_id, source: data.source || null },
     });
 
     return json({ ok: true, contact: { id, full_name: fullName } });

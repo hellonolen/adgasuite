@@ -2,6 +2,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { createAgentJob, createEvent } from "@/lib/server/repository";
 import { newId, nowIso } from "@/lib/server/id";
 import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
+import { storeJsonPayload, type StoredJsonPayload } from "@/lib/server/payload-storage";
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
@@ -53,6 +54,7 @@ export async function POST(request: Request) {
   const timestamp = nowIso();
   const org = "org_adga_primary";
   let record: Record<string, unknown>;
+  let stored: StoredJsonPayload | null = null;
   const followUpDueAt = body.follow_up_due_at || body.due_at || null;
   const urgency = body.urgency || (followUpDueAt ? "Scheduled" : "Normal");
   const priority = body.priority || (urgency === "Immediate" ? "high" : "medium");
@@ -119,6 +121,17 @@ export async function POST(request: Request) {
       created_at: timestamp,
       updated_at: timestamp,
     };
+    stored = context.env.DB
+      ? await storeJsonPayload({
+          env: context.env,
+          db: context.env.DB,
+          organization_id: org,
+          resource_type: "lead",
+          resource_id: String(record.id),
+          payload: record,
+          created_by: context.user.email,
+        })
+      : null;
     if (context.env.DB) try {
       await context.env.DB.prepare(
         `INSERT INTO leads
@@ -127,19 +140,19 @@ export async function POST(request: Request) {
            city, state_region, country, timezone, business_state, need_summary, source, qr_source, referral_source, status, score,
            urgency, urgency_reason, priority, estimated_value_cents, deal_type, stage, owner_user_id, next_action, follow_up_due_at,
            follow_up_sequence, follow_up_status, next_scheduled_follow_up_at, notes, document_links_json, tags_json, agent_summary,
-           agent_next_move, activity_history_json, received_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           agent_next_move, activity_history_json, payload_r2_key, storage_object_id, received_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
         .bind(
-          record.id, org, record.full_name, record.email, record.company, record.job_title, record.phone, record.website,
-          record.preferred_contact_method, record.best_time_to_contact, record.social_profiles_json, record.linkedin_url,
-          record.business_phone, record.business_email, record.industry, record.business_type, record.company_size,
-          record.revenue_range, record.city, record.state_region, record.country, record.timezone, record.business_state,
-          record.need_summary, record.source, record.qr_source, record.referral_source, record.status, record.score,
+          record.id, org, `Lead ${String(record.id).slice(-8)}`, `lead-${record.id}@metadata.adga.internal`, "Lead payload in R2", null, null, null,
+          null, null, "{}", null,
+          null, null, null, null, null,
+          null, null, null, null, null, null,
+          null, record.source, record.qr_source, record.referral_source, record.status, record.score,
           record.urgency, record.urgency_reason, record.priority, record.estimated_value_cents, record.deal_type, record.stage,
           record.owner_user_id, record.next_action, record.follow_up_due_at, record.follow_up_sequence, record.follow_up_status,
-          record.next_scheduled_follow_up_at, record.notes, record.document_links_json, record.tags_json, record.agent_summary,
-          record.agent_next_move, record.activity_history_json, record.received_at, timestamp, timestamp,
+          record.next_scheduled_follow_up_at, null, "[]", record.tags_json, null,
+          null, "[]", stored?.r2_key || null, stored?.storage_object_id || null, record.received_at, timestamp, timestamp,
         )
         .run();
     } catch {}
@@ -156,13 +169,24 @@ export async function POST(request: Request) {
       created_at: timestamp,
       updated_at: timestamp,
     };
+    stored = context.env.DB
+      ? await storeJsonPayload({
+          env: context.env,
+          db: context.env.DB,
+          organization_id: org,
+          resource_type: "deal",
+          resource_id: String(record.id),
+          payload: record,
+          created_by: context.user.email,
+        })
+      : null;
     if (context.env.DB) try {
       await context.env.DB.prepare(
         `INSERT INTO deals
-          (id, organization_id, contact_id, name, company, value_cents, stage, probability, expected_close_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, organization_id, contact_id, name, company, value_cents, stage, probability, expected_close_at, payload_r2_key, storage_object_id, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-        .bind(record.id, org, null, record.name, record.company, record.value_cents, "Prospect", 10, record.expected_close_at, timestamp, timestamp)
+        .bind(record.id, org, null, `Deal ${String(record.id).slice(-8)}`, null, record.value_cents, "Prospect", 10, record.expected_close_at, stored?.r2_key || null, stored?.storage_object_id || null, timestamp, timestamp)
         .run();
     } catch {}
   } else {
@@ -177,13 +201,24 @@ export async function POST(request: Request) {
       created_at: timestamp,
       updated_at: timestamp,
     };
+    stored = context.env.DB
+      ? await storeJsonPayload({
+          env: context.env,
+          db: context.env.DB,
+          organization_id: org,
+          resource_type: "task",
+          resource_id: String(record.id),
+          payload: record,
+          created_by: context.user.email,
+        })
+      : null;
     if (context.env.DB) try {
       await context.env.DB.prepare(
         `INSERT INTO tasks
-          (id, organization_id, contact_id, deal_id, title, type, priority, status, due_at, assigned_user_id, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, organization_id, contact_id, deal_id, title, type, priority, status, due_at, assigned_user_id, payload_r2_key, storage_object_id, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-        .bind(record.id, org, null, null, record.title, "task", record.priority, "pending", record.due_at, null, timestamp, timestamp)
+        .bind(record.id, org, null, null, `Task ${String(record.id).slice(-8)}`, "task", record.priority, "pending", record.due_at, null, stored?.r2_key || null, stored?.storage_object_id || null, timestamp, timestamp)
         .run();
     } catch {}
   }
@@ -195,13 +230,13 @@ export async function POST(request: Request) {
     actor_id: context.user.email,
     resource_type: body.type,
     resource_id: String(record.id),
-    payload: { record, notes: body.notes || "" },
+    payload: { resource_id: String(record.id), payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null },
   });
 
   const job = await createAgentJob(context.env.DB, {
     agent: body.type === "task" ? "operations" : "sales",
     job_type: `${body.type}.created.review`,
-    input: { record, requested_by: context.user.email },
+    input: { resource_type: body.type, resource_id: String(record.id), payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null, requested_by: context.user.email },
   });
 
   return json({ ok: true, record, event, job });

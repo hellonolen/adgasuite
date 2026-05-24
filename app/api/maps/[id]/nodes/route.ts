@@ -3,6 +3,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { bulkUpdateMapNodePositions, createMapNode, getMap } from "@/lib/server/repository";
+import { storeJsonPayload } from "@/lib/server/payload-storage";
 
 const DEFAULT_ORG_ID = "org_adga_primary";
 
@@ -44,15 +45,32 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const node = await createMapNode(auth.context.env.DB, id, {
     id: parsed.data.id,
     kind: parsed.data.kind,
-    label: parsed.data.label,
-    sublabel: parsed.data.sublabel ?? null,
+    label: "Node payload in R2",
+    sublabel: null,
     status: parsed.data.status ?? null,
     position_x: parsed.data.position_x,
     position_y: parsed.data.position_y,
-    data: parsed.data.data,
+    data: {},
   });
+  const payload = { ...node, label: parsed.data.label, sublabel: parsed.data.sublabel ?? null, data: parsed.data.data || {} };
+  const stored = auth.context.env.DB
+    ? await storeJsonPayload({
+        env: auth.context.env,
+        db: auth.context.env.DB,
+        organization_id: DEFAULT_ORG_ID,
+        resource_type: "map_node",
+        resource_id: node.id,
+        payload,
+        created_by: auth.sessionUser?.email || auth.context.user.email || null,
+      })
+    : null;
+  if (auth.context.env.DB && stored) {
+    await auth.context.env.DB.prepare("UPDATE map_nodes SET payload_r2_key = ?, storage_object_id = ? WHERE id = ? AND map_id = ?")
+      .bind(stored.r2_key, stored.storage_object_id, node.id, id)
+      .run();
+  }
 
-  return json({ ok: true, node }, { status: 201 });
+  return json({ ok: true, node: { ...node, ...payload, payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null } }, { status: 201 });
 }
 
 const bulkPositionsSchema = z.object({

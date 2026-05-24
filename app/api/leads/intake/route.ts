@@ -3,6 +3,7 @@ import { createAgentJob } from "@/lib/server/repository";
 import { publish } from "@/lib/events/bus";
 import { newId, nowIso } from "@/lib/server/id";
 import { getRuntimeContext } from "@/lib/server/runtime";
+import { storeJsonPayload } from "@/lib/server/payload-storage";
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
@@ -64,6 +65,17 @@ export async function POST(request: Request) {
     created_at: timestamp,
     updated_at: timestamp,
   };
+  const stored = context.env.DB
+    ? await storeJsonPayload({
+        env: context.env,
+        db: context.env.DB,
+        organization_id: org,
+        resource_type: "lead",
+        resource_id: record.id,
+        payload: record,
+        created_by: "public-intake",
+      })
+    : null;
 
   if (context.env.DB) try {
     await context.env.DB.prepare(
@@ -72,17 +84,17 @@ export async function POST(request: Request) {
          social_profiles_json, linkedin_url, industry, business_type, city, state_region, country, business_state, need_summary,
          source, qr_source, referral_source, status, score, urgency, priority, estimated_value_cents, stage, next_action,
          follow_up_due_at, follow_up_sequence, follow_up_status, next_scheduled_follow_up_at, notes, document_links_json,
-         tags_json, agent_summary, agent_next_move, activity_history_json, received_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         tags_json, agent_summary, agent_next_move, activity_history_json, payload_r2_key, storage_object_id, received_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
-        record.id, org, record.full_name, record.email, record.company, record.job_title, record.phone, record.website,
-        record.preferred_contact_method, record.best_time_to_contact, record.social_profiles_json, record.linkedin_url,
-        record.industry, record.business_type, record.city, record.state_region, record.country, record.business_state,
-        record.need_summary, record.source, record.qr_source, record.referral_source, record.status, record.score,
+        record.id, org, `Lead ${record.id.slice(-8)}`, `lead-${record.id}@metadata.adga.internal`, "Lead payload in R2", null, null, null,
+        null, null, "{}", null,
+        null, null, null, null, null, null,
+        null, record.source, record.qr_source, record.referral_source, record.status, record.score,
         record.urgency, record.priority, record.estimated_value_cents, record.stage, record.next_action, record.follow_up_due_at,
-        record.follow_up_sequence, record.follow_up_status, record.next_scheduled_follow_up_at, record.notes,
-        record.document_links_json, record.tags_json, record.agent_summary, record.agent_next_move, record.activity_history_json,
+        record.follow_up_sequence, record.follow_up_status, record.next_scheduled_follow_up_at, null,
+        "[]", record.tags_json, null, null, "[]", stored?.r2_key || null, stored?.storage_object_id || null,
         record.received_at, timestamp, timestamp,
       )
       .run();
@@ -95,13 +107,13 @@ export async function POST(request: Request) {
     actor_id: "public-intake",
     resource_type: "lead",
     resource_id: record.id,
-    payload: { lead_id: record.id, source: "public-intake", record },
+    payload: { lead_id: record.id, source: "public-intake", payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null },
   });
 
   await createAgentJob(context.env.DB, {
     agent: "sales",
     job_type: "lead.intake.review",
-    input: { record },
+    input: { lead_id: record.id, payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null },
   });
 
   return json({ ok: true, record });

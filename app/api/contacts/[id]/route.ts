@@ -4,6 +4,7 @@ import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { nowIso } from "@/lib/server/id";
 import { createEvent } from "@/lib/server/repository";
+import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
 const ORG_ID = "org_adga_primary";
 
@@ -51,6 +52,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       .bind(id, ORG_ID)
       .first<Record<string, unknown>>();
     if (!contact) return errorJson("Not found", 404);
+    const payload = await readJsonPayload<Record<string, unknown>>(context.env, String(contact.payload_r2_key || ""));
+    const mergedContact = payload ? { ...contact, ...payload, id: contact.id, organization_id: contact.organization_id } : contact;
 
     const events = await db
       .prepare(
@@ -63,7 +66,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       .bind(id)
       .all<Record<string, unknown>>();
 
-    return json({ ok: true, contact, events: events.results || [] });
+    return json({ ok: true, contact: mergedContact, events: events.results || [] });
   } catch (error) {
     return errorJson(error instanceof Error ? error.message : "Failed to load contact", 500);
   }
@@ -83,37 +86,50 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return errorJson("Validation failed", 400, parsed.error.flatten());
   }
 
-  const fields: string[] = [];
-  const binds: (string | null)[] = [];
-  for (const [key, value] of Object.entries(parsed.data)) {
-    if (value === undefined) continue;
-    fields.push(`${key} = ?`);
-    binds.push(value === "" ? null : (value as string | null));
-  }
-
-  if (!fields.length) return errorJson("No changes provided", 400);
-
-  if (parsed.data.first_name || parsed.data.last_name) {
-    const existing = await db
-      .prepare("SELECT first_name, last_name FROM contacts WHERE id = ? AND organization_id = ?")
-      .bind(id, ORG_ID)
-      .first<{ first_name: string; last_name: string }>();
-    if (existing) {
-      const first = parsed.data.first_name ?? existing.first_name;
-      const last = parsed.data.last_name ?? existing.last_name;
-      fields.push("full_name = ?");
-      binds.push(`${first} ${last}`.trim());
-    }
-  }
+  if (!Object.keys(parsed.data).length) return errorJson("No changes provided", 400);
 
   const timestamp = nowIso();
-  fields.push("updated_at = ?");
-  binds.push(timestamp);
 
   try {
+    const existing = await db
+      .prepare("SELECT * FROM contacts WHERE id = ? AND organization_id = ? LIMIT 1")
+      .bind(id, ORG_ID)
+      .first<Record<string, unknown>>();
+    if (!existing) return errorJson("Not found", 404);
+    const existingPayload = await readJsonPayload<Record<string, unknown>>(context.env, String(existing.payload_r2_key || ""));
+    const nextPayload = {
+      ...(existingPayload || existing),
+      ...parsed.data,
+      id,
+      organization_id: ORG_ID,
+      full_name: `${parsed.data.first_name ?? existingPayload?.first_name ?? existing.first_name ?? ""} ${parsed.data.last_name ?? existingPayload?.last_name ?? existing.last_name ?? ""}`.trim(),
+      updated_at: timestamp,
+    };
+    const stored = await storeJsonPayload({
+      env: context.env,
+      db,
+      organization_id: ORG_ID,
+      resource_type: "contact",
+      resource_id: id,
+      payload: nextPayload,
+      created_by: user.email,
+    });
+
     const result = await db
-      .prepare(`UPDATE contacts SET ${fields.join(", ")} WHERE id = ? AND organization_id = ?`)
-      .bind(...binds, id, ORG_ID)
+      .prepare(
+        `UPDATE contacts
+         SET status = ?, source = ?, payload_r2_key = ?, storage_object_id = ?, updated_at = ?
+         WHERE id = ? AND organization_id = ?`,
+      )
+      .bind(
+        parsed.data.status || existing.status || "lead",
+        parsed.data.source || existing.source || null,
+        stored.r2_key,
+        stored.storage_object_id,
+        timestamp,
+        id,
+        ORG_ID,
+      )
       .run();
 
     if (!result.success) return errorJson("Update failed", 500);
@@ -125,7 +141,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       actor_id: user.email,
       resource_type: "contact",
       resource_id: id,
-      payload: { fields: Object.keys(parsed.data) },
+      payload: { contact_id: id, fields: Object.keys(parsed.data), payload_r2_key: stored.r2_key, storage_object_id: stored.storage_object_id },
     });
 
     const contact = await db
@@ -133,7 +149,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       .bind(id)
       .first<Record<string, unknown>>();
 
-    return json({ ok: true, contact });
+    return json({ ok: true, contact: { ...contact, ...nextPayload, id } });
   } catch (error) {
     return errorJson(error instanceof Error ? error.message : "Failed to update contact", 500);
   }

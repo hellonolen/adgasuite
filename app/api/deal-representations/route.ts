@@ -2,6 +2,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
+import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
 type RepresentationBody = {
   deal_id?: string;
@@ -30,7 +31,11 @@ export async function GET(request: Request) {
     const result = dealId
       ? await statement.bind("org_adga_primary", dealId).all()
       : await statement.bind("org_adga_primary").all();
-    return json({ ok: true, representations: result.results || [] });
+    const representations = await Promise.all((result.results || []).map(async (row: Record<string, unknown>) => {
+      const payload = await readJsonPayload<Record<string, unknown>>(context.env, String(row.payload_r2_key || ""));
+      return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
+    }));
+    return json({ ok: true, representations });
   } catch {
     return json({ ok: true, representations: [] });
   }
@@ -60,19 +65,30 @@ export async function POST(request: Request) {
     created_at: timestamp,
     updated_at: timestamp,
   };
+  const stored = context.env.DB
+    ? await storeJsonPayload({
+        env: context.env,
+        db: context.env.DB,
+        organization_id: representation.organization_id,
+        resource_type: "deal_representation",
+        resource_id: representation.id,
+        payload: representation,
+        created_by: context.user.email,
+      })
+    : null;
 
   if (context.env.DB) {
     try {
       await context.env.DB.prepare(
         `INSERT INTO deal_representations
-          (id, organization_id, deal_id, client_name, client_company, client_email, client_phone, relationship_type, portal_status, access_level, created_by, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, organization_id, deal_id, client_name, client_company, client_email, client_phone, relationship_type, portal_status, access_level, created_by, payload_r2_key, storage_object_id, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
         .bind(
-          representation.id, representation.organization_id, representation.deal_id, representation.client_name,
-          representation.client_company, representation.client_email, representation.client_phone,
+          representation.id, representation.organization_id, representation.deal_id, `Representation ${representation.id.slice(-8)}`,
+          null, null, null,
           representation.relationship_type, representation.portal_status, representation.access_level,
-          representation.created_by, representation.created_at, representation.updated_at,
+          representation.created_by, stored?.r2_key || null, stored?.storage_object_id || null, representation.created_at, representation.updated_at,
         )
         .run();
     } catch {}
@@ -85,7 +101,7 @@ export async function POST(request: Request) {
     actor_id: context.user.email,
     resource_type: "deal",
     resource_id: representation.deal_id,
-    payload: { representation },
+    payload: { representation_id: representation.id, payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null },
   });
 
   return json({ ok: true, representation });

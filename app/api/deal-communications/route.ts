@@ -2,6 +2,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
+import { storeJsonPayload } from "@/lib/server/payload-storage";
 
 type CommunicationBody = {
   deal_id?: string;
@@ -72,6 +73,17 @@ export async function POST(request: Request) {
     created_by: context.user.email,
     created_at: timestamp,
   };
+  const stored = context.env.DB
+    ? await storeJsonPayload({
+        env: context.env,
+        db: context.env.DB,
+        organization_id: message.organization_id,
+        resource_type: "communication_message",
+        resource_id: message.id,
+        payload: message,
+        created_by: context.user.email,
+      })
+    : null;
 
   if (context.env.DB) {
     try {
@@ -85,12 +97,12 @@ export async function POST(request: Request) {
 
       await context.env.DB.prepare(
         `INSERT INTO communication_messages
-          (id, thread_id, organization_id, resource_type, resource_id, audience, channel, body, voice_note_id, sms_message_id, email_event_id, visibility, created_by, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, thread_id, organization_id, resource_type, resource_id, audience, channel, body, payload_r2_key, storage_object_id, voice_note_id, sms_message_id, email_event_id, visibility, created_by, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
         .bind(
           message.id, message.thread_id, message.organization_id, message.resource_type, message.resource_id,
-          message.audience, message.channel, message.body, message.voice_note_id, message.sms_message_id,
+          message.audience, message.channel, "Communication payload in R2", stored?.r2_key || null, stored?.storage_object_id || null, message.voice_note_id, message.sms_message_id,
           message.email_event_id, message.visibility, message.created_by, message.created_at,
         )
         .run();
@@ -104,7 +116,7 @@ export async function POST(request: Request) {
     actor_id: context.user.email,
     resource_type: message.resource_type,
     resource_id: message.resource_id,
-    payload: { message },
+    payload: { message_id: message.id, payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null },
   });
 
   return json({ ok: true, message });

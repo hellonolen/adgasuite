@@ -109,6 +109,8 @@ CREATE TABLE IF NOT EXISTS client_invoices (
   document_links_json TEXT NOT NULL DEFAULT '[]',
   r2_key TEXT,
   activity_history_json TEXT NOT NULL DEFAULT '[]',
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
@@ -119,6 +121,7 @@ CREATE INDEX IF NOT EXISTS idx_affiliates_org_status ON affiliates (organization
 CREATE INDEX IF NOT EXISTS idx_affiliate_events_code ON affiliate_events (organization_id, referral_code, created_at);
 CREATE INDEX IF NOT EXISTS idx_client_invoices_org_status ON client_invoices (organization_id, status, created_at);
 CREATE INDEX IF NOT EXISTS idx_client_invoices_owner ON client_invoices (organization_id, owner_user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_client_invoices_payload_storage ON client_invoices (organization_id, storage_object_id);
 
 CREATE TABLE IF NOT EXISTS partner_referral_leads (
   id TEXT PRIMARY KEY,
@@ -237,6 +240,8 @@ CREATE TABLE IF NOT EXISTS voice_notes (
   word_count INTEGER,
   stt_model TEXT NOT NULL DEFAULT '@cf/openai/whisper',
   agent_summary TEXT,
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
@@ -254,6 +259,8 @@ CREATE TABLE IF NOT EXISTS sms_messages (
   status TEXT NOT NULL DEFAULT 'queued',
   provider_message_id TEXT,
   provider_response TEXT,
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
   resource_type TEXT,
   resource_id TEXT,
   created_by TEXT,
@@ -265,8 +272,10 @@ CREATE TABLE IF NOT EXISTS sms_messages (
 
 CREATE INDEX IF NOT EXISTS idx_voice_notes_org_created ON voice_notes (organization_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_voice_notes_resource ON voice_notes (resource_type, resource_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_voice_notes_payload_storage ON voice_notes (organization_id, storage_object_id);
 CREATE INDEX IF NOT EXISTS idx_sms_messages_org_created ON sms_messages (organization_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sms_messages_resource ON sms_messages (resource_type, resource_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_sms_messages_payload_storage ON sms_messages (organization_id, storage_object_id);
 
 CREATE TABLE IF NOT EXISTS email_events (
   id TEXT PRIMARY KEY,
@@ -375,6 +384,8 @@ CREATE TABLE IF NOT EXISTS leads (
   agent_summary TEXT,
   agent_next_move TEXT,
   activity_history_json TEXT,
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
   received_at TEXT,
   last_contacted_at TEXT,
   assigned_at TEXT,
@@ -391,6 +402,7 @@ CREATE INDEX IF NOT EXISTS idx_leads_org_received ON leads (organization_id, rec
 CREATE INDEX IF NOT EXISTS idx_leads_org_followup ON leads (organization_id, follow_up_due_at);
 CREATE INDEX IF NOT EXISTS idx_leads_org_urgency ON leads (organization_id, urgency);
 CREATE INDEX IF NOT EXISTS idx_leads_org_source ON leads (organization_id, source);
+CREATE INDEX IF NOT EXISTS idx_leads_payload_storage ON leads (organization_id, storage_object_id);
 
 CREATE TABLE IF NOT EXISTS contacts (
   id TEXT PRIMARY KEY,
@@ -442,6 +454,8 @@ CREATE TABLE IF NOT EXISTS contacts (
   agent_summary TEXT,
   agent_next_move TEXT,
   activity_history_json TEXT,
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
   archived_at TEXT,
   status TEXT NOT NULL DEFAULT 'lead',
   created_at TEXT NOT NULL,
@@ -449,6 +463,7 @@ CREATE TABLE IF NOT EXISTS contacts (
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_contacts_org_email ON contacts (organization_id, email);
+CREATE INDEX IF NOT EXISTS idx_contacts_payload_storage ON contacts (organization_id, storage_object_id);
 
 CREATE TABLE IF NOT EXISTS deals (
   id TEXT PRIMARY KEY,
@@ -460,6 +475,8 @@ CREATE TABLE IF NOT EXISTS deals (
   stage TEXT NOT NULL DEFAULT 'Prospect',
   probability INTEGER NOT NULL DEFAULT 0,
   expected_close_at TEXT,
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
@@ -467,6 +484,57 @@ CREATE TABLE IF NOT EXISTS deals (
 );
 
 CREATE INDEX IF NOT EXISTS idx_deals_org_stage ON deals (organization_id, stage);
+CREATE INDEX IF NOT EXISTS idx_deals_payload_storage ON deals (organization_id, storage_object_id);
+
+CREATE TABLE IF NOT EXISTS maps (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  deal_id TEXT,
+  template TEXT,
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
+  created_by_user_id TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_maps_org ON maps(organization_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_maps_deal ON maps(deal_id);
+CREATE INDEX IF NOT EXISTS idx_maps_payload_storage ON maps (organization_id, storage_object_id);
+
+CREATE TABLE IF NOT EXISTS map_nodes (
+  id TEXT PRIMARY KEY,
+  map_id TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  label TEXT NOT NULL,
+  sublabel TEXT,
+  status TEXT,
+  position_x REAL NOT NULL,
+  position_y REAL NOT NULL,
+  data_json TEXT,
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_map_nodes_map ON map_nodes(map_id);
+CREATE INDEX IF NOT EXISTS idx_map_nodes_payload_storage ON map_nodes (map_id, storage_object_id);
+
+CREATE TABLE IF NOT EXISTS map_edges (
+  id TEXT PRIMARY KEY,
+  map_id TEXT NOT NULL,
+  source_node_id TEXT NOT NULL,
+  target_node_id TEXT NOT NULL,
+  label TEXT,
+  style TEXT,
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_map_edges_map ON map_edges(map_id);
+CREATE INDEX IF NOT EXISTS idx_map_edges_payload_storage ON map_edges (map_id, storage_object_id);
 
 CREATE TABLE IF NOT EXISTS deal_representations (
   id TEXT PRIMARY KEY,
@@ -480,6 +548,8 @@ CREATE TABLE IF NOT EXISTS deal_representations (
   portal_status TEXT NOT NULL DEFAULT 'prepared',
   access_level TEXT NOT NULL DEFAULT 'deal_status_documents_meetings_updates',
   created_by TEXT,
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
@@ -510,6 +580,8 @@ CREATE TABLE IF NOT EXISTS communication_messages (
   audience TEXT NOT NULL DEFAULT 'internal',
   channel TEXT NOT NULL DEFAULT 'note',
   body TEXT NOT NULL,
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
   voice_note_id TEXT,
   sms_message_id TEXT,
   email_event_id TEXT,
@@ -521,9 +593,11 @@ CREATE TABLE IF NOT EXISTS communication_messages (
 );
 
 CREATE INDEX IF NOT EXISTS idx_deal_representations_deal ON deal_representations (organization_id, deal_id);
+CREATE INDEX IF NOT EXISTS idx_deal_representations_payload_storage ON deal_representations (organization_id, storage_object_id);
 CREATE INDEX IF NOT EXISTS idx_communication_threads_resource ON communication_threads (organization_id, resource_type, resource_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_communication_messages_resource ON communication_messages (organization_id, resource_type, resource_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_communication_messages_audience ON communication_messages (organization_id, audience, created_at);
+CREATE INDEX IF NOT EXISTS idx_communication_messages_payload_storage ON communication_messages (organization_id, storage_object_id);
 
 CREATE TABLE IF NOT EXISTS tasks (
   id TEXT PRIMARY KEY,
@@ -536,6 +610,8 @@ CREATE TABLE IF NOT EXISTS tasks (
   status TEXT NOT NULL DEFAULT 'pending',
   due_at TEXT,
   assigned_user_id TEXT,
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
@@ -543,6 +619,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   FOREIGN KEY (deal_id) REFERENCES deals(id) ON DELETE SET NULL,
   FOREIGN KEY (assigned_user_id) REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX IF NOT EXISTS idx_tasks_payload_storage ON tasks (organization_id, storage_object_id);
 
 CREATE TABLE IF NOT EXISTS knowledge_workspaces (
   id TEXT PRIMARY KEY,

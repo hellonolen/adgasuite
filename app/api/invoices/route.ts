@@ -2,6 +2,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { newId, nowIso } from "@/lib/server/id";
 import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
+import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
 const MAX_PLATFORM_FEE_BPS = 500;
 
@@ -14,7 +15,11 @@ export async function GET(request: Request) {
     const result = await context.env.DB.prepare(
       "SELECT * FROM client_invoices WHERE organization_id = ? ORDER BY created_at DESC LIMIT 250",
     ).bind("org_adga_primary").all();
-    return json({ ok: true, invoices: result.results || [] });
+    const invoices = await Promise.all((result.results || []).map(async (row: Record<string, unknown>) => {
+      const payload = await readJsonPayload<Record<string, unknown>>(context.env, String(row.payload_r2_key || ""));
+      return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
+    }));
+    return json({ ok: true, invoices });
   } catch {
     return json({ ok: true, invoices: [] });
   }
@@ -75,6 +80,17 @@ export async function POST(request: Request) {
     created_at: timestamp,
     updated_at: timestamp,
   };
+  const stored = context.env.DB
+    ? await storeJsonPayload({
+        env: context.env,
+        db: context.env.DB,
+        organization_id: invoice.organization_id,
+        resource_type: "client_invoice",
+        resource_id: invoice.id,
+        payload: invoice,
+        created_by: context.user.email,
+      })
+    : null;
 
   if (context.env.DB) try {
     await context.env.DB.prepare(
@@ -82,15 +98,15 @@ export async function POST(request: Request) {
         (id, organization_id, invoice_number, owner_user_id, client_name, client_email, client_company, status, currency,
          subtotal_cents, discount_cents, tax_cents, total_cents, platform_fee_bps, platform_fee_cents, net_to_user_cents,
          fee_collection_status, payment_status, payment_link, due_at, notes, line_items_json, document_links_json,
-         activity_history_json, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         activity_history_json, payload_r2_key, storage_object_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
-        invoice.id, invoice.organization_id, invoice.invoice_number, invoice.owner_user_id, invoice.client_name,
-        invoice.client_email, invoice.client_company, invoice.status, invoice.currency, invoice.subtotal_cents,
+        invoice.id, invoice.organization_id, invoice.invoice_number, invoice.owner_user_id, `Invoice client ${invoice.id.slice(-8)}`,
+        null, null, invoice.status, invoice.currency, invoice.subtotal_cents,
         invoice.discount_cents, invoice.tax_cents, invoice.total_cents, invoice.platform_fee_bps, invoice.platform_fee_cents,
         invoice.net_to_user_cents, invoice.fee_collection_status, invoice.payment_status, invoice.payment_link,
-        invoice.due_at, invoice.notes, invoice.line_items_json, invoice.document_links_json, invoice.activity_history_json,
+        invoice.due_at, null, "[]", "[]", "[]", stored?.r2_key || null, stored?.storage_object_id || null,
         invoice.created_at, invoice.updated_at,
       )
       .run();
@@ -103,7 +119,7 @@ export async function POST(request: Request) {
     actor_id: context.user.email,
     resource_type: "client_invoice",
     resource_id: invoice.id,
-    payload: { invoice },
+    payload: { invoice_id: invoice.id, payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null },
   });
 
   return json({ ok: true, invoice });
