@@ -181,11 +181,11 @@ export default function PricingPage() {
           <div className="hero-pill" style={{ marginBottom: 18 }}>
             <span className="hero-pill-dot" /> Pricing
           </div>
-          <h1 style={{ fontSize: "clamp(40px, 6vw, 64px)", lineHeight: 1.05, letterSpacing: "-0.02em", margin: "0 auto 16px", maxWidth: "18ch" }}>
-            Where closers close more. Pick your configuration.
+          <h1 style={{ fontSize: "clamp(38px, 5.5vw, 58px)", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 auto 16px", maxWidth: "28ch" }}>
+            How Closers, Dealmakers, And Operators Are Picking The Right ADGA Configuration To Match The Way They Already Close
           </h1>
-          <p style={{ fontSize: 17, lineHeight: 1.55, color: "var(--adga-text-2, #6b6760)", maxWidth: "60ch", margin: "0 auto 0" }}>
-            Run your own book as a Pro. Bring on your team. Scale to Enterprise. Same deal flow, same outcome — more closed deals every quarter, fewer dropped along the way. No record caps, no per-contact fees, no AI add-ons.
+          <p style={{ fontSize: 17, lineHeight: 1.55, color: "var(--adga-text-2, #6b6760)", maxWidth: "62ch", margin: "0 auto 0" }}>
+            Whether you run your book alone, close with a team, or operate across an enterprise — ADGA scales with the way you already close. Same deal flow, every tier. No record caps, no per-contact fees, no AI add-ons.
           </p>
         </section>
 

@@ -150,9 +150,9 @@ export default function ProductPage() {
           <div className="hero-pill">
             <span className="hero-pill-dot" /> Platform
           </div>
-          <h1 className="hero-display">Stop losing deals to slipped follow-ups. Close 40% more &mdash; without changing how you sell.</h1>
+          <h1 className="hero-display">Why Today&rsquo;s Top Closers Are Throwing Out Their CRMs And Switching To A Deal-First Platform Designed To Keep Every Deal Moving</h1>
           <p className="hero-lede-center">
-            For closers, dealmakers, and operators who carry the number. Every contact, file, call, commitment, and next move locked to the deal — surfaced when it&rsquo;s time to act, traceable across every stage from first signal to repeat purchase.
+            Designed for closers, dealmakers, and operators who refuse to lose deals to slipped follow-ups. Every contact, file, call, commitment, and next move locked to the deal — surfaced when it&rsquo;s time to act.
           </p>
           <div className="hero-ctas" style={{ gap: 12, display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
             <a href="/pricing" className="btn primary lg">See pricing</a>

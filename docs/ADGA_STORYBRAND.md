@@ -6,13 +6,36 @@ Use this as the source of truth for marketing copy, sales decks, onboarding emai
 
 ## Positioning Statement
 
-**More closed deals every quarter. Fewer dropped along the way.**
+**Designed to help closers move more deals forward — without losing them to slipped follow-ups, scattered tools, or missed handoffs.**
 
-That is the outcome ADGA delivers. Every piece of customer-facing copy must lead with that outcome — never with what ADGA is, what ADGA was built for, or how ADGA works.
+That is the transformation ADGA is designed to deliver. Every piece of customer-facing copy must lead with that transformation — never with what ADGA is or what ADGA was built for.
 
-**The audience that gets this outcome:** the closers, dealmakers, operators, producers, rainmakers, and heavy hitters who carry the number. Pro, Team, and Enterprise are tier configurations — the different ways that audience uses ADGA — and they only matter on the pricing page.
+**The audience:** the closers, dealmakers, operators, producers, rainmakers, and heavy hitters who carry the number. Pro, Team, and Enterprise are tier configurations and only matter on the pricing page.
 
-**Stop saying what we are. Start saying what they get.** Every headline, every subhead, every CTA, every ad must lead with the outcome the closer experiences. The identity words ground the audience. The outcome carries the message.
+**Stop saying what we are. Start saying what they get.** Every headline, every subhead, every CTA, every ad must lead with the transformation the closer experiences. The identity words ground the audience.
+
+## Compliance — Never Guarantee Outcomes
+
+**This is non-negotiable and overrides any headline construction.**
+
+We never guarantee specific outcomes, numbers, percentages, dollar amounts, or earnings in customer-facing copy. Doing so is a legal liability.
+
+| Banned | Use Instead |
+|---|---|
+| "Close 40% more deals" | "Designed to help you close more deals" |
+| "Add 6 deals to your quarter" | "Designed to help you add more deals to your pipeline" |
+| "$1.2M added to pipeline" | "Designed to help grow your pipeline" |
+| "Hit your number every quarter" | "Designed to help you pursue your number" |
+| "Guaranteed results" | "Results vary" |
+
+Approved compliance language:
+- "Designed to help you..."
+- "Built to help you pursue..."
+- "Up to..." (only with footnoted source)
+- "Results vary"
+- "Pursue your goal of..."
+
+Required footer disclaimer on any page that references outcomes: *"Results vary. No specific outcomes are guaranteed."*
 
 **Default voice is the closer working their own book** (the Pro configuration). Every page, every email, every ad speaks to that closer. The team is the natural progression — what the closer grows into when they bring on a teammate. The team is never positioned as a *separate audience* or a *parallel choice*; it is the path the closer is already on.
 
@@ -55,9 +78,9 @@ The Pro tier is the entry. The Team tier is the growth. The Enterprise tier is t
 
 ## One-Line Brand Statement
 
-> More closed deals every quarter. Fewer dropped along the way.
+> The 9-stage deal system designed for closers, dealmakers, and operators who carry the number.
 
-This is the canonical outcome statement. Use it as the foundation of every headline, subhead, ad, and CTA. The outcome leads. The identity grounds.
+This is the canonical statement. Use it as the foundation. "Designed for" + audience identity grounds every page without making promises we can't keep.
 
 ## Identity Vocabulary
 
@@ -70,56 +93,118 @@ The audience has many names. Use them in rotation so the copy lands across every
 | **Tier 3 — Audience flavor (body copy)** | Operator · Producer · Rainmaker | Body paragraphs, testimonials, vertical landing pages |
 | **Tier 4 — Casual / earned-media voice** | Heavy hitter · Hunter | Sales decks, X / social copy, founder content |
 
-## Headline Construction Rules
+## Headline Construction — Direct-Response Convention
 
-A real headline has three pieces. Slogans don't. Make sure every customer-facing headline has all three:
+Headlines follow the convention used by the direct-response copywriters in our research archive — Brunson, Kern, Hormozi, Deiss, Halbert, Schwartz, Sugarman, Holmes. These conventions are not optional. Slogans are banned.
 
-| Piece | What it does | Example |
+### What a real direct-response headline contains
+
+Every headline must have all five elements. Miss any one and it becomes a slogan.
+
+| # | Element | What it does |
 |---|---|---|
-| **1. The outcome** | A specific, measurable thing the audience gets | "Add 6 closed deals to your quarter" |
-| **2. The audience qualifier** | Names who this is for using an identity word | "the closers running their own book" |
-| **3. The objection handler** | The "without [pain / sacrifice]" that removes resistance | "without hiring another rep" / "without changing your sales motion" |
+| 1 | **Curiosity hook** | Opens with a word that creates a knowledge gap: *How · Why · Discover · Revealed · Here's How · The Secret · Inside · What · If You* |
+| 2 | **Specific audience qualifier** | Names exactly who this is for using an identity word from the vocabulary tier: closers · dealmakers · operators · producers · rainmakers |
+| 3 | **Transformation pointer** | Describes the direction of change *without* guaranteeing a specific outcome: "move more deals forward" · "stop losing deals to slipped follow-ups" · "keep every deal moving" · "run from first signal to repeat purchase" |
+| 4 | **Authority / proof element** | "Today's top closers" · "Top dealmakers" · "The same system used by" — borrowed credibility, no fabricated stats |
+| 5 | **Objection handler ("without")** | Removes resistance up front: *without hiring another rep · without changing how you sell · without changing how they already close* |
 
-Headlines that fail this test (slogans):
+### Length
 
-- ❌ "Close more deals." — outcome only, no audience, no objection handler
-- ❌ "Built for closers." — what we built, no outcome
-- ❌ "Every deal moves forward." — vague, no specificity
+Real direct-response headlines are **15-30 words.** Short slogans are not headlines. A two-clause "close more, drop fewer" is not a headline.
 
-Headlines that pass:
+### Every headline gets a deck (subhead)
 
-- ✅ "Add 6 closed deals to your pipeline this quarter — without hiring another rep."
-- ✅ "How today's top closers add a deal a week to their pipeline."
-- ✅ "Close 40% more deals in 90 days — without changing how you sell."
-- ✅ "The 9-stage system today's top dealmakers run to hit their number every quarter."
-- ✅ "Why 200+ agency closers stopped losing deals to slipped follow-ups — and added 6 closes a quarter."
+Below the headline, a 1-2 sentence subhead expands the transformation, names the audience, and grounds the page. The headline opens the loop. The deck closes it.
 
-## Headline Patterns to Use
+## Examples from the Convention (Reference)
 
-Pick the pattern that fits the surface. Fill in the brackets with the closer's actual outcome.
+These are real direct-response headlines from the copywriters we studied. Study their construction. Copy the structure, fill in the ADGA-specific blanks.
 
-| Pattern | Structure | Example |
-|---|---|---|
-| **How-To** | How [audience] [outcome] [timeframe] | "How dealmakers add 6 closes a quarter — without working another hour" |
-| **Direct Promise** | [Outcome verb] [specific number] [outcome noun] — [without objection] | "Add 6 closed deals to your quarter — without hiring another rep" |
-| **Authority-Curiosity** | Why [number] [audience] [adopted X] — and [outcome] | "Why 200+ agency closers switched to ADGA — and added a deal a week" |
-| **The System** | The [number]-stage system [audience] use to [outcome] | "The 9-stage system top dealmakers use to hit their number every quarter" |
-| **Before-After** | From [pain state] to [outcome state] | "From scattered pipeline to predictable revenue" |
-| **Audience-First Outcome** | Where [audience] [outcome] | "Where dealmakers close more — quarter after quarter" |
+| Source Style | Real Example |
+|---|---|
+| **Frank Kern** | "How To Get All The Clients You Want, At The Prices You Want, Without 'Selling'" |
+| **Frank Kern** | "If You're A Coach, Consultant, Or Expert Who Wants More Clients, This Is For You" |
+| **Russell Brunson** | "Here's How To Build, Grow, And Scale Any Business — Faster Than You Ever Thought Possible" |
+| **Russell Brunson** | "Discover The Underground Funnel Secret That's Generated Over $100M For Our Clients" |
+| **Alex Hormozi** | "How To Get So Many Leads You Don't Know What To Do With Them All" |
+| **Alex Hormozi** | "Make Offers So Good People Feel Stupid Saying No" |
+| **Ryan Deiss** | "The Customer Value Optimization System That's Generated Over $50M In Sales" |
+| **Gary Halbert** | "Amazing New Discovery Helps You..." |
+| **Eugene Schwartz** | "The Lazy Man's Way To Riches" |
+| **Chet Holmes** | "How To Triple Your Sales By Working On Just 12 Things, 60 Minutes A Week" |
 
-## Example Headlines for Each Surface
+Notice: every one is 10+ words. Every one has curiosity. Every one names the audience or outcome with specificity. None are slogans.
 
-| Surface | Pattern | Headline |
-|---|---|---|
-| Homepage hero | Direct Promise | **Add 6 closed deals to your quarter — without hiring another rep.** |
-| Homepage subhead | Audience qualifier + identity | For the closers, dealmakers, and operators who carry the number. |
-| /process page hero | The System | **The 9-stage system today's top dealmakers use to hit their number — every quarter.** |
-| /pricing hero | Audience-First Outcome | **Where closers close more. Pick your configuration.** |
-| /product hero | Authority-Curiosity | **Why 200+ agency closers stopped using their CRM — and added a deal a week.** |
-| Onboarding email 1 subject | How-To | How to close your first deal in ADGA in under 14 days |
-| Sales deck cover | Before-After | From scattered pipeline to predictable revenue — for the closers, dealmakers, and operators who refuse to drop another. |
-| Paid ad (high intent) | Direct Promise | Close 40% more deals this quarter. Built around the way you already sell. |
-| Paid ad (retargeting) | Authority-Curiosity | The deal platform behind today's top closers. See why dealmakers are switching. |
+## Approved ADGA Headlines (Use These)
+
+These follow the convention AND the compliance rules. Use them or write new ones using the same structure. The marketer whose construction the headline draws from is cited at each one.
+
+### Homepage hero — Brunson "Discover" + Kern "Without" construction
+
+**Headline:** Discover The 9-Stage Deal System Today's Top Closers Are Using To Move More Deals Forward — Without Hiring Another Rep Or Changing How They Sell
+
+**Deck:** Designed for the closers, dealmakers, and operators who carry the number. Every contact, every call, every commitment locked to the deal — surfaced when it's time to act.
+
+### /process page hero — Brunson "Revealed" + Halbert long-form construction
+
+**Headline:** Revealed: The 9-Stage Deal System Today's Top Dealmakers Run From First Signal To Repeat Purchase — Without Letting A Single Deal Slip Through The Cracks
+
+**Deck:** Designed to help closers, dealmakers, and operators run every deal through the same proven path. From Lead to Expand, in one place.
+
+### /pricing page hero — Halbert "How [audience] Are [verb-ing]" construction
+
+**Headline:** How Closers, Dealmakers, And Operators Are Picking The Right ADGA Configuration To Match The Way They Already Close
+
+**Deck:** Whether you run your book alone, close with a team, or operate across an enterprise — ADGA scales with the way you already close. Same deal flow, every tier.
+
+### /product page hero — Schwartz "Why [audience] Are [adopting]" construction
+
+**Headline:** Why Today's Top Closers Are Throwing Out Their CRMs And Switching To A Deal-First Platform Designed To Keep Every Deal Moving
+
+**Deck:** Designed for closers, dealmakers, and operators who refuse to lose deals to slipped follow-ups. The 9-stage deal system top dealmakers run.
+
+### Email subject lines — Kern "If You're A [audience]" construction
+
+- "If You're A Closer Tired Of Watching Deals Slip Through The Cracks, You'll Want To Read This"
+- "Why Today's Top Dealmakers Are Throwing Out Their CRMs This Quarter"
+- "Inside The 9-Stage Deal System Designed For Closers Who Carry The Number"
+
+### Paid ad headlines (high-intent search) — Brunson curiosity construction
+
+- "Discover The 9-Stage Deal System Designed For Closers Who Refuse To Drop Another Deal"
+- "Why Today's Top Dealmakers Are Switching To A Deal-First Platform Designed To Keep Every Deal Moving"
+
+### Sales deck cover — Halbert authority construction
+
+- "Discover The 9-Stage Deal System Designed For The Closers, Dealmakers, And Operators Who Refuse To Let A Single Deal Slip"
+
+## Banned Headline Patterns
+
+Never use any of these:
+
+- **Numeric guarantees** — "Add 6 deals," "Close 40% more," "$1.2M pipeline" — legal liability, no exceptions
+- **Two-clause slogans** — "Close more. Drop fewer." (Tagline at best, not a headline)
+- **Naked outcomes** — "Move more deals forward." (Missing curiosity hook, authority, audience qualifier)
+- **Imperatives without construction** — "Stop losing deals to slipped follow-ups." (Imperative, no curiosity, no audience qualifier — not a headline)
+- **"Built for X" / "Made for X"** — says what we built, not what they get
+- **Short punchy taglines** — "Where closers close more." (Slogan)
+- **Anything under 12 words at the headline level**
+
+## Why Each Approved Headline Works (Attribution)
+
+Every headline traces back to a specific copywriter's construction. If you can't name the construction it's modeled on, it's not a real direct-response headline.
+
+| Word/Phrase | Source |
+|---|---|
+| "Discover the..." opener | Russell Brunson (ClickFunnels, DotCom Secrets) |
+| "Revealed: The..." opener | Russell Brunson + Gary Halbert |
+| "How [audience] are [verb-ing]" | Gary Halbert (Boron Letters) |
+| "Why [audience] are [adopting/switching]" | Eugene Schwartz (Breakthrough Advertising) |
+| "If You're A [audience]" | Frank Kern (Mass Control, Behavioral Dynamic Response) |
+| "...Without [pain/sacrifice]" | Frank Kern + Joe Sugarman (objection handler in headline) |
+| "...That [authority] use to..." | Alex Hormozi ($100M Offers headline construction) |
+| "Inside [system/method]" | Frank Kern + Brunson (inner-circle / system reveal) |
 
 ## How to Use Each Part
 

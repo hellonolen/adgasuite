@@ -126,9 +126,9 @@ export default function ProcessPage() {
           <div className="hero-pill">
             <span className="hero-pill-dot" /> Process
           </div>
-          <h1 className="hero-display">The 9-stage system today&rsquo;s top dealmakers use to hit their number every quarter.</h1>
+          <h1 className="hero-display">Revealed: The 9-Stage Deal System Today&rsquo;s Top Dealmakers Run From First Signal To Repeat Purchase &mdash; Without Letting A Single Deal Slip Through The Cracks</h1>
           <p className="hero-lede-center">
-            For closers, dealmakers, and operators who refuse to drop another. Lead, qualify, discover, scope, design, close, sign, deliver, expand — one record, one path, every deal.
+            Designed to help closers, dealmakers, and operators run every deal through the same proven path. Lead, qualify, discover, scope, design, close, sign, deliver, expand — one record, one path, every deal.
           </p>
           <div className="hero-ctas" style={{ gap: 12, display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
             <a href="/pricing" className="btn primary lg">Start closing deals</a>
