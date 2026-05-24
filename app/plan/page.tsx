@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
+import { MarketingHero } from "@/components/adga/layout/MarketingHero";
+import { PAGE_SEO } from "@/lib/marketing-config";
+
+export const metadata: Metadata = {
+  title: PAGE_SEO.plan.title,
+  description: PAGE_SEO.plan.description,
+  openGraph: { title: PAGE_SEO.plan.title, description: PAGE_SEO.plan.description },
+  twitter: { title: PAGE_SEO.plan.title, description: PAGE_SEO.plan.description },
+};
 
 type Feature = {
   label: string;
@@ -142,31 +152,22 @@ const FEATURES: ReadonlyArray<Feature> = [
   },
 ];
 
-export default function ProductPage() {
+export default function PlanPage() {
   return (
     <MarketingLayout>
       <div className="wrap">
-        <section className="hero hero-center" style={{ paddingBottom: 24 }}>
-          <div className="hero-pill">
-            <span className="hero-pill-dot" /> Platform
-          </div>
-          <h1 className="hero-display">Why Today&rsquo;s Top Closers Are Throwing Out Their CRMs And Switching To A Deal-First Platform Designed To Keep Every Deal Moving</h1>
-          <p className="hero-lede-center">
-            Designed for closers, dealmakers, and operators who refuse to lose deals to slipped follow-ups. Every contact, file, call, commitment, and next move locked to the deal — surfaced when it&rsquo;s time to act.
-          </p>
-          <div className="hero-ctas" style={{ gap: 12, display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
-            <a href="/pricing" className="btn primary lg">See pricing</a>
-            <a href="#anatomy" className="btn lg" style={{ background: "transparent", border: "1px solid var(--rule, #e8e4de)" }}>
-              Inside a deal
-            </a>
-          </div>
-        </section>
+        <MarketingHero
+          headline="Keep momentum in your deal."
+          deck="Designed for closers, dealmakers, and operators who refuse to lose deals to slipped follow-ups. Every contact, file, call, commitment, and next move locked to the deal — surfaced when it’s time to act."
+          primaryCta={{ label: "Start closing deals", href: "/pricing" }}
+          paddingBottom={24}
+        />
 
         <section id="anatomy" className="section" style={{ borderTop: 0, paddingTop: 64 }}>
-          <span className="ed-label">Platform</span>
+          <span className="ed-label">Plan</span>
           <h2 className="title">Every move on <em>one record.</em></h2>
           <p style={{ maxWidth: "60ch", marginTop: 12, color: "var(--ink-2)" }}>
-            ADGA is built around the deal record. Lead intake, pipeline, documents, calendar, communication, invoicing, and intelligence all attach to the same row — so the next move is visible before it gets missed.
+            Every lead, pipeline stage, document, meeting, call, and invoice attaches to the same deal — so closers see the next move before it gets missed.
           </p>
 
           <div

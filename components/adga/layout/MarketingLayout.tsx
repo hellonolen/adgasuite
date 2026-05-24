@@ -1,6 +1,15 @@
 "use client";
 
 import React from "react";
+import {
+  BRAND,
+  PRIMARY_CTA,
+  SECONDARY_NAV_CTA,
+  NAV_LINKS,
+  FOOTER_COLUMNS,
+  FOOTER_END_LINKS,
+  getCopyright,
+} from "@/lib/marketing-config";
 
 interface MarketingLayoutProps {
   children: React.ReactNode;
@@ -42,33 +51,40 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
     return () => observer.disconnect();
   }, [children]);
 
+  const closeMenu = () => setMenuOpen(false);
+
   return (
     <div className="marketing-root adga-presence-crisp">
-      <nav className={'nav wrap ' + (menuOpen ? 'nav-open' : '')}>
+      <nav className={"nav wrap " + (menuOpen ? "nav-open" : "")}>
         <a href="/" className="brand">
-          ADGA
+          {BRAND.name}
         </a>
         <button
           className="nav-toggle"
           type="button"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
-          onClick={() => setMenuOpen(open => !open)}
+          onClick={() => setMenuOpen((open) => !open)}
         >
-          <span/>
-          <span/>
-          <span/>
+          <span />
+          <span />
+          <span />
         </button>
         <div className="nav-links">
-          <a href="/product" onClick={() => setMenuOpen(false)}>Platform</a>
-          <a href="/process" onClick={() => setMenuOpen(false)}>Deal Process</a>
-          <a href="/cases" onClick={() => setMenuOpen(false)}>Use Cases</a>
-          <a href="/pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
+          {NAV_LINKS.map((link) => (
+            <a key={link.href} href={link.href} onClick={closeMenu}>
+              {link.label}
+            </a>
+          ))}
         </div>
         <div className="nav-cta">
-          <span className="nav-mono">Deal flow platform</span>
-          <a href="/login" className="btn" onClick={() => setMenuOpen(false)}>Sign in</a>
-          <a href="/pricing" className="btn primary" onClick={() => setMenuOpen(false)}>Start closing deals</a>
+          <span className="nav-mono">{BRAND.tagline}</span>
+          <a href={SECONDARY_NAV_CTA.href} className="btn" onClick={closeMenu}>
+            {SECONDARY_NAV_CTA.label}
+          </a>
+          <a href={PRIMARY_CTA.href} className="btn primary" onClick={closeMenu}>
+            {PRIMARY_CTA.label}
+          </a>
         </div>
       </nav>
 
@@ -76,55 +92,40 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
 
       <footer className="foot wrap">
         <div className="foot-brand-area">
-          <a href="/" className="brand" style={{fontSize: 22}}>
-            ADGA
+          <a href="/" className="brand" style={{ fontSize: 22 }}>
+            {BRAND.name}
           </a>
-          <p style={{marginTop: 10, fontSize: '12.5px', color: 'var(--adga-text-2)', maxWidth: '36ch'}}>
-            The 9-stage deal system designed for the closers, dealmakers, and operators who carry the number.
+          <p style={{ marginTop: 10, fontSize: "12.5px", color: "var(--adga-text-2)", maxWidth: "36ch" }}>
+            {BRAND.footerDescription}
           </p>
         </div>
         <div className="foot-cols">
-          <div className="foot-col">
-            <h4>Platform</h4>
-            <ul>
-              <li><a href="/product">Platform</a></li>
-              <li><a href="/process">Deal Process</a></li>
-              <li><a href="/cases">Use Cases</a></li>
-              <li><a href="/pricing">Pricing</a></li>
-            </ul>
-          </div>
-          <div className="foot-col">
-            <h4>Company</h4>
-            <ul>
-              <li><a href="/stories">Stories</a></li>
-              <li><a href="#">Field notes</a></li>
-              <li><a href="#">Changelog</a></li>
-              <li><a href="/login">Sign in</a></li>
-            </ul>
-          </div>
-          <div className="foot-col">
-            <h4>House</h4>
-            <ul>
-              <li><a href="#">About</a></li>
-              <li><a href="#">Careers</a></li>
-              <li><a href="/pricing">Start closing deals</a></li>
-            </ul>
-          </div>
-          <div className="foot-col">
-            <h4>Legal</h4>
-            <ul>
-              <li><a href="/security">Security</a></li>
-              <li><a href="#">Privacy</a></li>
-              <li><a href="#">Terms</a></li>
-              <li><a href="#">DPA</a></li>
-            </ul>
-          </div>
+          {FOOTER_COLUMNS.map((column) => (
+            <div key={column.heading} className="foot-col">
+              <h4>{column.heading}</h4>
+              <ul>
+                {column.links.map((link) => (
+                  <li key={`${column.heading}-${link.label}`}>
+                    <a href={link.href}>{link.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </footer>
-      <div className="foot-end wrap">
-        <span>© 2026 ADGA · All rights reserved</span>
-        <span>ADGA Suite</span>
-        <span>Deal flow platform</span>
+      <div
+        className="foot-end wrap"
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}
+      >
+        <span>{getCopyright()}</span>
+        <div style={{ display: "inline-flex", gap: 20, flexWrap: "wrap" }}>
+          {FOOTER_END_LINKS.map((link) => (
+            <a key={link.href} href={link.href}>
+              {link.label}
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   );

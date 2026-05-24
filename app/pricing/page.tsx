@@ -2,6 +2,7 @@
 
 import React from "react";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
+import { MarketingHero } from "@/components/adga/layout/MarketingHero";
 
 const PRO_MONTHLY = 97;
 const TEAM_BASE_MONTHLY = 297;
@@ -177,17 +178,11 @@ export default function PricingPage() {
     <MarketingLayout>
       <div className="wrap">
         {/* HERO */}
-        <section style={{ padding: "72px 0 24px", textAlign: "center" }}>
-          <div className="hero-pill" style={{ marginBottom: 18 }}>
-            <span className="hero-pill-dot" /> Pricing
-          </div>
-          <h1 style={{ fontSize: "clamp(38px, 5.5vw, 58px)", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 auto 16px", maxWidth: "28ch" }}>
-            How Closers, Dealmakers, And Operators Are Picking The Right ADGA Configuration To Match The Way They Already Close
-          </h1>
-          <p style={{ fontSize: 17, lineHeight: 1.55, color: "var(--adga-text-2, #6b6760)", maxWidth: "62ch", margin: "0 auto 0" }}>
-            Whether you run your book alone, close with a team, or operate across an enterprise — ADGA scales with the way you already close. Same deal flow, every tier. No record caps, no per-contact fees, no AI add-ons.
-          </p>
-        </section>
+        <MarketingHero
+          variant="compact"
+          headline="Join our community."
+          deck="Whether you run your book alone, close with a team, or operate across an enterprise — ADGA scales with the way you already close. Same deal flow, every tier. No record caps, no per-contact fees, no AI add-ons."
+        />
 
         {/* CADENCE SWITCHER — its own section so it has real breathing room above and below. */}
         <section style={{ padding: "20px 0 44px", textAlign: "center" }}>
@@ -214,7 +209,7 @@ export default function PricingPage() {
             <div className="tier">
               <div>
                 <div className="name">Pro</div>
-                <div className="desc">For the operator running deals on their own.</div>
+                <div className="desc">For the closer running their own book of deals.</div>
               </div>
               <div className="price">
                 ${format(proShown)}
@@ -234,7 +229,7 @@ export default function PricingPage() {
               <span className="badge">Most popular</span>
               <div>
                 <div className="name">Team</div>
-                <div className="desc">Built for closing teams working the same deals.</div>
+                <div className="desc">For closers, dealmakers, and operators working the same deals together.</div>
               </div>
 
               <div className="price">
@@ -283,7 +278,7 @@ export default function PricingPage() {
             <div className="tier">
               <div>
                 <div className="name">Enterprise</div>
-                <div className="desc">Brokerages, firms, anyone running real deal volume.</div>
+                <div className="desc">For closers running real deal volume across multiple offices.</div>
               </div>
 
               <div className="price">

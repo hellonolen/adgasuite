@@ -36,7 +36,7 @@ export default function SecurityPage() {
           </div>
           <div>
             <p className="lede">
-              The closing room is the most sensitive room in the house. Everything inside ADGA is encrypted, audited, and signed for.
+              The closing room is the most sensitive room in the home. Everything inside ADGA is encrypted, audited, and signed for.
             </p>
             <div className="actions">
               <a href="#controls" className="btn primary lg">Review controls</a>

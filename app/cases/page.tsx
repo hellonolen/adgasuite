@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
+import { MarketingHero } from "@/components/adga/layout/MarketingHero";
+import { PAGE_SEO } from "@/lib/marketing-config";
+
+export const metadata: Metadata = {
+  title: PAGE_SEO.cases.title,
+  description: PAGE_SEO.cases.description,
+  openGraph: { title: PAGE_SEO.cases.title, description: PAGE_SEO.cases.description },
+  twitter: { title: PAGE_SEO.cases.title, description: PAGE_SEO.cases.description },
+};
 
 type UseCase = {
   label: string;
@@ -118,21 +128,12 @@ export default function CasesPage() {
   return (
     <MarketingLayout>
       <div className="wrap">
-        <section className="hero hero-center" style={{ paddingBottom: 24 }}>
-          <div className="hero-pill">
-            <span className="hero-pill-dot" /> Use cases
-          </div>
-          <h1 className="hero-display">One platform. Every deal type.</h1>
-          <p className="hero-lede-center">
-            Acquisitions, capital raises, M&amp;A, partnerships, licensing, and high-ticket sales — same operating spine, configured per vertical.
-          </p>
-          <div className="hero-ctas" style={{ gap: 12, display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
-            <a href="/pricing" className="btn primary lg">See pricing</a>
-            <a href="#cases" className="btn lg" style={{ background: "transparent", border: "1px solid var(--rule, #e8e4de)" }}>
-              Browse use cases
-            </a>
-          </div>
-        </section>
+        <MarketingHero
+          headline="Deals from closers."
+          deck="Acquisitions, capital raises, M&A, partnerships, licensing, and high-ticket sales — closers, dealmakers, and operators running every deal type through the same record."
+          primaryCta={{ label: "Start closing deals", href: "/pricing" }}
+          paddingBottom={24}
+        />
 
         <section id="cases" className="section" style={{ borderTop: 0, paddingTop: 64 }}>
           <span className="ed-label">Use cases</span>

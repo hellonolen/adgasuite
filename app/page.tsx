@@ -1,6 +1,7 @@
 "use client";
 
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
+import { MarketingHero } from "@/components/adga/layout/MarketingHero";
 
 const STAGES: ReadonlyArray<readonly [string, string, string]> = [
   ["01", "Signal", "Ad, referral, inbound form, QR, call, email, event, partner, or import."],
@@ -104,18 +105,11 @@ export default function HomePage() {
   return (
     <MarketingLayout>
       <div className="wrap">
-        <section className="hero hero-center">
-          <div className="hero-pill">
-            <span className="hero-pill-dot" /> For closers, dealmakers, and operators
-          </div>
-          <h1 className="hero-display">Close more deals.</h1>
-          <p className="hero-lede-center">
-            Designed for the closers, dealmakers, and operators who carry the number. Every contact, every call, every commitment locked to the deal — surfaced when it&rsquo;s time to act.
-          </p>
-          <div className="hero-ctas">
-            <a href="/pricing" className="btn primary lg">Start closing deals</a>
-          </div>
-
+        <MarketingHero
+          headline="Close more deals."
+          deck="Leverage this agentic deal system so you can open, position, and close more deals without missing a beat."
+          primaryCta={{ label: "Start closing deals", href: "/pricing" }}
+        >
           <div className="hero-mocks" aria-hidden="true">
             <div className="hero-mock hero-mock-left">
               <div className="hero-mock-head">
@@ -176,7 +170,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        </section>
+        </MarketingHero>
 
         <section className="section" id="anatomy">
           <span className="ed-label">Inside a deal record</span>

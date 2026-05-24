@@ -1,26 +1,18 @@
 "use client";
 
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
+import { MarketingHero } from "@/components/adga/layout/MarketingHero";
 
 export default function StoriesPage() {
   return (
     <MarketingLayout>
       <div className="wrap">
-        <section className="hero hero-center" style={{ paddingBottom: 24 }}>
-          <div className="hero-pill">
-            <span className="hero-pill-dot" /> Stories
-          </div>
-          <h1 className="hero-display">What operators are closing.</h1>
-          <p className="hero-lede-center">
-            Real names, real deals, real outcomes. In their own words.
-          </p>
-          <div className="hero-ctas" style={{ gap: 12, display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
-            <a href="/pricing" className="btn primary lg">See pricing</a>
-            <a href="#stories" className="btn lg" style={{ background: "transparent", border: "1px solid var(--rule, #e8e4de)" }}>
-              Read more
-            </a>
-          </div>
-        </section>
+        <MarketingHero
+          headline="Stories from the closers running ADGA."
+          deck="Real names, real deals, real outcomes. In their own words."
+          primaryCta={{ label: "Start closing deals", href: "/pricing" }}
+          paddingBottom={24}
+        />
 
         <section className="page-hero">
           <div>
@@ -30,17 +22,17 @@ export default function StoriesPage() {
               <span>Customer stories</span>
             </div>
             <h1>
-              Houses that<br />
+              Homes that<br />
               <em>closed.</em>
             </h1>
           </div>
           <div>
             <p className="lede">
-              Four houses, four floors, four different rooms — every one running deals on ADGA.
+              Four homes, four floors, four different rooms — every one running deals on ADGA.
             </p>
             <div className="actions">
               <a href="/pricing" className="btn primary lg">Start closing deals</a>
-              <a href="/product" className="btn lg">Review the workspace</a>
+              <a href="/plan" className="btn lg">Review the workspace</a>
             </div>
           </div>
         </section>
@@ -50,7 +42,7 @@ export default function StoriesPage() {
           <div>
             <span className="label"><span className="dot" />Story · 01 · Mid-market M&amp;A</span>
             <h3>Concorde Group — <em>fourteen deals,</em> one operating system.</h3>
-            <p>A cross-border M&amp;A house running twenty principals across three offices. Migrated from a patchwork of Salesforce, DocSend, and Asana into ADGA.</p>
+            <p>A cross-border M&amp;A home running twenty principals across three offices. Migrated from a patchwork of Salesforce, DocSend, and Asana into ADGA.</p>
             <div className="stats">
               <div className="stat"><div className="v">$2.4<em>B</em></div><div className="l">Pipeline value</div></div>
               <div className="stat"><div className="v"><em>3</em>×</div><div className="l">Closing velocity</div></div>

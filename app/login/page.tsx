@@ -52,29 +52,12 @@ export default function LoginPage() {
   const isSending = status.kind === "sending";
 
   return (
+    <>
+    <style>{`body::before { display: none !important; }`}</style>
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.05fr_1fr] bg-[#0d0c0a] text-white">
       {/* LEFT — full panel brand */}
-      <aside className="relative isolate flex flex-col justify-between overflow-hidden px-10 py-12 sm:px-16 sm:py-16 bg-gradient-to-br from-[#3a1a8e] via-[#5d2cd6] to-[#7a46de]">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-50"
-          style={{
-            background:
-              "radial-gradient(800px 500px at 80% -10%, rgba(255,255,255,0.18), transparent 60%), radial-gradient(700px 600px at -10% 90%, rgba(0,0,0,0.35), transparent 60%)",
-          }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-30 mix-blend-overlay"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)",
-            backgroundSize: "44px 44px",
-            maskImage: "radial-gradient(ellipse 70% 60% at 50% 50%, #000 60%, transparent 100%)",
-          }}
-        />
-
-        <a href="/" className="relative z-10 inline-flex items-center gap-3 text-2xl font-semibold tracking-tight">
+      <aside className="relative flex flex-col justify-between overflow-hidden px-10 py-12 sm:px-16 sm:py-16 bg-gradient-to-br from-[#3a1a8e] via-[#5d2cd6] to-[#7a46de]">
+        <a href="/" className="inline-flex items-center gap-3 text-2xl font-semibold tracking-tight">
           <span
             aria-hidden
             className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/30 text-base font-bold"
@@ -84,31 +67,28 @@ export default function LoginPage() {
           ADGA
         </a>
 
-        <div className="relative z-10 max-w-xl">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium tracking-[0.14em] uppercase ring-1 ring-white/20">
-            <span className="h-1.5 w-1.5 rounded-full bg-white/90" /> The deal flow platform
-          </span>
-          <h1 className="mt-6 text-4xl font-semibold leading-[1.05] tracking-[-0.025em] sm:text-5xl lg:text-[56px]">
-            Close more deals, with the team that helps you close them.
+        <div className="max-w-xl">
+          <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.025em] sm:text-5xl lg:text-[56px]">
+            Close more deals.
           </h1>
-          <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-white/75 sm:text-base">
+          <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-white/85 sm:text-base">
             Every contact, call, document, and next action stays tied to the deal — so closes happen on schedule, not by accident.
           </p>
-          <ul className="mt-8 grid gap-3 text-sm text-white/85 sm:text-[15px]">
+          <ul className="mt-8 grid gap-3 text-sm text-white/90 sm:text-[15px]">
             {[
-              "Mindmap every party and artifact on a deal",
+              "Every party and artifact on the deal",
               "Templates for Acquire, Series A, M&A, and more",
-              "Agents prepare the next move — you approve",
+              "The next move surfaced before it slips",
             ].map((item) => (
               <li key={item} className="flex items-start gap-3">
-                <span aria-hidden className="mt-1.5 inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-white/85" />
+                <span aria-hidden className="mt-1.5 inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-white/90" />
                 <span>{item}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="relative z-10 flex items-center gap-3 text-xs text-white/55">
+        <div className="flex items-center gap-3 text-xs text-white/70">
           <span>Single-use sign-in</span>
           <span aria-hidden>·</span>
           <span>Expires in 15 minutes</span>
@@ -226,8 +206,9 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <footer className="px-8 pb-8 text-xs text-[#9b9eb0]">© 2026 ADGA · Deal flow platform</footer>
+        <footer className="px-8 pb-8 text-xs text-[#9b9eb0]">© {new Date().getFullYear()} ADGA</footer>
       </main>
     </div>
+    </>
   );
 }
