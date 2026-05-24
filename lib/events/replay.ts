@@ -124,6 +124,26 @@ export async function fetchEventsForReplay(
   return (result.results || []).map(mapRow);
 }
 
+export async function fetchEventForReplayById(
+  db: D1Database | undefined,
+  eventId: string,
+  organizationId?: string,
+): Promise<ReplayedEvent | null> {
+  if (!db) return null;
+  const sql = organizationId
+    ? `SELECT id, organization_id, event_type, actor_type, actor_id, resource_type, resource_id, payload_json, created_at, delivery_attempts, last_error, last_attempted_at
+       FROM events
+       WHERE id = ? AND organization_id = ?
+       LIMIT 1`
+    : `SELECT id, organization_id, event_type, actor_type, actor_id, resource_type, resource_id, payload_json, created_at, delivery_attempts, last_error, last_attempted_at
+       FROM events
+       WHERE id = ?
+       LIMIT 1`;
+  const stmt = organizationId ? db.prepare(sql).bind(eventId, organizationId) : db.prepare(sql).bind(eventId);
+  const row = await stmt.first<RawEventRow>().catch(() => null);
+  return row ? mapRow(row) : null;
+}
+
 /** Record a delivery attempt outcome (success increments without setting error). */
 export async function recordDeliveryAttempt(
   db: D1Database | undefined,

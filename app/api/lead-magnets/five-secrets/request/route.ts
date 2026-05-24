@@ -11,6 +11,25 @@ import { createAgentJob, createEvent } from "@/lib/server/repository";
 import { getRuntimeContext } from "@/lib/server/runtime";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const DISPOSABLE_DOMAINS = new Set([
+  "10minutemail.com",
+  "guerrillamail.com",
+  "mailinator.com",
+  "tempmail.com",
+  "temp-mail.org",
+  "yopmail.com",
+  "throwawaymail.com",
+  "sharklasers.com",
+]);
+const DOMAIN_FIXES: Record<string, string> = {
+  "gamil.com": "gmail.com",
+  "gmial.com": "gmail.com",
+  "gnail.com": "gmail.com",
+  "hotmial.com": "hotmail.com",
+  "hotmai.com": "hotmail.com",
+  "outlok.com": "outlook.com",
+  "yaho.com": "yahoo.com",
+};
 
 interface FiveSecretsRequestBody {
   email?: string;
@@ -75,6 +94,23 @@ export async function POST(request: Request) {
   const email = normalizeEmail(body.email || "");
 
   if (!EMAIL_PATTERN.test(email)) return errorJson("valid email is required.", 400);
+  const quality = validateEmailQuality(email);
+  if (!quality.ok) {
+    await createEvent(context.env.DB, {
+      organization_id: "org_adga_primary",
+      event_type: "lead_magnet.five_secrets.email_rejected",
+      actor_type: "system",
+      actor_id: "five-secrets-optin",
+      resource_type: "lead_magnet_optin",
+      resource_id: "five-secrets",
+      payload: {
+        reason: quality.reason,
+        suggestion: quality.suggestion || null,
+        domain: email.split("@")[1] || null,
+      },
+    });
+    return errorJson(String(quality.message), 400, quality.suggestion ? { suggestion: quality.suggestion } : undefined);
+  }
 
   const optinId = newId("five_secrets");
   const payload = {
@@ -163,4 +199,27 @@ export async function POST(request: Request) {
     skipped,
     previewUrl: skipped && process.env.NODE_ENV !== "production" ? verifyUrl.toString() : undefined,
   });
+}
+
+function validateEmailQuality(email: string) {
+  const [local, domain = ""] = email.split("@");
+  if (!local || !domain || local.length < 2) {
+    return { ok: false, reason: "invalid_local_part", message: "Use a real email inbox." };
+  }
+  if (DISPOSABLE_DOMAINS.has(domain)) {
+    return { ok: false, reason: "disposable_domain", message: "Use a real email inbox." };
+  }
+  const suggestion = DOMAIN_FIXES[domain];
+  if (suggestion) {
+    return {
+      ok: false,
+      reason: "likely_domain_typo",
+      message: `Check the email domain. Did you mean ${local}@${suggestion}?`,
+      suggestion: `${local}@${suggestion}`,
+    };
+  }
+  if (/^(test|fake|none|nope|asdf|example)([+._-].*)?$/i.test(local)) {
+    return { ok: false, reason: "low_quality_local_part", message: "Use a real email inbox." };
+  }
+  return { ok: true };
 }

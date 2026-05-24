@@ -4,8 +4,29 @@ import { useState } from "react";
 
 export default function BillingSettingsClient({
   subscription,
+  billing,
 }: {
-  subscription: { plan: string; status: string; hasStripeCustomer: boolean; currentPeriodEnd: string | null };
+  subscription: {
+    plan: string;
+    status: string;
+    hasStripeCustomer: boolean;
+    stripeCustomerId: string | null;
+    stripeSubscriptionId: string | null;
+    currentPeriodEnd: string | null;
+  };
+  billing: {
+    billingEmail: string | null;
+    defaultPaymentMethod: string | null;
+    invoices: Array<{
+      id: string;
+      number: string | null;
+      status: string | null;
+      amountDue: number | null;
+      currency: string | null;
+      hostedInvoiceUrl: string | null;
+      created: string | null;
+    }>;
+  } | null;
 }) {
   const [portalStatus, setPortalStatus] = useState<"idle" | "opening" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
@@ -48,6 +69,9 @@ export default function BillingSettingsClient({
           <Metric label="Current plan" value={title(subscription.plan)} />
           <Metric label="Payment profile" value={subscription.hasStripeCustomer ? "Connected" : "Not connected"} />
           <Metric label="Renewal" value={subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : "Pending"} />
+          <Metric label="Billing email" value={billing?.billingEmail || "Not synced"} />
+          <Metric label="Default card" value={billing?.defaultPaymentMethod || "Use Stripe portal"} />
+          <Metric label="Stripe subscription" value={subscription.stripeSubscriptionId ? compactId(subscription.stripeSubscriptionId) : "Pending"} />
         </div>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -75,19 +99,42 @@ export default function BillingSettingsClient({
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-5 shadow-sm md:p-8">
-        <h3 className="text-lg font-semibold">What you can manage here</h3>
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {[
-            ["Payment methods", "Add, remove, or change the default card."],
-            ["Invoices", "Review past invoices and receipts."],
-            ["Billing profile", "Update billing email, tax address, and customer details."],
-            ["Subscription", "Manage renewal, cancellation, and plan changes through Stripe."],
-          ].map(([label, body]) => (
-            <div key={label} className="rounded-xl border border-border bg-background p-4">
-              <div className="font-semibold">{label}</div>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">{body}</p>
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">Invoices</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Recent Stripe invoices tied to this workspace.</p>
+          </div>
+          {subscription.stripeCustomerId && (
+            <span className="text-xs font-medium text-muted-foreground">Customer {compactId(subscription.stripeCustomerId)}</span>
+          )}
+        </div>
+
+        <div className="mt-5 overflow-hidden rounded-xl border border-border">
+          {(billing?.invoices || []).map((invoice) => (
+            <div key={invoice.id} className="grid gap-2 border-b border-border px-4 py-3 text-sm last:border-b-0 md:grid-cols-[1fr_110px_120px_120px] md:items-center">
+              <div>
+                <div className="font-semibold">{invoice.number || compactId(invoice.id)}</div>
+                <div className="mt-0.5 text-xs text-muted-foreground">{invoice.created ? new Date(invoice.created).toLocaleDateString() : "Date pending"}</div>
+              </div>
+              <div className="capitalize text-muted-foreground">{invoice.status || "pending"}</div>
+              <div className="font-medium">{formatMoney(invoice.amountDue, invoice.currency)}</div>
+              {invoice.hostedInvoiceUrl ? (
+                <a className="font-semibold text-primary hover:underline md:text-right" href={invoice.hostedInvoiceUrl} target="_blank" rel="noreferrer">
+                  Open
+                </a>
+              ) : (
+                <span className="text-muted-foreground md:text-right">No link</span>
+              )}
             </div>
           ))}
+          {billing && billing.invoices.length === 0 && (
+            <div className="px-4 py-8 text-sm text-muted-foreground">No Stripe invoices are attached yet.</div>
+          )}
+          {!billing && (
+            <div className="px-4 py-8 text-sm text-muted-foreground">
+              Stripe billing details will appear here after the customer record is connected and the Stripe API is configured.
+            </div>
+          )}
         </div>
       </section>
     </div>
@@ -105,4 +152,17 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 function title(value: string) {
   return value.replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function compactId(value: string) {
+  if (value.length <= 14) return value;
+  return `${value.slice(0, 8)}...${value.slice(-4)}`;
+}
+
+function formatMoney(cents: number | null, currency: string | null) {
+  if (typeof cents !== "number") return "Pending";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: (currency || "usd").toUpperCase(),
+  }).format(cents / 100);
 }

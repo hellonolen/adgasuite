@@ -746,12 +746,29 @@ CREATE TABLE IF NOT EXISTS events (
   resource_type TEXT,
   resource_id TEXT,
   payload_json TEXT NOT NULL DEFAULT '{}',
+  delivery_attempts INTEGER NOT NULL DEFAULT 0,
+  last_error TEXT,
+  last_attempted_at TEXT,
   created_at TEXT NOT NULL,
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_events_org_type ON events (organization_id, event_type);
 CREATE INDEX IF NOT EXISTS idx_events_resource ON events (resource_type, resource_id);
+CREATE INDEX IF NOT EXISTS idx_events_replay ON events(organization_id, created_at, id);
+
+CREATE TABLE IF NOT EXISTS event_dead_letter (
+  event_id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  attempts INTEGER NOT NULL,
+  last_error TEXT,
+  parked_at TEXT NOT NULL DEFAULT (datetime('now')),
+  resolved_at TEXT,
+  FOREIGN KEY (event_id) REFERENCES events(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_event_dead_letter_org ON event_dead_letter(organization_id, parked_at);
 
 CREATE TABLE IF NOT EXISTS workflow_states (
   id TEXT PRIMARY KEY,

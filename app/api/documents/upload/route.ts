@@ -11,6 +11,7 @@ export async function POST(request: Request) {
   const file = form.get("file");
   if (!(file instanceof File)) return errorJson("file is required.");
   const dealId = stringField(form.get("deal_id"));
+  const mapId = stringField(form.get("map_id"));
   const companyId = stringField(form.get("company_id"));
   const companyName = stringField(form.get("company_name"));
   const contactName = stringField(form.get("contact_name"));
@@ -68,6 +69,7 @@ export async function POST(request: Request) {
       type: file.type,
       sha256: hash,
       deal_id: dealId,
+      map_id: mapId,
       company_id: companyId,
       company_name: companyName,
       contact_name: contactName,
@@ -86,6 +88,7 @@ export async function POST(request: Request) {
       mime_type: file.type || "application/octet-stream",
       size_bytes: file.size,
       deal_id: dealId,
+      map_id: mapId,
       company_id: companyId,
       company_name: companyName,
       contact_name: contactName,

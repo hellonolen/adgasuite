@@ -45,7 +45,10 @@ export async function POST(request: Request) {
   if (!email) return errorJson("Unauthorized.", 401);
 
   if (!db) {
-    // Stub response when D1 is not bound — keeps the UI testable in pure-Next dev.
+    if (process.env.NODE_ENV === "production") {
+      return errorJson("Affiliate enrollment storage is not configured.", 503);
+    }
+    // Local-only response when D1 is not bound — keeps the UI testable in pure-Next dev.
     const referralCode = buildReferralCode(email);
     return json({
       ok: true,

@@ -747,6 +747,81 @@ export function DealMindmap({
     }
   };
 
+  const persistDroppedDocumentNode = React.useCallback(
+    async (file: File, upload: Record<string, unknown>, index: number) => {
+      const id = `mnode_doc_${Date.now().toString(36)}_${index}_${Math.random().toString(36).slice(2, 8)}`;
+      const storageObject = (upload.storage_object || {}) as Record<string, unknown>;
+      const document = (upload.document || {}) as Record<string, unknown>;
+      const position = { x: CENTER_X + 240 + index * 34, y: CENTER_Y - 140 + index * 74 };
+      const label = String(document.title || file.name);
+      const sublabel = `${Math.round(file.size / 1024)} KB · R2 stored`;
+      const newNode: Node = {
+        id,
+        type: "entity",
+        position,
+        data: {
+          id,
+          kind: "document",
+          label,
+          sublabel,
+          status: "done",
+        } as unknown as Record<string, unknown>,
+      };
+      const edgeId = `e_doc_${Date.now().toString(36)}_${index}_${Math.random().toString(36).slice(2, 8)}`;
+
+      setNodes((nds) => nds.concat(newNode));
+      setEdges((eds) =>
+        eds.concat({
+          id: edgeId,
+          source: deal.id,
+          target: id,
+          style: { stroke: KIND_META.document.ring, strokeWidth: 1.5 },
+        }),
+      );
+      setSelectedId(id);
+
+      const base = persistBaseRef.current;
+      if (!persistEnabled || !base) return;
+
+      knownNodeIdsRef.current.add(id);
+      await fetch(`${base}/nodes`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          kind: "document",
+          label,
+          sublabel,
+          status: "done",
+          position_x: position.x,
+          position_y: position.y,
+          data: {
+            document_id: document.id || null,
+            storage_object_id: storageObject.id || null,
+            r2_key: upload.key || storageObject.r2_key || null,
+            file_name: file.name,
+            mime_type: file.type || "application/octet-stream",
+            size_bytes: file.size,
+          },
+        }),
+      }).catch(() => {});
+
+      await fetch(`${base}/edges`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: edgeId,
+          source_node_id: deal.id,
+          target_node_id: id,
+          label: "Document",
+        }),
+      }).catch(() => {});
+    },
+    [deal.id, persistEnabled, setEdges, setNodes],
+  );
+
   const removeSelected = () => {
     if (!selectedId || selectedId === deal.id) return;
     const removingId = selectedId;
@@ -831,17 +906,43 @@ export function DealMindmap({
           if (files.length === 0 && !text) return;
           setIngesting(true);
           try {
-            // For now: fire an agent job describing the ingest. The Conductor agent picks it
-            // up via the event bus and creates the right node(s). Files are referenced by
-            // name; a follow-up upload pipeline lands them in R2.
+            const uploadedFiles: Array<Record<string, unknown>> = [];
+            for (const [index, file] of files.entries()) {
+              const form = new FormData();
+              form.set("file", file);
+              form.set("deal_id", deal.id);
+              form.set("folder", "dealflow");
+              if (mapId) form.set("map_id", mapId);
+              const uploadResponse = await fetch("/api/documents/upload", {
+                method: "POST",
+                credentials: "include",
+                body: form,
+              });
+              const uploadBody = (await uploadResponse.json().catch(() => null)) as Record<string, unknown> | null;
+              if (uploadResponse.ok && uploadBody?.ok) {
+                uploadedFiles.push(uploadBody);
+                await persistDroppedDocumentNode(file, uploadBody, index);
+              }
+            }
+
             await fetch("/api/agent/jobs", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 agent: "documents",
                 job_type: "map.ingest",
-                prompt: text || `Ingest ${files.length} dropped file(s): ${files.map(f => f.name).join(", ")}`,
-                context: { mapId, dealId: deal.id, fileNames: files.map(f => f.name), text },
+                prompt: text || `Ingest ${uploadedFiles.length || files.length} dropped file(s): ${files.map(f => f.name).join(", ")}`,
+                context: {
+                  mapId,
+                  dealId: deal.id,
+                  fileNames: files.map(f => f.name),
+                  uploadedFiles: uploadedFiles.map((item) => ({
+                    document_id: (item.document as Record<string, unknown> | undefined)?.id || null,
+                    storage_object_id: (item.storage_object as Record<string, unknown> | undefined)?.id || null,
+                    r2_key: item.key || null,
+                  })),
+                  text,
+                },
                 run_now: true,
               }),
             }).catch(() => {});
