@@ -29,36 +29,36 @@ function emailHtml(link: string, email: string) {
   const safeEmail = escapeHtml(email);
   return `<!doctype html>
 <html>
-  <body style="margin:0;background:#f3eee6;font-family:Inter,Arial,sans-serif;color:#181512;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3eee6;padding:40px 16px;">
+  <body style="margin:0;background:#f7f3ff;font-family:Inter,Arial,sans-serif;color:#18151f;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f7f3ff;padding:40px 16px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fffdf8;border:1px solid #ded3c4;border-radius:22px;overflow:hidden;box-shadow:0 26px 70px rgba(43,34,24,0.14);">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#ffffff;border:1px solid #e4d8ff;border-radius:22px;overflow:hidden;box-shadow:0 26px 70px rgba(91,33,182,0.14);">
             <tr>
-              <td style="padding:34px 38px 24px;border-bottom:1px solid #ebe2d6;">
-                <div style="font-size:13px;line-height:1;color:#7b6f62;text-transform:uppercase;letter-spacing:0.16em;font-weight:800;">ADGA</div>
-                <div style="margin-top:14px;font-size:15px;line-height:1.5;color:#675d52;">Your private Five Secrets access link is ready.</div>
+              <td style="padding:34px 38px 24px;border-bottom:1px solid #eee7ff;background:#fbf9ff;">
+                <div style="font-size:13px;line-height:1;color:#5b21b6;text-transform:uppercase;letter-spacing:0.16em;font-weight:900;">ADGA</div>
+                <div style="margin-top:14px;font-size:15px;line-height:1.5;color:#5f5570;">Your private Five Secrets access link is ready.</div>
               </td>
             </tr>
             <tr>
               <td style="padding:38px;">
-                <h1 style="margin:0 0 16px;font-size:34px;line-height:1.04;letter-spacing:-0.03em;color:#181512;">Five Secrets to Not Losing Million-Dollar Deals</h1>
-                <p style="margin:0 0 28px;font-size:17px;line-height:1.62;color:#4e453c;">Open the private guide and review the five checks before your next high-stakes deal conversation.</p>
+                <h1 style="margin:0 0 16px;font-size:34px;line-height:1.04;letter-spacing:-0.03em;color:#18151f;">Five Secrets to Not Losing Million-Dollar Deals</h1>
+                <p style="margin:0 0 28px;font-size:17px;line-height:1.62;color:#504861;">Open the private guide and review the five checks before your next high-stakes deal conversation.</p>
                 <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 28px;">
                   <tr>
-                    <td style="background:#181512;border-radius:14px;box-shadow:0 12px 26px rgba(24,21,18,0.18);">
-                      <a href="${link}" style="display:inline-block;color:#fffdf8;text-decoration:none;padding:15px 22px;font-size:15px;line-height:1;font-weight:800;">Open Five Secrets</a>
+                    <td style="background:#5b21b6;border-radius:14px;box-shadow:0 12px 26px rgba(91,33,182,0.24);">
+                      <a href="${link}" style="display:inline-block;color:#ffffff;text-decoration:none;padding:15px 22px;font-size:15px;line-height:1;font-weight:800;">Open Five Secrets</a>
                     </td>
                   </tr>
                 </table>
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f0e8;border:1px solid #e8ddcf;border-radius:16px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#faf7ff;border:1px solid #e7ddff;border-radius:16px;">
                   <tr>
                     <td style="padding:18px 20px;">
-                      <p style="margin:0;font-size:13px;line-height:1.55;color:#6b6055;">This link expires in ${FIVE_SECRETS_MAGIC_TTL_MINUTES} minutes and is only for Five Secrets access. It will not sign ${safeEmail} into ADGA Suite.</p>
+                      <p style="margin:0;font-size:13px;line-height:1.55;color:#5f5570;">This link expires in ${FIVE_SECRETS_MAGIC_TTL_MINUTES} minutes and is only for Five Secrets access. It will not sign ${safeEmail} into ADGA Suite.</p>
                     </td>
                   </tr>
                 </table>
-                <p style="margin:22px 0 0;font-size:12px;line-height:1.55;color:#80766b;">Button not working? Use this access link: <a href="${link}" style="color:#181512;text-decoration:underline;font-weight:700;">Open Five Secrets</a></p>
+                <p style="margin:22px 0 0;font-size:12px;line-height:1.55;color:#766b88;">Button not working? Use this access link: <a href="${link}" style="color:#5b21b6;text-decoration:underline;font-weight:800;">Open Five Secrets</a></p>
               </td>
             </tr>
           </table>
