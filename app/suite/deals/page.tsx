@@ -1,0 +1,144 @@
+import { redirect } from "next/navigation";
+
+import DealsPageClient from "@/components/suite/workspaces/DealsPageClient";
+import { getAdminRuntime, resolveAdminSession } from "@/lib/server/admin-session";
+import { readJsonPayload } from "@/lib/server/payload-storage";
+import { DEFAULT_ORG_ID } from "@/lib/server/tenant";
+
+export const dynamic = "force-dynamic";
+
+interface CanvasRow {
+  id: string;
+  name: string | null;
+  template: string | null;
+  updated_at: string | null;
+  payload_r2_key: string | null;
+}
+
+interface DealRow {
+  id: string;
+  name: string | null;
+  stage: string | null;
+  updated_at: string | null;
+  payload_r2_key: string | null;
+}
+
+interface CanvasCountRow {
+  map_id: string;
+  c: number | null;
+}
+
+interface DealCountRow {
+  deal_id: string;
+  c: number | null;
+}
+
+type DealSquare = {
+  id: string;
+  name: string;
+  stage: string;
+  updated: string | null;
+  nodeCount: number;
+  source: "canvas" | "deal";
+};
+
+async function loadDeals(db: D1Database | undefined, env: CloudflareEnv): Promise<DealSquare[]> {
+  if (!db) {
+    return [
+      { id: "DEAL-621810", name: "Meridian Cold Chain Acquisition", stage: "closing", updated: "2026-05-22T06:00:00.000Z", nodeCount: 14, source: "canvas" },
+      { id: "DEAL-847214", name: "Heliograph Series C Extension", stage: "negotiation", updated: "2026-05-22T03:30:00.000Z", nodeCount: 11, source: "canvas" },
+      { id: "DEAL-935672", name: "Tessellate Series B Participation", stage: "negotiation", updated: "2026-05-22T00:10:00.000Z", nodeCount: 9, source: "canvas" },
+      { id: "DEAL-471906", name: "Quorum Energy Joint Venture", stage: "proposal", updated: "2026-05-19T14:00:00.000Z", nodeCount: 7, source: "canvas" },
+      { id: "DEAL-783540", name: "Kestrel Defense Procurement", stage: "negotiation", updated: "2026-05-21T18:00:00.000Z", nodeCount: 8, source: "canvas" },
+      { id: "DEAL-659128", name: "Larkfield Capital Strategic Partnership", stage: "proposal", updated: "2026-05-21T11:30:00.000Z", nodeCount: 6, source: "canvas" },
+    ];
+  }
+
+  const [canvasRows, dealRows, canvasCountRows, dealCountRows] = await Promise.all([
+    db
+      .prepare("SELECT id, name, template, updated_at, payload_r2_key FROM maps WHERE organization_id = ? ORDER BY updated_at DESC LIMIT 200")
+      .bind(DEFAULT_ORG_ID)
+      .all<CanvasRow>()
+      .then((r) => r.results || [])
+      .catch(() => [] as CanvasRow[]),
+    db
+      .prepare("SELECT id, name, stage, updated_at, payload_r2_key FROM deals WHERE organization_id = ? ORDER BY updated_at DESC LIMIT 200")
+      .bind(DEFAULT_ORG_ID)
+      .all<DealRow>()
+      .then((r) => r.results || [])
+      .catch(() => [] as DealRow[]),
+    db
+      .prepare("SELECT map_id, COUNT(*) AS c FROM map_nodes GROUP BY map_id")
+      .all<CanvasCountRow>()
+      .then((r) => r.results || [])
+      .catch(() => [] as CanvasCountRow[]),
+    db
+      .prepare(
+        `SELECT deal_id, COUNT(*) AS c FROM (
+           SELECT deal_id FROM tasks WHERE deal_id IS NOT NULL
+           UNION ALL SELECT deal_id FROM documents WHERE deal_id IS NOT NULL
+           UNION ALL SELECT deal_id FROM calendar_events WHERE deal_id IS NOT NULL
+         ) GROUP BY deal_id`,
+      )
+      .all<DealCountRow>()
+      .then((r) => r.results || [])
+      .catch(() => [] as DealCountRow[]),
+  ]);
+
+  const canvasCounts = new Map<string, number>();
+  for (const row of canvasCountRows) canvasCounts.set(row.map_id, Number(row.c || 0));
+
+  const dealCounts = new Map<string, number>();
+  for (const row of dealCountRows) dealCounts.set(row.deal_id, Number(row.c || 0));
+
+  const canvasDeals = await Promise.all(
+    canvasRows.map(async (row): Promise<DealSquare> => {
+      const payload = await readJsonPayload<Record<string, unknown>>(env, row.payload_r2_key);
+      return {
+        id: row.id,
+        name: String(payload?.name || row.name || row.id),
+        stage: String(payload?.template || row.template || "canvas"),
+        updated: row.updated_at,
+        nodeCount: Math.max(1, canvasCounts.get(row.id) || 0),
+        source: "canvas",
+      };
+    }),
+  );
+
+  const canvasDealIds = new Set(
+    canvasRows.map((row) => row.id).concat(canvasRows.map((row) => row.id.replace(/^map_/, "deal_"))),
+  );
+
+  const legacyDeals = await Promise.all(
+    dealRows
+      .filter((row) => !canvasDealIds.has(row.id))
+      .slice(0, 80)
+      .map(async (row): Promise<DealSquare> => {
+        const payload = await readJsonPayload<Record<string, unknown>>(env, row.payload_r2_key);
+        return {
+          id: row.id,
+          name: String(payload?.name || row.name || row.id),
+          stage: String(payload?.stage || row.stage || "lead"),
+          updated: row.updated_at,
+          nodeCount: 1 + (dealCounts.get(row.id) || 0),
+          source: "deal",
+        };
+      }),
+  );
+
+  return [...canvasDeals, ...legacyDeals]
+    .sort((a, b) => String(b.updated || "").localeCompare(String(a.updated || "")))
+    .slice(0, 200);
+}
+
+export default async function DealsPage() {
+  const session = await resolveAdminSession();
+  if (!session) {
+    redirect("/login?redirect=/suite/deals");
+  }
+
+  const { context } = await getAdminRuntime();
+  const deals = await loadDeals(context.env.DB, context.env);
+
+  return <DealsPageClient data={{ deals }} />;
+}

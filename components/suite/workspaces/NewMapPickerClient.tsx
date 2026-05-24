@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Template picker for /suite/maps/new — rendered as children of the suite layout's
+ * Template picker for /suite/deals/new — rendered as children of the suite layout's
  * workspace area. The shell (sidebar, topbar, voice panel) is provided by the layout;
  * this file owns ONLY the picker UI. No <main>, no SuiteClient — both come from layout.
  */
@@ -43,14 +43,14 @@ async function postJSON<T>(url: string, body: unknown): Promise<T> {
 }
 
 async function createMapFromTemplate(template: DealTemplate, name: string): Promise<string> {
-  // 1. Create the map shell
+  // 1. Create the canvas shell
   const created = await postJSON<CreatedMap>("/api/maps", {
     name,
     template: template.id,
     deal_id: null,
   });
   const mapId = created.map?.id || created.id;
-  if (!mapId) throw new Error("Map was created but no map id was returned.");
+  if (!mapId) throw new Error("Deal was created but no deal id was returned.");
   const nodeIdFor = (templateNodeId: string) =>
     templateNodeId === "deal" ? mapId : `${mapId}_${templateNodeId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
 
@@ -112,7 +112,7 @@ function NewMapInner() {
           });
           return;
         }
-        const message = err instanceof Error ? err.message : "Something went wrong creating the map.";
+        const message = err instanceof Error ? err.message : "Something went wrong creating the deal.";
         setState({ kind: "error", message });
       }
     });
@@ -136,17 +136,17 @@ function NewMapInner() {
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-2xl">
           <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">
-            New map
+            New deal
           </div>
           <h1 className="text-3xl font-semibold tracking-tight text-[#0d0c0a] sm:text-4xl">
             Pick a template to start
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-[#6b6760] sm:text-base">
-            Each template opens a fresh, pre-populated mindmap. You can edit everything after.
+            Each template opens a fresh canvas. You can edit everything after.
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link href="/suite/templates">Browse gallery</Link>
+          <Link href="/suite/templates">Browse templates</Link>
         </Button>
       </div>
 
@@ -154,12 +154,12 @@ function NewMapInner() {
       {state.kind === "wiring-pending" && (
         <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           <strong className="font-semibold">{state.message}</strong>{" "}
-          The map APIs are not live yet — your template selection is preserved.
+          The deal canvas APIs are not live yet — your template selection is preserved.
         </div>
       )}
       {state.kind === "error" && (
         <div className="mb-6 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">
-          <strong className="font-semibold">Could not create map.</strong> {state.message}
+          <strong className="font-semibold">Could not create deal.</strong> {state.message}
         </div>
       )}
 
@@ -240,7 +240,7 @@ function NewMapInner() {
               disabled={isPending}
               onClick={() => handleCreate(selected)}
             >
-              {isPending ? "Creating…" : "Create map"}
+              {isPending ? "Creating…" : "Create deal"}
             </Button>
           </div>
         </div>

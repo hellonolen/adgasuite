@@ -99,7 +99,7 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
             <Link href="/suite/templates">All templates</Link>
           </Button>
           <Button asChild className="bg-[#5d2cd6] hover:bg-[#4920b3]">
-            <Link href={`/suite/maps/new?template=${template.id}`}>Use this template</Link>
+            <Link href={`/suite/deals/new?template=${template.id}`}>Use this template</Link>
           </Button>
         </div>
       </div>
@@ -184,7 +184,7 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
             </Card>
 
             <Button asChild size="lg" className="w-full bg-[#5d2cd6] hover:bg-[#4920b3]">
-              <Link href={`/suite/maps/new?template=${template.id}`}>Use this template</Link>
+              <Link href={`/suite/deals/new?template=${template.id}`}>Use this template</Link>
             </Button>
           </aside>
         </div>

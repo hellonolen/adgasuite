@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
 import { getRuntimeContext } from "@/lib/server/runtime";
 
-// /suite is not a dashboard. The product's primary surface is the live operational graph.
-// Land the operator on a real map — the most recently updated one, or the maps gallery if
-// the workspace has none yet.
+// /suite is not a duplicate dashboard. Land the operator on the most recently
+// updated deal canvas, or the Deals page if the workspace has none yet.
 export default async function SuiteRootRedirect() {
   const context = getRuntimeContext(new Request("http://localhost/"));
   const db = context.env.DB;
@@ -19,9 +18,9 @@ export default async function SuiteRootRedirect() {
         .first<{ id: string }>();
       if (latestDeal?.id) redirect(`/suite/map/${latestDeal.id}`);
     } catch {
-      // fall through to gallery
+      // fall through to Deals
     }
   }
 
-  redirect("/suite/maps");
+  redirect("/suite/deals");
 }

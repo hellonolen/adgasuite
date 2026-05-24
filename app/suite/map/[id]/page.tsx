@@ -10,6 +10,7 @@ import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { redirect } from "next/navigation";
 import { getMap, getMapEdges, getMapNodes } from "@/lib/server/repository";
 import DealMapClient from "@/components/suite/workspaces/DealMapClient";
+import { readJsonPayload } from "@/lib/server/payload-storage";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -146,31 +147,51 @@ export default async function DealDetailPage({ params }: PageProps) {
   // 1. Try the persisted-map path first (Phase 9d). Map IDs are `map_*`.
   const mapRecord = await getMap(db, id);
   if (mapRecord) {
-    const [nodeRows, edgeRows] = await Promise.all([
+    const [mapPayload, nodeRows, edgeRows] = await Promise.all([
+      readJsonPayload<Record<string, unknown>>(context.env, mapRecord.payload_r2_key),
       getMapNodes(db, mapRecord.id),
       getMapEdges(db, mapRecord.id),
     ]);
 
+    const [hydratedNodes, hydratedEdges] = await Promise.all([
+      Promise.all(
+        nodeRows.map(async (node) => {
+          const payload = await readJsonPayload<Record<string, unknown>>(context.env, node.payload_r2_key);
+          return payload ? { ...node, ...payload, id: node.id, map_id: node.map_id } : node;
+        }),
+      ),
+      Promise.all(
+        edgeRows.map(async (edge) => {
+          const payload = await readJsonPayload<Record<string, unknown>>(context.env, edge.payload_r2_key);
+          return payload ? { ...edge, ...payload, id: edge.id, map_id: edge.map_id } : edge;
+        }),
+      ),
+    ]);
+
+    const hydratedMap = mapPayload
+      ? { ...mapRecord, ...mapPayload, id: mapRecord.id, organization_id: mapRecord.organization_id }
+      : mapRecord;
+
     const deal: DealMindmapDeal = {
       id: mapRecord.id,
-      name: mapRecord.name,
-      stage: mapRecord.template || "Map",
+      name: String(hydratedMap.name || mapRecord.id),
+      stage: String(hydratedMap.template || "Deal"),
     };
 
-    const initialNodes: DealMindmapInitialNode[] = nodeRows.map((node) => ({
+    const initialNodes: DealMindmapInitialNode[] = hydratedNodes.map((node) => ({
       id: node.id,
       kind: node.kind === "deal" ? "action" : (node.kind as DealMindmapEntity["kind"]),
-      label: node.label,
-      sublabel: node.sublabel || undefined,
+      label: String(node.label || "Untitled"),
+      sublabel: node.sublabel ? String(node.sublabel) : undefined,
       status: (node.status as DealMindmapEntity["status"]) || "neutral",
-      position: { x: node.position_x, y: node.position_y },
+      position: { x: Number(node.position_x || 0), y: Number(node.position_y || 0) },
     }));
 
-    const initialEdges: DealMindmapInitialEdge[] = edgeRows.map((edge) => ({
+    const initialEdges: DealMindmapInitialEdge[] = hydratedEdges.map((edge) => ({
       id: edge.id,
       source: edge.source_node_id,
       target: edge.target_node_id,
-      label: edge.label || undefined,
+      label: edge.label ? String(edge.label) : undefined,
     }));
 
     return renderMap(deal, initialNodes, initialEdges, mapRecord.id);
