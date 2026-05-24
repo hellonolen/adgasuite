@@ -110,7 +110,7 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
           <CardHeader>
             <CardTitle className="text-base">Empty canvas</CardTitle>
             <CardDescription>
-              Just the deal node — perfect when none of the shapes fit. You build the map yourself.
+              Just the deal node — perfect when none of the shapes fit. You build the canvas yourself.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -165,7 +165,7 @@ export default function TemplateDetailClient({ template }: TemplateDetailClientP
                   A pre-populated mindmap with {template.nodes.length} entities connected to the
                   deal anchor.
                 </p>
-                <p>Edit, rename or remove any node after the map opens.</p>
+                <p>Edit, rename or remove any node after the dealflow opens.</p>
               </CardContent>
             </Card>
 

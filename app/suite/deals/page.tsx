@@ -39,18 +39,19 @@ type DealSquare = {
   stage: string;
   updated: string | null;
   nodeCount: number;
+  storageState: "r2" | "metadata";
   source: "canvas" | "deal";
 };
 
 async function loadDeals(db: D1Database | undefined, env: CloudflareEnv): Promise<DealSquare[]> {
   if (!db) {
     return [
-      { id: "DEAL-621810", name: "Meridian Cold Chain Acquisition", stage: "closing", updated: "2026-05-22T06:00:00.000Z", nodeCount: 14, source: "canvas" },
-      { id: "DEAL-847214", name: "Heliograph Series C Extension", stage: "negotiation", updated: "2026-05-22T03:30:00.000Z", nodeCount: 11, source: "canvas" },
-      { id: "DEAL-935672", name: "Tessellate Series B Participation", stage: "negotiation", updated: "2026-05-22T00:10:00.000Z", nodeCount: 9, source: "canvas" },
-      { id: "DEAL-471906", name: "Quorum Energy Joint Venture", stage: "proposal", updated: "2026-05-19T14:00:00.000Z", nodeCount: 7, source: "canvas" },
-      { id: "DEAL-783540", name: "Kestrel Defense Procurement", stage: "negotiation", updated: "2026-05-21T18:00:00.000Z", nodeCount: 8, source: "canvas" },
-      { id: "DEAL-659128", name: "Larkfield Capital Strategic Partnership", stage: "proposal", updated: "2026-05-21T11:30:00.000Z", nodeCount: 6, source: "canvas" },
+      { id: "DEAL-621810", name: "Meridian Cold Chain Acquisition", stage: "closing", updated: "2026-05-22T06:00:00.000Z", nodeCount: 14, storageState: "r2", source: "canvas" },
+      { id: "DEAL-847214", name: "Heliograph Series C Extension", stage: "negotiation", updated: "2026-05-22T03:30:00.000Z", nodeCount: 11, storageState: "r2", source: "canvas" },
+      { id: "DEAL-935672", name: "Tessellate Series B Participation", stage: "negotiation", updated: "2026-05-22T00:10:00.000Z", nodeCount: 9, storageState: "r2", source: "canvas" },
+      { id: "DEAL-471906", name: "Quorum Energy Joint Venture", stage: "proposal", updated: "2026-05-19T14:00:00.000Z", nodeCount: 7, storageState: "r2", source: "canvas" },
+      { id: "DEAL-783540", name: "Kestrel Defense Procurement", stage: "negotiation", updated: "2026-05-21T18:00:00.000Z", nodeCount: 8, storageState: "r2", source: "canvas" },
+      { id: "DEAL-659128", name: "Larkfield Capital Strategic Partnership", stage: "proposal", updated: "2026-05-21T11:30:00.000Z", nodeCount: 6, storageState: "r2", source: "canvas" },
     ];
   }
 
@@ -100,6 +101,7 @@ async function loadDeals(db: D1Database | undefined, env: CloudflareEnv): Promis
         stage: String(payload?.template || row.template || "canvas"),
         updated: row.updated_at,
         nodeCount: Math.max(1, canvasCounts.get(row.id) || 0),
+        storageState: row.payload_r2_key ? "r2" : "metadata",
         source: "canvas",
       };
     }),
@@ -121,6 +123,7 @@ async function loadDeals(db: D1Database | undefined, env: CloudflareEnv): Promis
           stage: String(payload?.stage || row.stage || "lead"),
           updated: row.updated_at,
           nodeCount: 1 + (dealCounts.get(row.id) || 0),
+          storageState: row.payload_r2_key ? "r2" : "metadata",
           source: "deal",
         };
       }),

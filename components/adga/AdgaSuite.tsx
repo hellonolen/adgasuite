@@ -1665,7 +1665,7 @@ function parseWorkflow(text, deals) {
     tasks: ['task', 'todo', 'checklist'],
     calendar: ['calendar', 'meeting', 'schedule', 'call', 'availability', 'agenda'],
     inbox: ['inbox', 'mail', 'message'],
-    story: ['story', 'timeline', 'history', 'history of', 'mind map'],
+    story: ['story', 'timeline', 'history', 'history of', 'dealflow'],
     home: ['home', 'today', 'morning'],
     billing: ['billing', 'plan', 'invoice'],
     admin: ['admin', 'permission', 'audit'],
@@ -1768,7 +1768,7 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
   const [panelTab, setPanelTab] = React.useState('chat');
   const [activeChat, setActiveChat] = React.useState(SAMPLE_HISTORY[0].id);
   // Chat history is shared across every suite page — persist to localStorage so the
-  // conversation looks identical whether the user is on /suite, /suite/map/<id>, or any
+  // conversation looks identical whether the user is on /suite, /suite/dealflow/<id>, or any
   // other route inside the platform. For real authenticated users we drop the demo seed.
   const [messages, setMessages] = React.useState(() => {
     if (typeof window === 'undefined') return VOICE_TRANSCRIPT;
@@ -1949,8 +1949,8 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         <div className="voice-title">
           <span>ADGA</span>
           {activeContext?.kind === 'map' && activeContext.deal && (
-            <span className="state" title="ADGA is aware of this map">
-              · on {activeContext.deal.name?.split(' — ')[0] || 'map'}
+            <span className="state" title="ADGA is aware of this dealflow">
+              · on {activeContext.deal.name?.split(' — ')[0] || 'dealflow'}
             </span>
           )}
           {state !== 'idle' && (
@@ -2033,7 +2033,7 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
         </div>
       )}
 
-      {/* Map-aware suggestion row — when ADGA is sitting on a map, show 4 one-tap prompts
+      {/* Dealflow-aware suggestion row — when ADGA is sitting on a dealflow canvas, show 4 one-tap prompts
           that are specific to the deal context. Click sends the prompt straight through the
           existing send() pipeline so the chat fans into the bus the same way as typing. */}
       {panelTab === 'chat' && activeContext?.kind === 'map' && activeContext.deal && (
@@ -2047,10 +2047,10 @@ function ADGAPanel({ state, setState, collapsed, setCollapsed, onWorkflow, deals
           }}
         >
           {[
-            { label: 'What\'s the next move?', prompt: `On the ${activeContext.deal.name?.split(' — ')[0] || 'deal'} map, what's the highest-leverage next action right now?` },
-            { label: 'Who haven\'t we reached?', prompt: `Who is on the ${activeContext.deal.name?.split(' — ')[0] || 'deal'} map that we haven't actually had a conversation with yet?` },
-            { label: 'Draft the next message', prompt: `Draft the next outreach message I should send on the ${activeContext.deal.name?.split(' — ')[0] || 'deal'} map.` },
-            { label: 'Where\'s the risk?', prompt: `Looking at the ${activeContext.deal.name?.split(' — ')[0] || 'deal'} map, where's the biggest risk to closing on schedule?` },
+            { label: 'What\'s the next move?', prompt: `On the ${activeContext.deal.name?.split(' — ')[0] || 'deal'} dealflow, what's the highest-leverage next action right now?` },
+            { label: 'Who haven\'t we reached?', prompt: `Who is on the ${activeContext.deal.name?.split(' — ')[0] || 'deal'} dealflow that we haven't actually had a conversation with yet?` },
+            { label: 'Draft the next message', prompt: `Draft the next outreach message I should send on the ${activeContext.deal.name?.split(' — ')[0] || 'deal'} dealflow.` },
+            { label: 'Where\'s the risk?', prompt: `Looking at the ${activeContext.deal.name?.split(' — ')[0] || 'deal'} dealflow, where's the biggest risk to closing on schedule?` },
           ].map((s) => (
             <button
               key={s.label}
@@ -2360,7 +2360,7 @@ function pipelineHealthForDeal(deal) {
     - (daysToClose < 7 && deal.stage !== 'close' && deal.stage !== 'sign' ? 12 : 0)
   ));
   const blockers = [
-    stale ? 'No recent map activity' : null,
+    stale ? 'No recent dealflow activity' : null,
     daysToClose < 7 && deal.stage !== 'close' && deal.stage !== 'sign' ? 'Close date is near but stage is not late' : null,
     docCount === 0 ? 'No attached documents' : null,
     taskCount === 0 ? 'No open tasks' : null,
@@ -2387,7 +2387,7 @@ function PipelineOpsPanel({ deals, selectedDeal, onSelect, openDeal }) {
     <div style={{padding:'0 var(--suite-gutter, 32px) 18px',display:'grid',gridTemplateColumns:'minmax(0,1.15fr) minmax(320px,.85fr)',gap:14}}>
       <div className="card">
         <div className="card-h">
-          <div><div className="ttl">Pipeline operations</div><div className="sub">Stage health, weighted forecast, and stuck-deal signals from the live map layer.</div></div>
+          <div><div className="ttl">Pipeline operations</div><div className="sub">Stage health, weighted forecast, and stuck-deal signals from live dealflow evidence.</div></div>
           <Pill tone="blue" noDot>{active.length} active</Pill>
         </div>
         <div className="card-b" style={{padding:0}}>
@@ -2405,7 +2405,7 @@ function PipelineOpsPanel({ deals, selectedDeal, onSelect, openDeal }) {
       </div>
 
       <div className="card">
-        <div className="card-h"><div><div className="ttl">Needs attention</div><div className="sub">Map gaps and stale movement.</div></div></div>
+        <div className="card-h"><div><div className="ttl">Needs attention</div><div className="sub">Evidence gaps and stale movement.</div></div></div>
         <div className="card-b" style={{padding:0}}>
           {staleDeals.map(d => {
             const health = pipelineHealthForDeal(d);
@@ -2425,8 +2425,8 @@ function PipelineOpsPanel({ deals, selectedDeal, onSelect, openDeal }) {
 
       <div className="card" style={{gridColumn:'1 / -1'}}>
         <div className="card-h">
-          <div><div className="ttl">Map activity feeding the pipeline</div><div className="sub">Documents, tasks, and notes are the evidence behind each stage movement.</div></div>
-          <button className="btn sm" type="button" onClick={() => selectedDeal && openDeal(selectedDeal)} disabled={!selectedDeal}>Open selected map</button>
+          <div><div className="ttl">Dealflow activity feeding the pipeline</div><div className="sub">Documents, tasks, and notes are the evidence behind each stage movement.</div></div>
+          <button className="btn sm" type="button" onClick={() => selectedDeal && openDeal(selectedDeal)} disabled={!selectedDeal}>Open selected dealflow</button>
         </div>
         <div className="card-b" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:10}}>
           {activityRows.map(({ deal, health, docs, tasks }) => (
@@ -2439,11 +2439,11 @@ function PipelineOpsPanel({ deals, selectedDeal, onSelect, openDeal }) {
                 <Pill tone={health.blockers.length ? 'amber' : 'green'}>{health.blockers.length ? 'Review' : 'Clean'}</Pill>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:12}}>
-                <div className="tag">{health.docCount} map docs</div>
+                <div className="tag">{health.docCount} deal docs</div>
                 <div className="tag">{health.taskCount} tasks</div>
               </div>
               <div style={{marginTop:10,fontSize:12,color:'var(--text-2)',lineHeight:1.45}}>
-                {(docs[0]?.name || tasks[0]?.title || health.blockers[0] || 'Recent map activity is current.')}
+                {(docs[0]?.name || tasks[0]?.title || health.blockers[0] || 'Recent dealflow activity is current.')}
               </div>
             </button>
           ))}
@@ -2480,7 +2480,7 @@ function PipelineDealInspector({ deal, onClose, openDeal }) {
           <div className="card-h"><div className="ttl">Stage evidence</div></div>
           <div className="card-b" style={{padding:0}}>
             {[
-              ['Map documents', docs.length, docs[0]?.name || 'No document evidence yet'],
+              ['Deal documents', docs.length, docs[0]?.name || 'No document evidence yet'],
               ['Open tasks', tasks.length, tasks[0]?.title || 'No task evidence yet'],
               ['Owner', owner?.name || 'Unassigned', 'Responsible for stage movement'],
               ['Close date', deal.close || 'Unset', health.daysToClose < 7 ? 'Needs near-term attention' : 'Inside forecast horizon'],
@@ -2495,14 +2495,14 @@ function PipelineDealInspector({ deal, onClose, openDeal }) {
         <div className="card">
           <div className="card-h"><div className="ttl">Recommended next moves</div></div>
           <div className="card-b" style={{display:'flex',flexDirection:'column',gap:8}}>
-            {(health.blockers.length ? health.blockers : ['Map evidence supports current stage', 'Prepare next client update']).map(item => (
+            {(health.blockers.length ? health.blockers : ['Dealflow evidence supports current stage', 'Prepare next client update']).map(item => (
               <div key={item} style={{display:'flex',gap:8,alignItems:'center',fontSize:13}}>
                 <Icon name="check" size={13}/><span>{item}</span>
               </div>
             ))}
           </div>
         </div>
-        <button className="btn primary" type="button" onClick={() => openDeal(deal)}>Open deal map</button>
+        <button className="btn primary" type="button" onClick={() => openDeal(deal)}>Open dealflow</button>
       </div>
     </aside>
   );
@@ -3598,7 +3598,7 @@ function CRMRelationships() {
       <div className="card" style={{padding:'18px 20px',marginBottom:14}}>
         <div style={{display:'flex',gap:14,alignItems:'flex-start'}}>
           <div>
-            <h3 style={{margin:'0 0 4px',fontSize:16,fontWeight:600}}>Relationship map</h3>
+            <h3 style={{margin:'0 0 4px',fontSize:16,fontWeight:600}}>Relationship graph</h3>
             <div className="text-sm muted">How your team is connected to deal counterparties</div>
           </div>
           <div style={{marginLeft:'auto',display:'flex',gap:6}}>
@@ -5356,7 +5356,7 @@ function SettingsPreferences() {
       <div className="card">
         <div className="card-b" style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:14}}>
           <div className="field"><label>Default landing page</label><select><option>Pipeline</option><option>Home</option><option>Maps</option><option>Inbox</option></select></div>
-          <div className="field"><label>Default map edge style</label><select><option>Curved</option><option>Straight</option></select></div>
+          <div className="field"><label>Default dealflow edge style</label><select><option>Curved</option><option>Straight</option></select></div>
           <div className="field"><label>AI tone</label><select><option>Direct operator</option><option>Detailed analyst</option><option>Concise closer</option></select></div>
           <div className="field"><label>Digest cadence</label><select><option>Every weekday morning</option><option>Only Mondays</option><option>Never</option></select></div>
           <div className="field"><label>Preferred currency</label><select><option>Workspace default</option><option>USD</option><option>EUR</option><option>GBP</option></select></div>
@@ -8327,7 +8327,7 @@ const MapWorkspace = React.lazy(() =>
       if (!mapData?.deal) {
         return (
           <div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>
-            No map selected. Open a deal or pick a map from the sidebar.
+            No dealflow selected. Open a deal from Deals.
           </div>
         );
       }
@@ -8433,14 +8433,14 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
     router.push(path);
   }, [router]);
 
-  // Opening a deal IS opening its map — the deal record and the map are the same primitive.
+  // Opening a deal lands on its dealflow canvas.
   // Drawer state below is retained for legacy programmatic open paths (workflow actions) but
-  // every user click flows through this and lands on /suite/map/<dealId>.
+  // every user click flows through this and lands on /suite/dealflow/<dealId>.
   const openDealInMap = React.useCallback((deal) => {
     if (!deal) return;
     const id = typeof deal === 'string' ? deal : deal.id;
     if (!id) return;
-    router.push('/suite/map/' + encodeURIComponent(id));
+    router.push('/suite/dealflow/' + encodeURIComponent(id));
   }, [router]);
 
   React.useEffect(() => {
@@ -8564,7 +8564,7 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
   }, []);
 
   const crumb = route === 'map' && mapData?.deal
-    ? `Map · ${mapData.deal.name?.split(' — ')[0] || mapData.deal.name || ''}`.trim().replace(/·\s*$/, '')
+    ? `Dealflow · ${mapData.deal.name?.split(' — ')[0] || mapData.deal.name || ''}`.trim().replace(/·\s*$/, '')
     : (ROUTE_LABELS[route] || 'Home');
 
   // Context value exposed to every extracted workspace. As more workspaces migrate out of this
@@ -8642,11 +8642,11 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
           {route === 'billing'   && <BillingPage/>}
           {route === 'settings'  && <SettingsPage tweaks={tweaks} setTweak={setTweak} initialSection={sectionFromUrl}/>}
           {route === 'map'       && (
-            <React.Suspense fallback={<div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>Loading map…</div>}>
+            <React.Suspense fallback={<div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>Loading dealflow...</div>}>
               <MapWorkspace mapData={mapData}/>
             </React.Suspense>
           )}
-          {/* /suite/maps renders through children (page.tsx → MapsGalleryClient). No in-monolith renderer. */}
+          {/* /suite/deals renders through children. No in-monolith renderer. */}
           </>)}
         </div>
       </div>

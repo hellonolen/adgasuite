@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
-import { Check, Edit3, ExternalLink, Plus, Search, Sparkles, X } from "lucide-react";
+import { Check, Database, Edit3, ExternalLink, Fingerprint, History, Plus, Search, Sparkles, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export interface DealsPageData {
@@ -12,6 +12,7 @@ export interface DealsPageData {
     stage: string;
     updated: string | null;
     nodeCount: number;
+    storageState: "r2" | "metadata";
     source: "canvas" | "deal";
   }>;
 }
@@ -35,6 +36,14 @@ function stageLabel(stage: string) {
   return stage
     .replace(/[-_]+/g, " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function trackingNumber(id: string) {
+  const digits = id.replace(/\D/g, "");
+  if (digits.length >= 6) return digits.slice(-6);
+  let hash = 0;
+  for (let i = 0; i < id.length; i += 1) hash = (hash * 31 + id.charCodeAt(i)) % 900000;
+  return String(100000 + hash).slice(-6);
 }
 
 async function requestJson<T>(url: string, init: RequestInit): Promise<T> {
@@ -108,7 +117,7 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
         });
         const id = created.map?.id || created.id;
         if (!id) throw new Error("Deal was created without an ID.");
-        router.push(`/suite/map/${encodeURIComponent(id)}`);
+        router.push(`/suite/dealflow/${encodeURIComponent(id)}`);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not create deal.");
       }
@@ -116,7 +125,7 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
   };
 
   const openDeal = (id: string) => {
-    window.location.assign(`/suite/map/${encodeURIComponent(id)}`);
+    window.location.assign(`/suite/dealflow/${encodeURIComponent(id)}`);
   };
 
   return (
@@ -148,6 +157,21 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
           />
         </label>
         <div className="deals-page-count">{filtered.length} shown</div>
+      </div>
+
+      <div className="deals-page-system" aria-label="Deal operating model">
+        <div>
+          <Fingerprint aria-hidden="true" size={15} />
+          <span>Six-digit tracking IDs</span>
+        </div>
+        <div>
+          <Database aria-hidden="true" size={15} />
+          <span>R2 stores the payload</span>
+        </div>
+        <div>
+          <History aria-hidden="true" size={15} />
+          <span>Every deal keeps an audit trail</span>
+        </div>
       </div>
 
       {createOpen && (
@@ -224,7 +248,11 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
                   ) : (
                     <h2>{deal.name}</h2>
                   )}
-                  <p>ID {deal.id}</p>
+                  <p>ID {trackingNumber(deal.id)}</p>
+                  <div className="deal-square-meta">
+                    <span>{deal.storageState === "r2" ? "R2 payload" : "metadata pointer"}</span>
+                    <span>Audit ready</span>
+                  </div>
                 </div>
 
                 <div className="deal-square-footer">

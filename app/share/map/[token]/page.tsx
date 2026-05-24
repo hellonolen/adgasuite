@@ -137,7 +137,7 @@ function buildDeal(map: MapRow): DealMindmapDeal {
   // SECURITY: do NOT leak owner/org/private fields. Only id + display name.
   return {
     id: map.id,
-    name: map.title || map.name || "Shared map",
+    name: map.title || map.name || "Shared dealflow",
     stage: "Shared",
   };
 }
@@ -170,7 +170,7 @@ export default async function PublicSharedMapPage({ params }: PageProps) {
 
   if (!db) {
     return (
-      <PublicShell banner="Shared maps are temporarily unavailable.">
+      <PublicShell banner="Shared dealflows are temporarily unavailable.">
         <NotAvailableView />
       </PublicShell>
     );
@@ -191,7 +191,7 @@ export default async function PublicSharedMapPage({ params }: PageProps) {
     const fakeRequest = new Request("http://localhost/", { headers: { cookie: sessionCookie } });
     const sessionUser = await validateSession(db, readSessionCookie(fakeRequest));
     if (sessionUser && sessionUser.organization_id && map.organization_id && sessionUser.organization_id === map.organization_id) {
-      redirect(`/suite/map/${encodeURIComponent(map.id)}`);
+      redirect(`/suite/dealflow/${encodeURIComponent(map.id)}`);
     }
   }
 
@@ -203,11 +203,11 @@ export default async function PublicSharedMapPage({ params }: PageProps) {
   void edges;
 
   return (
-    <PublicShell banner={`Shared map · ${share.permission === "view" ? "View only" : share.permission} · ADGA`}>
+    <PublicShell banner={`Shared dealflow · ${share.permission === "view" ? "View only" : share.permission} · ADGA`}>
       <div className="mx-auto max-w-7xl px-6 py-6">
         <div className="rounded-2xl border border-[var(--rule,#e8e4de)] bg-white shadow-sm">
           <div className="border-b border-[var(--rule,#e8e4de)] px-6 py-3">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6b6760]">Shared mindmap</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6b6760]">Shared dealflow</div>
             <div className="mt-0.5 text-sm text-[#0d0c0a]">{deal.name}</div>
           </div>
           <div style={{ height: "calc(100vh - 220px)", minHeight: 560 }}>
@@ -256,7 +256,7 @@ function RateLimitedView() {
 function NotAvailableView() {
   return (
     <div className="mx-auto max-w-md px-6 py-16 text-center">
-      <h1 className="text-xl font-semibold text-[#0d0c0a]">Shared maps unavailable</h1>
+      <h1 className="text-xl font-semibold text-[#0d0c0a]">Shared dealflows unavailable</h1>
       <p className="mt-2 text-sm text-[#6b6760]">Try again in a moment.</p>
     </div>
   );

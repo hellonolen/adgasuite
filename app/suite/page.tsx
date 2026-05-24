@@ -12,11 +12,11 @@ export default async function SuiteRootRedirect() {
       const latestMap = await db
         .prepare("SELECT id FROM maps ORDER BY updated_at DESC LIMIT 1")
         .first<{ id: string }>();
-      if (latestMap?.id) redirect(`/suite/map/${latestMap.id}`);
+      if (latestMap?.id) redirect(`/suite/dealflow/${latestMap.id}`);
       const latestDeal = await db
         .prepare("SELECT id FROM deals ORDER BY updated_at DESC LIMIT 1")
         .first<{ id: string }>();
-      if (latestDeal?.id) redirect(`/suite/map/${latestDeal.id}`);
+      if (latestDeal?.id) redirect(`/suite/dealflow/${latestDeal.id}`);
     } catch {
       // fall through to Deals
     }

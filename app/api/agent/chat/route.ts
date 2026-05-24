@@ -87,8 +87,8 @@ async function buildContextBlock(
   if (!db) {
     if (ctx?.kind === "map" && ctx.deal) {
       const lines = [
-        "ACTIVE MAP CONTEXT (no live DB bound):",
-        `- Map: ${ctx.deal.name || ctx.deal.id}`,
+        "ACTIVE DEALFLOW CONTEXT (no live DB bound):",
+        `- Dealflow: ${ctx.deal.name || ctx.deal.id}`,
         ctx.deal.stage ? `- Stage: ${ctx.deal.stage}` : null,
         ctx.deal.value ? `- Value: ${ctx.deal.value}` : null,
         ctx.deal.nextAction ? `- Next action: ${ctx.deal.nextAction}` : null,
@@ -103,14 +103,14 @@ async function buildContextBlock(
   const kind = ctx?.kind ?? "workspace";
 
   if (kind === "map") {
-    const headerLines: string[] = ["ACTIVE MAP CONTEXT:"];
+    const headerLines: string[] = ["ACTIVE DEALFLOW CONTEXT:"];
     if (ctx?.deal) {
-      headerLines.push(`- Map / deal: ${ctx.deal.name || ctx.deal.id}`);
+      headerLines.push(`- Dealflow / deal: ${ctx.deal.name || ctx.deal.id}`);
       if (ctx.deal.stage) headerLines.push(`- Stage: ${ctx.deal.stage}`);
       if (ctx.deal.value) headerLines.push(`- Value: ${ctx.deal.value}`);
       if (ctx.deal.nextAction) headerLines.push(`- Next action: ${ctx.deal.nextAction}`);
     }
-    if (ctx?.mapId) headerLines.push(`- Map id: ${ctx.mapId}`);
+    if (ctx?.mapId) headerLines.push(`- Dealflow id: ${ctx.mapId}`);
     if (ctx?.nodeCount != null) headerLines.push(`- Nodes on canvas: ${ctx.nodeCount}`);
     if (ctx?.edgeCount != null) headerLines.push(`- Edges on canvas: ${ctx.edgeCount}`);
 
@@ -192,15 +192,15 @@ async function buildContextBlock(
 }
 
 function buildSystemPrompt(contextBlock: string): string {
-  const onMap = contextBlock.startsWith("ACTIVE MAP CONTEXT");
+  const onMap = contextBlock.startsWith("ACTIVE DEALFLOW CONTEXT") || contextBlock.startsWith("ACTIVE MAP CONTEXT");
   return [
     "You are ADGA, an autonomous deal-and-pipeline operator embedded inside the ADGA Suite for senior dealmakers.",
     "You speak with calm authority. You are direct, specific, and finish thoughts in one or two sentences.",
     "You never invent revenue, names, or commitments. If you do not know, say so and propose how to find out.",
     onMap
-      ? "The user is currently looking at the deal map (canvas of people, files, calls, tasks, meetings). Reference what is on the canvas. Suggest the next node to add when the next move is obvious."
-      : "The user is in the suite workspace (lists, pipeline, inbox). Reference live data, not the map.",
-    "When the user implies a structured map mutation (add a contact, link a company, create a task, advance a stage), append a fenced ```json``` code block at the end with shape: {\"actions\":[{\"type\":\"add_node\",\"kind\":\"contact\",\"label\":\"...\",\"sublabel\":\"...\"}]} or {\"type\":\"add_task\",\"label\":\"...\"} etc. Only include the block when an action is actually proposed.",
+      ? "The user is currently looking at dealflow, a canvas of people, files, calls, tasks, and meetings. Reference what is on the canvas. Suggest the next node to add when the next move is obvious."
+      : "The user is in the suite workspace (lists, pipeline, inbox). Reference live data, not the canvas.",
+    "When the user implies a structured dealflow mutation (add a contact, link a company, create a task, advance a stage), append a fenced ```json``` code block at the end with shape: {\"actions\":[{\"type\":\"add_node\",\"kind\":\"contact\",\"label\":\"...\",\"sublabel\":\"...\"}]} or {\"type\":\"add_task\",\"label\":\"...\"} etc. Only include the block when an action is actually proposed.",
     "Keep the visible reply free of JSON. Use plain text with optional **bold** or *italic* for emphasis. Do not use headings or bullet lists unless explicitly asked.",
     "",
     contextBlock,

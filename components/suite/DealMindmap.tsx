@@ -377,7 +377,7 @@ export function DealMindmap({
 
   // Live activity rail text. Subscribes to the client event bus mirror — events emitted by
   // the suite (suite.route_viewed, agent_job.*, deal.* etc) reach here in real time.
-  const [activityText, setActivityText] = React.useState<string>("Map loaded · live");
+  const [activityText, setActivityText] = React.useState<string>("Dealflow loaded · live");
   React.useEffect(() => {
     if (typeof window === "undefined") return;
     let unmounted = false;
@@ -404,7 +404,7 @@ export function DealMindmap({
     return () => { unmounted = true; if (dispose) dispose(); };
   }, []);
 
-  // ⌘K focuses the command bar from anywhere on the map.
+  // ⌘K focuses the command bar from anywhere in dealflow.
   React.useEffect(() => {
     if (readOnly) return;
     const onKey = (e: KeyboardEvent) => {
@@ -866,7 +866,7 @@ export function DealMindmap({
           >
             <div style={{ textAlign: "center", color: "rgba(255, 255, 255, 0.95)" }}>
               <div style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.7, marginBottom: 8 }}>Drop to ingest</div>
-              <div style={{ fontSize: 22, fontWeight: 500 }}>The map will absorb whatever you drop</div>
+              <div style={{ fontSize: 22, fontWeight: 500 }}>Dealflow will absorb whatever you drop</div>
               <div style={{ marginTop: 8, fontSize: 13, opacity: 0.7 }}>Files · Emails · Voice notes · Contacts · URLs · Text</div>
             </div>
           </div>
@@ -955,7 +955,7 @@ export function DealMindmap({
                   ref={commandInputRef}
                   value={commandValue}
                   onChange={(e) => setCommandValue(e.target.value)}
-                  placeholder="Ask ADGA, or tell the map what to do…"
+                  placeholder="Ask ADGA, or tell dealflow what to do..."
                   disabled={commandSubmitting}
                   style={{
                     flex: 1, background: "transparent", border: 0, outline: "none",
@@ -986,7 +986,7 @@ export function DealMindmap({
         )}
 
         {/* Live activity rail — bottom strip. Subscribes to bus events via useSuiteEvent
-            so the operator can see system pulse without leaving the map. */}
+            so the operator can see system pulse without leaving dealflow. */}
         <div
           style={{
             position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)",
@@ -1181,7 +1181,7 @@ export function DealMindmap({
                   }}
                 >
                   <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#6b6760", marginBottom: 8 }}>
-                    Share map
+                    Share dealflow
                   </div>
 
                   <div style={{ marginBottom: 10 }}>
@@ -1308,7 +1308,7 @@ export function DealMindmap({
                   )}
 
                   <div style={{ marginTop: 10, fontSize: 11, color: "#9b9eb0", lineHeight: 1.45 }}>
-                    Anyone with the link can open this map. Rotate to invalidate previous links. Revoke removes all links.
+                    Anyone with the link can open this dealflow. Rotate to invalidate previous links. Revoke removes all links.
                   </div>
                 </div>
               )}
@@ -1358,7 +1358,7 @@ export function DealMindmap({
             position="bottom-left"
             pannable
             zoomable
-            ariaLabel="Map overview"
+            ariaLabel="Dealflow overview"
             maskColor="rgba(249, 247, 244, 0.74)"
             style={{
               border: "1px solid rgba(15, 23, 42, 0.08)",
@@ -1714,7 +1714,7 @@ function NodeDetailPanel({
               cursor: "pointer",
             }}
           >
-            Remove {KIND_META[(data as DealMindmapEntity).kind].label} from map
+            Remove {KIND_META[(data as DealMindmapEntity).kind].label} from dealflow
           </button>
         </div>
       )}

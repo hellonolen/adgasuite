@@ -50,7 +50,7 @@ async function createMapFromTemplate(template: DealTemplate, name: string): Prom
     deal_id: null,
   });
   const mapId = created.map?.id || created.id;
-  if (!mapId) throw new Error("Deal was created but no deal id was returned.");
+  if (!mapId) throw new Error("Deal was created but no dealflow id was returned.");
   const nodeIdFor = (templateNodeId: string) =>
     templateNodeId === "deal" ? mapId : `${mapId}_${templateNodeId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
 
@@ -103,7 +103,7 @@ function NewMapInner() {
     startTransition(async () => {
       try {
         const mapId = await createMapFromTemplate(template, template.name);
-        router.push(`/suite/map/${mapId}`);
+        router.push(`/suite/dealflow/${mapId}`);
       } catch (err) {
         if (err instanceof Error && err.name === "RoutesNotReady") {
           setState({

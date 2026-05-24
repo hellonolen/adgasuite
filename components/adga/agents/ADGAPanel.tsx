@@ -46,7 +46,7 @@ function parseWorkflow(text: string, deals: any[]) {
     tasks: ['task', 'todo', 'checklist'],
     calendar: ['calendar', 'meeting', 'schedule', 'call', 'availability', 'agenda'],
     inbox: ['inbox', 'mail', 'message'],
-    story: ['story', 'timeline', 'history', 'history of', 'mind map'],
+    story: ['story', 'timeline', 'history', 'history of', 'dealflow'],
     home: ['home', 'today', 'morning'],
     billing: ['billing', 'plan', 'invoice'],
     admin: ['admin', 'permission', 'audit'],
@@ -81,7 +81,7 @@ function parseWorkflow(text: string, deals: any[]) {
 
 function deriveContext(pathname: string | null): { kind: "deal" | "pipeline" | "workspace"; id?: string } {
   if (!pathname) return { kind: "workspace" };
-  const dealMatch = pathname.match(/\/suite\/map\/([^/?#]+)/);
+  const dealMatch = pathname.match(/\/suite\/(?:dealflow|map)\/([^/?#]+)/);
   if (dealMatch) return { kind: "deal", id: decodeURIComponent(dealMatch[1]) };
   if (pathname.includes("/suite/pipeline")) return { kind: "pipeline" };
   return { kind: "workspace" };

@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: "npm"
@@ -47,11 +47,11 @@ jobs:
 
       - name: Checkout
         if: env.CLOUDFLARE_API_TOKEN != ''
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
         if: env.CLOUDFLARE_API_TOKEN != ''
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: "npm"

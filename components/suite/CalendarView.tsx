@@ -406,7 +406,7 @@ function EventDrawer({ event, deals, onClose }: { event: CalendarViewEvent; deal
           {deal && (
             <section>
               <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6b6760]">Related deal</div>
-              <a href={`/suite/map/${encodeURIComponent(deal.id)}`} className="mt-1.5 inline-block text-[#5d2cd6] hover:underline">
+              <a href={`/suite/dealflow/${encodeURIComponent(deal.id)}`} className="mt-1.5 inline-block text-[#5d2cd6] hover:underline">
                 {deal.name}
               </a>
             </section>

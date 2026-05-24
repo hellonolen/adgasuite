@@ -112,7 +112,7 @@ export const SUITE_ROUTES: SuiteRoute[] = [
   { id: "reports",     path: "/suite/reports",     label: "Reports",     section: "HIDDEN", capabilities: ["report.read"] },
   { id: "messaging",   path: "/suite/messaging",   label: "Messaging",   section: "HIDDEN", capabilities: ["message.read"] },
   { id: "voice-notes", path: "/suite/voice-notes", label: "Voice Notes", section: "HIDDEN", capabilities: ["voice.read", "voice.transcribe"] },
-  { id: "map",         path: "/suite/map",         label: "Deal",        section: "HIDDEN", capabilities: ["map.read", "map.update"] },
+  { id: "map",         path: "/suite/dealflow",    label: "Dealflow",    section: "HIDDEN", capabilities: ["map.read", "map.update"] },
 ];
 
 const ROUTE_BY_ID = new Map<string, SuiteRoute>(SUITE_ROUTES.map((r) => [r.id, r]));
@@ -144,9 +144,10 @@ export function resolveSuitePathname(pathname: string): { route: SuiteRoute; sec
     if (sub) return { route, section: sub };
   }
 
-  // Dynamic segments: /suite/map/<id>, /suite/deals/new. /suite/maps is a legacy alias.
+  // Dynamic segments: /suite/dealflow/<id>, /suite/deals/new. /suite/map and /suite/maps are legacy aliases.
   const segments = path.replace(/^\/+/, "").split("/");
   if (segments[0] === "suite") {
+    if (segments[1] === "dealflow" && segments[2]) return { route: ROUTE_BY_ID.get("map")! };
     if (segments[1] === "map" && segments[2]) return { route: ROUTE_BY_ID.get("map")! };
     if (segments[1] === "deals") return { route: ROUTE_BY_ID.get("maps")! };
     if (segments[1] === "maps") return { route: ROUTE_BY_ID.get("maps")! };
