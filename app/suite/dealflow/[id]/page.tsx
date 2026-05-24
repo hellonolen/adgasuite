@@ -58,6 +58,81 @@ interface CalendarRow {
   status: string | null;
 }
 
+type LocalDemoDealFlow = {
+  deal: DealFlowDeal;
+  entities: DealFlowEntity[];
+};
+
+const LOCAL_DEMO_DEALFLOWS: Record<string, LocalDemoDealFlow> = {
+  "DEAL-621810": {
+    deal: {
+      id: "DEAL-621810",
+      name: "Meridian Cold Chain Acquisition",
+      stage: "Closing",
+      value: "$18.4M",
+      nextAction: "Confirm seller counsel markups",
+    },
+    entities: [
+      { id: "company:meridian", kind: "company", label: "Meridian Cold Chain", sublabel: "Seller · logistics platform", status: "active" },
+      { id: "contact:ari", kind: "contact", label: "Ari Boone", sublabel: "Primary contact", status: "active" },
+      { id: "bank:lender", kind: "bank", label: "Senior lender group", sublabel: "Debt package", status: "warning" },
+      { id: "doc:counsel", kind: "document", label: "Seller counsel markups", sublabel: "Needs response", status: "overdue" },
+      { id: "call:closing", kind: "call", label: "Closing call", sublabel: "Nine-step call prep", status: "active" },
+      { id: "task:markups", kind: "task", label: "Confirm markups", sublabel: "Owner: legal", status: "warning" },
+      { id: "invoice:success", kind: "invoice", label: "Success fee path", sublabel: "Ready after signature", status: "neutral" },
+      { id: "group:people", kind: "group", label: "People", sublabel: "14 associated records", status: "neutral", childKind: "contact", childrenCount: 14 },
+      { id: "group:diligence", kind: "group", label: "Files & diligence", sublabel: "Contracts, CIM, models", status: "active", childKind: "document", childrenCount: 9 },
+    ],
+  },
+  "DEAL-847214": {
+    deal: { id: "DEAL-847214", name: "Heliograph Series C Extension", stage: "Negotiation", value: "$7.2M", nextAction: "Send revised allocation" },
+    entities: [
+      { id: "company:heliograph", kind: "company", label: "Heliograph", sublabel: "Capital raise", status: "active" },
+      { id: "contact:mira", kind: "contact", label: "Mira Sen", sublabel: "Investor relations", status: "active" },
+      { id: "doc:allocation", kind: "document", label: "Revised allocation memo", sublabel: "Draft", status: "warning" },
+      { id: "task:send", kind: "task", label: "Send revised allocation", status: "active" },
+      { id: "group:investors", kind: "group", label: "Investor group", sublabel: "11 associated records", status: "neutral", childKind: "contact", childrenCount: 11 },
+    ],
+  },
+  "DEAL-935672": {
+    deal: { id: "DEAL-935672", name: "Tessellate Series B Participation", stage: "At Risk", value: "$3.5M", nextAction: "Recover sponsor response" },
+    entities: [
+      { id: "company:tessellate", kind: "company", label: "Tessellate", sublabel: "Series B", status: "warning" },
+      { id: "contact:noah", kind: "contact", label: "Noah Rhee", sublabel: "Sponsor", status: "overdue" },
+      { id: "email:sponsor", kind: "email", label: "Sponsor response thread", sublabel: "No response", status: "overdue" },
+      { id: "task:recover", kind: "task", label: "Recover sponsor response", status: "overdue" },
+      { id: "group:diligence", kind: "group", label: "Diligence", sublabel: "9 associated records", status: "warning", childKind: "document", childrenCount: 9 },
+    ],
+  },
+  "DEAL-471906": {
+    deal: { id: "DEAL-471906", name: "Quorum Energy Joint Venture", stage: "Proposal", value: "$11M", nextAction: "Align JV timeline" },
+    entities: [
+      { id: "company:quorum", kind: "company", label: "Quorum Energy", sublabel: "JV counterparty", status: "active" },
+      { id: "contact:magnus", kind: "contact", label: "Magnus Bell", sublabel: "Commercial lead", status: "active" },
+      { id: "doc:jv", kind: "document", label: "JV timeline proposal", status: "warning" },
+      { id: "meeting:jv", kind: "meeting", label: "Timeline alignment call", status: "active" },
+    ],
+  },
+  "DEAL-783540": {
+    deal: { id: "DEAL-783540", name: "Kestrel Defense Procurement", stage: "Contract", value: "$2.8M", nextAction: "Route security exhibit" },
+    entities: [
+      { id: "company:kestrel", kind: "company", label: "Kestrel Defense", sublabel: "Procurement", status: "active" },
+      { id: "contact:inez", kind: "contact", label: "Inez Park", sublabel: "Security review", status: "active" },
+      { id: "doc:security", kind: "document", label: "Security exhibit", sublabel: "Routing", status: "warning" },
+      { id: "task:route", kind: "task", label: "Route security exhibit", status: "active" },
+    ],
+  },
+  "DEAL-659128": {
+    deal: { id: "DEAL-659128", name: "Larkfield Capital Strategic Partnership", stage: "New", value: "$5.0M" },
+    entities: [
+      { id: "company:larkfield", kind: "company", label: "Larkfield Capital", sublabel: "Strategic partnership", status: "neutral" },
+      { id: "contact:jon", kind: "contact", label: "Jon Ives", sublabel: "Partner", status: "neutral" },
+      { id: "task:next", kind: "task", label: "Define next action", status: "warning" },
+      { id: "group:workstream", kind: "group", label: "Workstreams", sublabel: "6 associated records", status: "neutral", childKind: "task", childrenCount: 6 },
+    ],
+  },
+};
+
 function formatCurrency(cents: number | null | undefined) {
   if (!cents || cents <= 0) return undefined;
   const dollars = cents / 100;
@@ -100,7 +175,7 @@ export default async function DealDetailPage({ params }: PageProps) {
 
   if (!db) {
     if (isDev) {
-      return renderSample(id, "Demo data · no D1 binding configured locally.");
+      return renderLocalDemoOrUnavailable(id, "Demo data · no D1 binding configured locally.");
     }
     return (
       <main className="min-h-screen bg-[#f9f7f4] p-8">
@@ -180,7 +255,7 @@ export default async function DealDetailPage({ params }: PageProps) {
 
   if (!dealRow) {
     if (isDev) {
-      return renderSample(id, "Demo data · no deal with that ID in D1 yet.");
+      return renderLocalDemoOrUnavailable(id, "Demo data · no deal with that ID in D1 yet.");
     }
     notFound();
   }
@@ -274,7 +349,15 @@ export default async function DealDetailPage({ params }: PageProps) {
 // Each render function returns the workspace content for the suite layout to compose
 // inside its shell. No <main>, no <SuiteClient> — the layout already provided both.
 
-function renderSample(_id: string, _banner: string) {
+function renderLocalDemoOrUnavailable(id: string, banner: string) {
+  const demo = LOCAL_DEMO_DEALFLOWS[id];
+  if (demo) {
+    return <DealFlowClient deal={demo.deal} entities={demo.entities} />;
+  }
+  return renderUnavailable(id, banner);
+}
+
+function renderUnavailable(_id: string, _banner: string) {
   return (
     <div className="min-h-screen bg-[#f9f7f4] p-8">
       <div className="mx-auto max-w-3xl rounded-2xl border border-[var(--rule,#e8e4de)] bg-white p-8">
