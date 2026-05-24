@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 
 const HOW_IT_WORKS = [
@@ -17,21 +17,61 @@ const PAIN_POINTS = [
 
 export default function DealPipelineAuditPage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "sent" | "error">("idle");
+  const sessionIdRef = useRef("");
+
+  function sessionId() {
+    if (sessionIdRef.current) return sessionIdRef.current;
+    const fallback = `five_secrets_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    try {
+      const existing = window.sessionStorage.getItem("five_secrets_session");
+      const next = existing || fallback;
+      window.sessionStorage.setItem("five_secrets_session", next);
+      sessionIdRef.current = next;
+      return next;
+    } catch {
+      sessionIdRef.current = fallback;
+      return fallback;
+    }
+  }
+
+  function track(event_type: string, payload: Record<string, unknown> = {}) {
+    fetch("/api/lead-magnets/five-secrets/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event_type,
+        session_id: sessionId(),
+        source_path: "/5-secrets",
+        payload,
+      }),
+      keepalive: true,
+    }).catch(() => {});
+  }
+
+  useEffect(() => {
+    track("lead_magnet.five_secrets.landed");
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") || "");
     setStatus("submitting");
+    track("lead_magnet.five_secrets.optin_clicked");
 
     const response = await fetch("/api/lead-magnets/five-secrets/request", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: String(form.get("email") || ""),
+        email,
       }),
     }).catch(() => null);
 
     setStatus(response?.ok ? "sent" : "error");
+    track(
+      response?.ok ? "lead_magnet.five_secrets.optin_succeeded" : "lead_magnet.five_secrets.optin_failed",
+      { status: response?.status || null },
+    );
   }
 
   return (

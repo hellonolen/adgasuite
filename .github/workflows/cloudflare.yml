@@ -27,8 +27,8 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Next build
-        run: npm run build
+      - name: Cloudflare build
+        run: npm run build:cf:ci
 
   deploy:
     name: Deploy Worker

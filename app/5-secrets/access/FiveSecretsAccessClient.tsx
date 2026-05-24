@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const SECRETS = [
   {
@@ -67,7 +67,64 @@ const SECRETS = [
 
 export function FiveSecretsAccessClient() {
   const [active, setActive] = useState(0);
+  const trackedDepths = useRef(new Set<number>());
+  const sessionIdRef = useRef("");
   const secret = SECRETS[active];
+
+  function sessionId() {
+    if (sessionIdRef.current) return sessionIdRef.current;
+    const fallback = `five_secrets_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    try {
+      const existing = window.sessionStorage.getItem("five_secrets_session");
+      const next = existing || fallback;
+      window.sessionStorage.setItem("five_secrets_session", next);
+      sessionIdRef.current = next;
+      return next;
+    } catch {
+      sessionIdRef.current = fallback;
+      return fallback;
+    }
+  }
+
+  function track(event_type: string, payload: Record<string, unknown> = {}) {
+    fetch("/api/lead-magnets/five-secrets/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event_type,
+        session_id: sessionId(),
+        source_path: "/5-secrets/access",
+        payload,
+      }),
+      keepalive: true,
+    }).catch(() => {});
+  }
+
+  useEffect(() => {
+    track("lead_magnet.five_secrets.access_viewed");
+
+    function onScroll() {
+      const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const depth = Math.round((window.scrollY / scrollable) * 100);
+      for (const marker of [25, 50, 75, 90]) {
+        if (depth >= marker && !trackedDepths.current.has(marker)) {
+          trackedDepths.current.add(marker);
+          track("lead_magnet.five_secrets.scroll_depth", { depth: marker });
+        }
+      }
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    track("lead_magnet.five_secrets.secret_viewed", {
+      secret_index: active + 1,
+      secret_title: secret.short,
+    });
+  }, [active, secret.short]);
 
   return (
     <main className="wrap">

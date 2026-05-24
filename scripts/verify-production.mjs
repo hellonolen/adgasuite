@@ -67,6 +67,21 @@ console.log(`${origin}/ is reachable`);
 await assertFetch(`${origin}/suite`);
 console.log(`${origin}/suite is reachable`);
 
+await assertFetch(`${origin}/5-secrets`);
+console.log(`${origin}/5-secrets is reachable`);
+
+const accessResponse = await fetch(`${origin}/5-secrets/access`, {
+  redirect: "manual",
+  headers: {
+    accept: "text/html, */*",
+    "user-agent": "adga-production-verifier/1.0",
+  },
+});
+if (![302, 307, 308].includes(accessResponse.status) || accessResponse.headers.get("location") !== "/5-secrets") {
+  throw new Error(`${origin}/5-secrets/access should redirect unauthenticated visitors to /5-secrets; got ${accessResponse.status}`);
+}
+console.log(`${origin}/5-secrets/access gate is active`);
+
 const health = await assertFetch(`${origin}/api/health`);
 const healthJson = await health.json();
 if (healthJson.ok !== true || healthJson.platform !== "ADGA Suite") {
