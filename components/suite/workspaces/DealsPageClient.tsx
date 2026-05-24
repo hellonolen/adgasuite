@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
-import { Check, Database, Edit3, ExternalLink, Fingerprint, History, Plus, Search, Sparkles, X } from "lucide-react";
+import { Archive, Check, Database, Edit3, ExternalLink, Fingerprint, History, MoreHorizontal, Plus, Search, Sparkles, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export interface DealsPageData {
@@ -14,6 +14,12 @@ export interface DealsPageData {
     nodeCount: number;
     storageState: "r2" | "metadata";
     source: "canvas" | "deal";
+    value?: string | null;
+    company?: string | null;
+    primaryContact?: string | null;
+    nextAction?: string | null;
+    risk?: "new" | "active" | "at-risk" | "closing" | "won" | "archived";
+    lastActivity?: string | null;
   }>;
 }
 
@@ -46,6 +52,33 @@ function trackingNumber(id: string) {
   return String(100000 + hash).slice(-6);
 }
 
+function dealRisk(stage: string): NonNullable<DealsPageData["deals"][number]["risk"]> {
+  const normalized = stage.toLowerCase();
+  if (normalized.includes("won") || normalized.includes("closed")) return "won";
+  if (normalized.includes("archive")) return "archived";
+  if (normalized.includes("risk") || normalized.includes("stalled") || normalized.includes("overdue")) return "at-risk";
+  if (normalized.includes("closing") || normalized.includes("contract") || normalized.includes("signature")) return "closing";
+  if (normalized.includes("lead") || normalized.includes("new")) return "new";
+  return "active";
+}
+
+const FILTERS = [
+  { id: "all", label: "All" },
+  { id: "active", label: "Active" },
+  { id: "at-risk", label: "At Risk" },
+  { id: "closing", label: "Closing" },
+  { id: "no-next-step", label: "No next step" },
+  { id: "recent", label: "Recently updated" },
+] as const;
+
+const GROUPS = [
+  { id: "new", label: "New" },
+  { id: "active", label: "Active" },
+  { id: "at-risk", label: "At Risk" },
+  { id: "closing", label: "Closing" },
+  { id: "won", label: "Won / Archived" },
+] as const;
+
 async function requestJson<T>(url: string, init: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...init,
@@ -61,7 +94,9 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
   const router = useRouter();
   const [items, setItems] = useState(data.deals);
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<(typeof FILTERS)[number]["id"]>("all");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [menuId, setMenuId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [newDealName, setNewDealName] = useState("Untitled deal");
@@ -70,9 +105,32 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((item) => `${item.name} ${item.stage} ${item.id}`.toLowerCase().includes(q));
-  }, [items, query]);
+    const recentCutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return items.filter((item) => {
+      const risk = item.risk || dealRisk(item.stage);
+      if (filter === "active" && risk !== "active") return false;
+      if (filter === "at-risk" && risk !== "at-risk") return false;
+      if (filter === "closing" && risk !== "closing") return false;
+      if (filter === "no-next-step" && item.nextAction) return false;
+      if (filter === "recent") {
+        const updated = item.updated ? new Date(item.updated).getTime() : 0;
+        if (!updated || updated < recentCutoff) return false;
+      }
+      if (!q) return true;
+      return `${item.name} ${item.stage} ${item.id} ${item.company || ""} ${item.primaryContact || ""} ${item.nextAction || ""}`.toLowerCase().includes(q);
+    });
+  }, [items, query, filter]);
+
+  const grouped = useMemo(() => {
+    return GROUPS.map((group) => ({
+      ...group,
+      items: filtered.filter((item) => {
+        const risk = item.risk || dealRisk(item.stage);
+        if (group.id === "won") return risk === "won" || risk === "archived";
+        return risk === group.id;
+      }),
+    })).filter((group) => group.items.length > 0);
+  }, [filtered]);
 
   const beginRename = (item: DealsPageData["deals"][number]) => {
     setEditingId(item.id);
@@ -159,6 +217,19 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
         <div className="deals-page-count">{filtered.length} shown</div>
       </div>
 
+      <div className="deals-page-filters" aria-label="Deal filters">
+        {FILTERS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={filter === item.id ? "active" : ""}
+            onClick={() => setFilter(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
       <div className="deals-page-system" aria-label="Deal operating model">
         <div>
           <Fingerprint aria-hidden="true" size={15} />
@@ -206,8 +277,15 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
             </button>
           </div>
         ) : (
-          <div className="deals-grid">
-            {filtered.map((deal, index) => (
+          <div className="deals-stage-stack">
+            {grouped.map((group) => (
+              <section key={group.id} className="deals-stage-section">
+                <div className="deals-stage-h">
+                  <h2>{group.label}</h2>
+                  <span>{group.items.length}</span>
+                </div>
+                <div className="deals-grid">
+            {group.items.map((deal, index) => (
               <article
                 key={deal.id}
                 className="deal-square"
@@ -222,7 +300,7 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
                 <span className="deal-square-shine" aria-hidden="true" />
                 <div className="deal-square-top">
                   <span className="deal-square-stage">{stageLabel(deal.stage)}</span>
-                  <span className="deal-square-count">{deal.nodeCount} nodes</span>
+                  <span className="deal-square-count">{deal.value || `${deal.nodeCount} nodes`}</span>
                 </div>
 
                 <div className="deal-square-body">
@@ -249,9 +327,23 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
                     <h2>{deal.name}</h2>
                   )}
                   <p>ID {trackingNumber(deal.id)}</p>
+                  <dl className="deal-square-facts">
+                    <div>
+                      <dt>Company</dt>
+                      <dd>{deal.company || "Unassigned"}</dd>
+                    </div>
+                    <div>
+                      <dt>Contact</dt>
+                      <dd>{deal.primaryContact || "No primary contact"}</dd>
+                    </div>
+                    <div>
+                      <dt>Next</dt>
+                      <dd>{deal.nextAction || "Needs next step"}</dd>
+                    </div>
+                  </dl>
                   <div className="deal-square-meta">
                     <span>{deal.storageState === "r2" ? "R2 payload" : "metadata pointer"}</span>
-                    <span>Audit ready</span>
+                    <span>{deal.nodeCount} nodes</span>
                   </div>
                 </div>
 
@@ -296,14 +388,34 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
                         >
                           <Edit3 aria-hidden="true" size={15} />
                         </button>
-                        <span title="Open deal">
-                          <ExternalLink aria-hidden="true" size={15} />
-                        </span>
+                        <button
+                          type="button"
+                          aria-label="Deal actions"
+                          title="Actions"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setMenuId(menuId === deal.id ? null : deal.id);
+                          }}
+                        >
+                          <MoreHorizontal aria-hidden="true" size={15} />
+                        </button>
+                        <span title="Open deal"><ExternalLink aria-hidden="true" size={15} /></span>
                       </>
                     )}
                   </div>
                 </div>
+                {menuId === deal.id && (
+                  <div className="deal-square-menu" onClick={(event) => event.stopPropagation()}>
+                    <button type="button" onClick={() => beginRename(deal)}><Edit3 size={14} /> Rename</button>
+                    <button type="button" onClick={() => openDeal(deal.id)}><ExternalLink size={14} /> Edit details</button>
+                    <button type="button" onClick={() => setError("Duplicate is queued for the next deal template pass.")}><Sparkles size={14} /> Duplicate</button>
+                    <button type="button" onClick={() => setItems((current) => current.filter((item) => item.id !== deal.id))}><Archive size={14} /> Archive</button>
+                  </div>
+                )}
               </article>
+            ))}
+                </div>
+              </section>
             ))}
           </div>
         )}

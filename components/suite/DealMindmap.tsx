@@ -126,6 +126,16 @@ const STATUS_META: Record<DealMindmapStatus, { dot: string; pulse: boolean; labe
   done:    { dot: "#16a34a",     pulse: false, label: "Done" },
 };
 
+const VIEW_MODES = [
+  { id: "relationship", label: "Relationships", kinds: ["contact", "company"] },
+  { id: "task", label: "Tasks", kinds: ["task", "action", "meeting"] },
+  { id: "document", label: "Documents", kinds: ["document"] },
+  { id: "risk", label: "Risk", kinds: ["task", "action", "call", "meeting"] },
+  { id: "invoice", label: "Invoices", kinds: ["document", "action"] },
+] as const;
+
+type ViewMode = (typeof VIEW_MODES)[number]["id"];
+
 function DealNodeView({ data, selected }: NodeProps) {
   const deal = data as unknown as DealMindmapDeal;
   return (
@@ -344,6 +354,8 @@ export function DealMindmap({
   const [showAddMenu, setShowAddMenu] = React.useState(false);
   const [editingLabel, setEditingLabel] = React.useState(false);
   const [showShareMenu, setShowShareMenu] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState<ViewMode>("relationship");
+  const [activityOpen, setActivityOpen] = React.useState(false);
   const [share, setShare] = React.useState<ShareInfo | null>(null);
   const [shareLoading, setShareLoading] = React.useState(false);
   const [shareError, setShareError] = React.useState<string | null>(null);
@@ -866,6 +878,45 @@ export function DealMindmap({
 
   const selectedKind = nodeKindFromNode(selectedNode);
   const isDealSelected = selectedKind === "deal";
+  const selectedData = selectedNode?.data as unknown as (DealMindmapEntity & DealMindmapDeal) | undefined;
+  const commandPlaceholder = selectedNode && !isDealSelected
+    ? `Ask ADGA about ${selectedData?.label || "this node"}...`
+    : `Ask ADGA about ${deal.name}, or tell dealflow what to do...`;
+  const visibleNodes = React.useMemo(() => {
+    const active = VIEW_MODES.find((mode) => mode.id === viewMode);
+    const activeKinds = new Set(active?.kinds || []);
+    return nodes.map((node) => {
+      const kind = node.type === "deal" ? "deal" : ((node.data as { kind?: string }).kind || "");
+      const emphasized = kind === "deal" || activeKinds.has(kind as DealMindmapEntityKind);
+      return {
+        ...node,
+        style: {
+          ...(node.style || {}),
+          opacity: emphasized ? 1 : 0.34,
+          filter: emphasized ? "none" : "grayscale(0.6)",
+        },
+      };
+    });
+  }, [nodes, viewMode]);
+
+  const persistNodeDetails = React.useCallback((nodeId: string, patch: Record<string, unknown>) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...(node.data as Record<string, unknown>), ...patch } }
+          : node,
+      ),
+    );
+    const base = persistBaseRef.current;
+    if (persistEnabled && base && nodeId !== deal.id && knownNodeIdsRef.current.has(nodeId)) {
+      void fetch(`${base}/nodes/${encodeURIComponent(nodeId)}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      }).catch(() => {});
+    }
+  }, [deal.id, persistEnabled, setNodes]);
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%", minHeight: 600, display: "flex" }}>
@@ -951,6 +1002,34 @@ export function DealMindmap({
           }
         }}
       >
+        <div
+          style={{
+            position: "absolute",
+            top: 16,
+            left: 116,
+            zIndex: 18,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            maxWidth: "min(720px, calc(100% - 620px))",
+            border: "1px solid rgba(15, 23, 42, 0.08)",
+            borderRadius: 12,
+            background: "rgba(255, 255, 255, 0.9)",
+            boxShadow: "0 16px 48px -24px rgba(15, 23, 42, 0.24)",
+            backdropFilter: "blur(16px)",
+            padding: "8px 10px",
+            color: "#0d0c0a",
+          }}
+          aria-label="Deal summary"
+        >
+          <span style={{ fontSize: 10, fontWeight: 850, letterSpacing: "0.14em", color: "#5d2cd6" }}>{deal.id}</span>
+          <span style={{ width: 1, height: 16, background: "rgba(15, 23, 42, 0.10)" }} />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 12.5, fontWeight: 850 }}>{deal.name}</span>
+          <span style={{ fontSize: 11.5, fontWeight: 750, color: "#6b6760", whiteSpace: "nowrap" }}>{deal.stage}</span>
+          {deal.value && <span style={{ fontSize: 11.5, fontWeight: 850, color: "#0d0c0a", whiteSpace: "nowrap" }}>{deal.value}</span>}
+          {deal.nextAction && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 11.5, color: "#6b6760" }}>Next: {deal.nextAction}</span>}
+        </div>
+
         {/* Drop-to-ingest overlay — covers the canvas during dragover */}
         {ingestActive && (
           <div
@@ -998,6 +1077,14 @@ export function DealMindmap({
                         kind: "map",
                         mapId,
                         deal: { id: deal.id, name: deal.name, stage: deal.stage, value: deal.value, nextAction: deal.nextAction },
+                        selectedNode: selectedNode ? {
+                          id: selectedNode.id,
+                          kind: selectedKind,
+                          label: selectedData?.label || selectedData?.name || selectedNode.id,
+                          sublabel: selectedData?.sublabel || null,
+                          status: selectedData?.status || null,
+                        } : null,
+                        viewMode,
                         nodeCount: nodes.length,
                         edgeCount: edges.length,
                       },
@@ -1056,7 +1143,7 @@ export function DealMindmap({
                   ref={commandInputRef}
                   value={commandValue}
                   onChange={(e) => setCommandValue(e.target.value)}
-                  placeholder="Ask ADGA, or tell dealflow what to do..."
+                  placeholder={commandPlaceholder}
                   disabled={commandSubmitting}
                   style={{
                     flex: 1, background: "transparent", border: 0, outline: "none",
@@ -1104,12 +1191,49 @@ export function DealMindmap({
             whiteSpace: "nowrap",
           }}
           aria-label="Live activity"
+          role="button"
+          tabIndex={0}
+          onClick={() => setActivityOpen((open) => !open)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") setActivityOpen((open) => !open);
+          }}
         >
           <span style={{ width: 6, height: 6, borderRadius: 999, background: "#22c55e", boxShadow: "0 0 8px #22c55e" }} />
           <span style={{ letterSpacing: "0.16em", fontSize: 10, textTransform: "uppercase", color: "#6b6760" }}>Live</span>
           <span style={{ width: 1, height: 12, background: "rgba(15, 23, 42, 0.10)" }} />
           <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{activityText}</span>
         </div>
+
+        {activityOpen && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: 58,
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 16,
+              width: "min(520px, calc(100% - 320px))",
+              border: "1px solid rgba(15, 23, 42, 0.08)",
+              borderRadius: 14,
+              background: "rgba(255, 255, 255, 0.96)",
+              boxShadow: "0 24px 70px -28px rgba(15, 23, 42, 0.28)",
+              backdropFilter: "blur(16px)",
+              padding: 12,
+            }}
+          >
+            {[
+              ["Now", activityText],
+              ["Files", `${nodes.filter((node) => (node.data as { kind?: string }).kind === "document").length} document nodes attached`],
+              ["Tasks", `${nodes.filter((node) => ["task", "action"].includes((node.data as { kind?: string }).kind || "")).length} next-move nodes on map`],
+              ["Risk", `${nodes.filter((node) => (node.data as { status?: string }).status === "overdue" || (node.data as { status?: string }).status === "warning").length} nodes need attention`],
+            ].map(([label, body]) => (
+              <div key={label} style={{ display: "grid", gridTemplateColumns: "64px minmax(0,1fr)", gap: 10, padding: "8px 4px", borderBottom: "1px solid #f1ede8" }}>
+                <div style={{ fontSize: 10, fontWeight: 850, letterSpacing: "0.12em", color: "#6b6760", textTransform: "uppercase" }}>{label}</div>
+                <div style={{ fontSize: 12.5, color: "#0d0c0a" }}>{body}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Floating toolbar — top-left */}
         {!readOnly && (
@@ -1213,6 +1337,34 @@ export function DealMindmap({
           >
             Remove
           </button>
+          <div style={{ width: 1, background: "rgba(15, 23, 42, 0.08)", margin: "4px 0" }} />
+          <div
+            role="group"
+            aria-label="Dealflow view mode"
+            style={{ display: "inline-flex", padding: 2, borderRadius: 8, background: "rgba(15, 23, 42, 0.04)" }}
+          >
+            {VIEW_MODES.map((mode) => (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => setViewMode(mode.id)}
+                title={`${mode.label} view`}
+                style={{
+                  padding: "5px 8px",
+                  border: 0,
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontSize: 11.5,
+                  fontWeight: 650,
+                  background: viewMode === mode.id ? "#ffffff" : "transparent",
+                  color: viewMode === mode.id ? "#0d0c0a" : "#6b6760",
+                  boxShadow: viewMode === mode.id ? "0 1px 3px rgba(15, 23, 42, 0.10)" : "none",
+                }}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
           <div style={{ width: 1, background: "rgba(15, 23, 42, 0.08)", margin: "4px 0" }} />
           {/* Edge style toggle — flip every connection between curved (default) and straight. */}
           <div
@@ -1422,7 +1574,7 @@ export function DealMindmap({
         )}
 
         <ReactFlow
-          nodes={nodes}
+          nodes={visibleNodes}
           edges={React.useMemo(() => edges.map(e => ({ ...e, type: edgeStyle === "straight" ? "straight" : "default" })), [edges, edgeStyle])}
           nodeTypes={nodeTypes}
           onNodesChange={handleNodesChange}
@@ -1515,6 +1667,10 @@ export function DealMindmap({
               updateSelectedLabel(value);
               setEditingLabel(false);
             }}
+            onPatch={(patch) => {
+              if (readOnly) return;
+              persistNodeDetails(selectedNode.id, patch);
+            }}
             onEditCancel={() => setEditingLabel(false)}
             onClose={() => setSelectedId(null)}
             onRemove={removeSelected}
@@ -1535,6 +1691,7 @@ interface NodeDetailPanelProps {
   readOnly?: boolean;
   onEditStart: () => void;
   onEditCommit: (value: string) => void;
+  onPatch: (patch: Record<string, unknown>) => void;
   onEditCancel: () => void;
   onClose: () => void;
   onRemove: () => void;
@@ -1550,6 +1707,7 @@ function NodeDetailPanel({
   readOnly = false,
   onEditStart,
   onEditCommit,
+  onPatch,
   onEditCancel,
   onClose,
   onRemove,
@@ -1560,9 +1718,14 @@ function NodeDetailPanel({
   const meta = isDeal ? null : KIND_META[data.kind];
   const status = data.status ? STATUS_META[data.status] : null;
   const [labelDraft, setLabelDraft] = React.useState(data.label || (isDeal ? data.name : ""));
+  const details = (data as unknown as { data?: Record<string, unknown>; notes?: string; next_step?: string; related_record?: string }).data || {};
+  const [notesDraft, setNotesDraft] = React.useState(String(details.notes || (data as unknown as { notes?: string }).notes || ""));
+  const [nextStepDraft, setNextStepDraft] = React.useState(String(details.next_step || (data as unknown as { next_step?: string }).next_step || ""));
 
   React.useEffect(() => {
     setLabelDraft(data.label || (isDeal ? data.name : ""));
+    setNotesDraft(String(details.notes || (data as unknown as { notes?: string }).notes || ""));
+    setNextStepDraft(String(details.next_step || (data as unknown as { next_step?: string }).next_step || ""));
   }, [data.label, data.name, isDeal, node.id]);
 
   const headerBadgeColor = isDeal ? "#5d2cd6" : meta!.color;
@@ -1700,9 +1863,60 @@ function NodeDetailPanel({
             <span style={{ color: "#6b6760" }}>{status.label}</span>
           </div>
         )}
+
+        {!isDeal && !readOnly && (
+          <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <label style={{ display: "grid", gap: 4, fontSize: 10, fontWeight: 800, color: "#6b6760", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+              Type
+              <select
+                value={data.kind}
+                onChange={(event) => onPatch({ kind: event.target.value })}
+                style={{ height: 34, border: "1px solid #e8e4de", borderRadius: 8, background: "#fff", color: "#0d0c0a", padding: "0 8px", fontSize: 12 }}
+              >
+                {KINDS_TO_ADD.map((kind) => <option key={kind} value={kind}>{KIND_META[kind].label}</option>)}
+              </select>
+            </label>
+            <label style={{ display: "grid", gap: 4, fontSize: 10, fontWeight: 800, color: "#6b6760", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+              Status
+              <select
+                value={data.status || "neutral"}
+                onChange={(event) => onPatch({ status: event.target.value })}
+                style={{ height: 34, border: "1px solid #e8e4de", borderRadius: 8, background: "#fff", color: "#0d0c0a", padding: "0 8px", fontSize: 12 }}
+              >
+                {Object.entries(STATUS_META).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}
+              </select>
+            </label>
+          </div>
+        )}
       </div>
 
       <div style={{ padding: "18px 22px", borderBottom: "1px solid #f1ede8", flex: 1 }}>
+        {!isDeal && !readOnly && (
+          <div style={{ display: "grid", gap: 10, marginBottom: 18 }}>
+            <label style={{ display: "grid", gap: 6, fontSize: 10, fontWeight: 800, color: "#6b6760", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+              Next step
+              <input
+                value={nextStepDraft}
+                onChange={(event) => setNextStepDraft(event.target.value)}
+                onBlur={() => onPatch({ data: { ...details, next_step: nextStepDraft } })}
+                placeholder="What should happen next?"
+                style={{ height: 36, border: "1px solid #e8e4de", borderRadius: 8, background: "#fff", color: "#0d0c0a", padding: "0 10px", fontSize: 12.5 }}
+              />
+            </label>
+            <label style={{ display: "grid", gap: 6, fontSize: 10, fontWeight: 800, color: "#6b6760", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+              Notes
+              <textarea
+                value={notesDraft}
+                onChange={(event) => setNotesDraft(event.target.value)}
+                onBlur={() => onPatch({ data: { ...details, notes: notesDraft, next_step: nextStepDraft } })}
+                rows={4}
+                placeholder="Context, risk, promise, or detail tied to this node."
+                style={{ resize: "vertical", border: "1px solid #e8e4de", borderRadius: 8, background: "#fff", color: "#0d0c0a", padding: "9px 10px", fontSize: 12.5, lineHeight: 1.45 }}
+              />
+            </label>
+          </div>
+        )}
+
         <div
           style={{
             fontSize: 10,
