@@ -141,19 +141,19 @@ function formatValue(value: unknown) {
 }
 
 function detailCell(label: string, value: unknown) {
-  return `<td style="padding:14px 16px;border:1px solid #e4d8ff;background:#ffffff;border-radius:14px;vertical-align:top;">
-    <div style="font-size:10px;line-height:1.2;color:#6e5c90;font-weight:800;text-transform:uppercase;letter-spacing:.12em;">${escapeHtml(label)}</div>
-    <div style="margin-top:7px;font-size:15px;line-height:1.45;color:#18151f;font-weight:700;">${escapeHtml(formatValue(value))}</div>
+  return `<td style="padding:8px 10px;border:1px solid #e6e1f2;background:#ffffff;vertical-align:top;">
+    <div style="font-size:10px;line-height:1.2;color:#5f596a;font-weight:800;text-transform:uppercase;letter-spacing:.08em;">${escapeHtml(label)}</div>
+    <div style="margin-top:3px;font-size:14px;line-height:1.35;color:#18151f;font-weight:700;">${escapeHtml(formatValue(value))}</div>
   </td>`;
 }
 
 function detailRow(label: string, value: unknown) {
   return `<tr>
-    <td style="padding:13px 0;border-bottom:1px solid #ece5ff;vertical-align:top;width:210px;">
-      <div style="font-size:11px;line-height:1.2;color:#6e5c90;font-weight:800;text-transform:uppercase;letter-spacing:.1em;">${escapeHtml(label)}</div>
+    <td style="padding:8px 0;border-bottom:1px solid #ebe7f4;vertical-align:top;width:190px;">
+      <div style="font-size:10px;line-height:1.2;color:#5f596a;font-weight:800;text-transform:uppercase;letter-spacing:.08em;">${escapeHtml(label)}</div>
     </td>
-    <td style="padding:13px 0 13px 18px;border-bottom:1px solid #ece5ff;vertical-align:top;">
-      <div style="font-size:14px;line-height:1.55;color:#18151f;font-weight:650;">${escapeHtml(formatValue(value))}</div>
+    <td style="padding:8px 0 8px 14px;border-bottom:1px solid #ebe7f4;vertical-align:top;">
+      <div style="font-size:13px;line-height:1.4;color:#18151f;font-weight:650;">${escapeHtml(formatValue(value))}</div>
     </td>
   </tr>`;
 }
@@ -162,7 +162,7 @@ function needsListHtml(needs: string[]) {
   return needs
     .map(
       (need) =>
-        `<span style="display:inline-block;margin:0 7px 7px 0;padding:8px 11px;border-radius:999px;background:#f3edff;border:1px solid #dfd0ff;color:#5b21b6;font-size:12px;line-height:1;font-weight:800;">${escapeHtml(need)}</span>`,
+        `<span style="display:inline-block;margin:0 5px 5px 0;padding:6px 8px;border:1px solid #ddd6ea;background:#faf9fc;color:#18151f;font-size:12px;line-height:1;font-weight:700;">${escapeHtml(need)}</span>`,
     )
     .join("");
 }
@@ -196,36 +196,22 @@ function buildAdpLeadEmailHtml(lead: StoredAdpLead, timestamp: string, trackingP
 
   return `<!doctype html>
 <html>
-  <body style="margin:0;background:#f7f3ff;font-family:Inter,Arial,Helvetica,sans-serif;color:#18151f;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f7f3ff;padding:34px 14px;">
+  <body style="margin:0;background:#f6f5f8;font-family:Inter,Arial,Helvetica,sans-serif;color:#18151f;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f5f8;padding:18px 10px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:760px;background:#ffffff;border:1px solid #e4d8ff;border-radius:22px;overflow:hidden;box-shadow:0 24px 70px rgba(91,33,182,0.14);">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:740px;background:#ffffff;border:1px solid #ded9eb;border-top:4px solid #5b21b6;border-radius:14px;overflow:hidden;box-shadow:0 12px 34px rgba(35,24,55,0.10);">
             <tr>
-              <td style="padding:30px 36px 26px;background:#fbf9ff;border-bottom:1px solid #ece5ff;color:#18151f;">
-                <div style="font-size:11px;line-height:1;color:#5b21b6;font-weight:900;text-transform:uppercase;letter-spacing:.16em;">ADGA partner referral</div>
-                <h1 style="margin:14px 0 0;font-size:32px;line-height:1.06;letter-spacing:-.025em;font-weight:900;color:#18151f;">New ADP payroll lead ready for follow-up</h1>
-                <p style="margin:12px 0 0;font-size:15px;line-height:1.6;color:#5f5570;">Lead #${escapeHtml(lead.referral_number)} was stored by ADGA before this notification was sent.</p>
+              <td style="padding:16px 20px 14px;background:#ffffff;border-bottom:1px solid #ebe7f4;color:#18151f;">
+                <div style="font-size:11px;line-height:1;color:#5f596a;font-weight:800;text-transform:uppercase;letter-spacing:.12em;">ADP payroll lead #${escapeHtml(lead.referral_number)}</div>
+                <h1 style="margin:7px 0 0;font-size:24px;line-height:1.12;letter-spacing:-.015em;font-weight:900;color:#18151f;">${escapeHtml(lead.full_name)}</h1>
+                <p style="margin:5px 0 0;font-size:14px;line-height:1.4;color:#3f3a4a;">${escapeHtml(lead.job_title)} · ${escapeHtml(lead.company)}</p>
+                <p style="margin:7px 0 0;font-size:14px;line-height:1.4;color:#18151f;"><strong>Email:</strong> ${escapeHtml(lead.email)} &nbsp; <strong>Phone:</strong> ${escapeHtml(lead.phone)}</p>
               </td>
             </tr>
             <tr>
-              <td style="padding:28px 36px 8px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                  <tr>
-                    <td style="padding:0 0 22px;">
-                      <div style="font-size:11px;line-height:1;color:#6e5c90;font-weight:900;text-transform:uppercase;letter-spacing:.14em;">Primary contact</div>
-                      <div style="margin-top:9px;font-size:28px;line-height:1.15;letter-spacing:-.015em;font-weight:900;color:#18151f;">${escapeHtml(lead.full_name)}</div>
-                      <div style="margin-top:7px;font-size:15px;line-height:1.45;color:#5f5570;">${escapeHtml(lead.job_title)} · ${escapeHtml(lead.company)}</div>
-                    </td>
-                  </tr>
-                </table>
-
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0 12px;">
-                  <tr>
-                    ${detailCell("Email", lead.email)}
-                    <td style="width:12px;"></td>
-                    ${detailCell("Phone", lead.phone)}
-                  </tr>
+              <td style="padding:14px 20px 8px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0 6px;">
                   <tr>
                     ${detailCell("Company size", lead.company_size)}
                     <td style="width:12px;"></td>
@@ -236,38 +222,43 @@ function buildAdpLeadEmailHtml(lead: StoredAdpLead, timestamp: string, trackingP
                     <td style="width:12px;"></td>
                     ${detailCell("Current provider", lead.current_payroll_provider)}
                   </tr>
+                  <tr>
+                    ${detailCell("Source path", lead.source_path)}
+                    <td style="width:12px;"></td>
+                    ${detailCell("Submitted", lead.submitted_at)}
+                  </tr>
                 </table>
 
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:10px;background:#faf7ff;border:1px solid #e4d8ff;border-radius:18px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:8px;background:#fbfbfd;border:1px solid #e6e1f2;">
                   <tr>
-                    <td style="padding:22px;">
-                      <div style="font-size:11px;line-height:1;color:#5b21b6;font-weight:900;text-transform:uppercase;letter-spacing:.14em;">What they are looking for</div>
-                      <div style="margin-top:13px;">${needsListHtml(lead.needs)}</div>
+                    <td style="padding:12px 14px;">
+                      <div style="font-size:10px;line-height:1;color:#5f596a;font-weight:900;text-transform:uppercase;letter-spacing:.1em;">What they want</div>
+                      <div style="margin-top:8px;">${needsListHtml(lead.needs)}</div>
                     </td>
                   </tr>
                 </table>
 
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:16px;background:#ffffff;border:1px solid #e4d8ff;border-radius:18px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:8px;background:#ffffff;border:1px solid #e6e1f2;">
                   <tr>
-                    <td style="padding:22px;">
-                      <div style="font-size:11px;line-height:1;color:#6e5c90;font-weight:900;text-transform:uppercase;letter-spacing:.14em;">Purpose and conversation context</div>
-                      <p style="margin:12px 0 0;font-size:16px;line-height:1.62;color:#18151f;">${escapeHtml(lead.notes)}</p>
+                    <td style="padding:12px 14px;">
+                      <div style="font-size:10px;line-height:1;color:#5f596a;font-weight:900;text-transform:uppercase;letter-spacing:.1em;">Purpose and conversation context</div>
+                      <p style="margin:7px 0 0;font-size:14px;line-height:1.45;color:#18151f;">${escapeHtml(lead.notes)}</p>
                     </td>
                   </tr>
                 </table>
 
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:16px;background:#fbf9ff;border:1px solid #e4d8ff;border-radius:18px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:8px;background:#ffffff;border:1px solid #e6e1f2;">
                   <tr>
-                    <td style="padding:22px;">
-                      <div style="font-size:11px;line-height:1;color:#5b21b6;font-weight:900;text-transform:uppercase;letter-spacing:.14em;">Referral record</div>
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:8px;border-collapse:collapse;">
+                    <td style="padding:12px 14px;">
+                      <div style="font-size:10px;line-height:1;color:#5f596a;font-weight:900;text-transform:uppercase;letter-spacing:.1em;">Full referral record</div>
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:4px;border-collapse:collapse;">
                         ${detailRows}
                       </table>
                     </td>
                   </tr>
                 </table>
 
-                <p style="margin:18px 0 22px;font-size:12px;line-height:1.5;color:#766b88;">This message contains the full lead details submitted through the ADGA ADP form. No call-to-action links are included in the email body.</p>
+                <p style="margin:10px 0 12px;font-size:11px;line-height:1.4;color:#6a6474;">Full lead details are included directly in this email. No call-to-action links are included.</p>
               </td>
             </tr>
           </table>
