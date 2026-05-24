@@ -21,7 +21,7 @@ import {
   type NodeMouseHandler,
   type OnSelectionChangeParams,
 } from "@xyflow/react";
-import { Link2, MousePointer2, Palette, Plus, Search, Share2, Trash2, X } from "lucide-react";
+import { Hand, Link2, MousePointer2, Palette, Plus, Search, Share2, SlidersHorizontal, Trash2, X } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 
 export type DealFlowEntityKind = "contact" | "company" | "document" | "task" | "call" | "meeting" | "action";
@@ -137,6 +137,7 @@ const VIEW_MODES = [
 
 type ViewMode = (typeof VIEW_MODES)[number]["id"];
 type DealFlowToolPanel = "search" | "nodes" | "style" | "links" | "view" | "share";
+type CanvasInteractionMode = "select" | "pan";
 
 function DealNodeView({ data, selected }: NodeProps) {
   const deal = data as unknown as DealFlowDeal;
@@ -373,6 +374,7 @@ export function DealFlow({
   const [editingLabel, setEditingLabel] = React.useState(false);
   const [viewMode, setViewMode] = React.useState<ViewMode>("relationship");
   const [activeToolPanel, setActiveToolPanel] = React.useState<DealFlowToolPanel | null>(null);
+  const [canvasMode, setCanvasMode] = React.useState<CanvasInteractionMode>("select");
   const [linkMode, setLinkMode] = React.useState(false);
   const [linkSourceId, setLinkSourceId] = React.useState<string | null>(null);
   const [activityOpen, setActivityOpen] = React.useState(false);
@@ -712,6 +714,7 @@ export function DealFlow({
   }, [onAddEdge, persistEnabled, setEdges]);
 
   const onNodeClick: NodeMouseHandler = React.useCallback((_event, node) => {
+    if (canvasMode === "pan") return;
     if (linkMode) {
       if (!linkSourceId) {
         setLinkSourceId(node.id);
@@ -723,12 +726,13 @@ export function DealFlow({
     }
     setSelectedId(node.id);
     setEditingLabel(false);
-  }, [createEdgeBetween, linkMode, linkSourceId]);
+  }, [canvasMode, createEdgeBetween, linkMode, linkSourceId]);
 
   const onPaneClick = React.useCallback(() => {
+    if (canvasMode === "pan") return;
     setSelectedId(null);
     setLinkSourceId(null);
-  }, []);
+  }, [canvasMode]);
 
   const onSelectionChange = React.useCallback((params: OnSelectionChangeParams) => {
     if (params.nodes.length === 1) setSelectedId(params.nodes[0].id);
@@ -1021,8 +1025,10 @@ export function DealFlow({
           from { opacity: 0; transform: translateX(12px); }
           to { opacity: 1; transform: translateX(0); }
         }
-        .react-flow__attribution { display: none; }
-        .react-flow__node { cursor: grab; }
+          .react-flow__attribution { display: none; }
+        .react-flow__pane { cursor: ${canvasMode === "pan" ? "grab" : "default"}; }
+        .react-flow__pane.dragging { cursor: ${canvasMode === "pan" ? "grabbing" : "default"}; }
+        .react-flow__node { cursor: ${canvasMode === "pan" ? "grab" : "grab"}; }
         .react-flow__node.dragging { cursor: grabbing; }
         .react-flow__handle { transition: opacity 180ms ease; }
         .react-flow__node:hover .react-flow__handle { opacity: 1; }
@@ -1161,11 +1167,48 @@ export function DealFlow({
             aria-label="DealFlow tools"
           >
             {([
+              ["select", MousePointer2, "Select and edit"],
+              ["pan", Hand, "Hand tool: move canvas"],
+            ] as const).map(([mode, Icon, label]) => {
+              const active = canvasMode === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  title={label}
+                  aria-label={label}
+                  onClick={() => {
+                    setCanvasMode(mode);
+                    setLinkMode(false);
+                    setLinkSourceId(null);
+                    if (mode === "pan") {
+                      setActiveToolPanel(null);
+                      setEditingLabel(false);
+                    }
+                  }}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    border: 0,
+                    borderRadius: 10,
+                    background: active ? "rgba(93, 44, 214, 0.12)" : "transparent",
+                    color: active ? "#5d2cd6" : "#0d0c0a",
+                    cursor: "pointer",
+                    display: "grid",
+                    placeItems: "center",
+                  }}
+                >
+                  <Icon size={16} strokeWidth={2.2} />
+                </button>
+              );
+            })}
+            <span aria-hidden style={{ width: 24, height: 1, justifySelf: "center", background: "rgba(15, 23, 42, 0.10)" }} />
+            {([
               ["search", Search, "Search with ADGA"],
               ["nodes", Plus, "Add nodes"],
               ["links", Link2, "Connect nodes"],
               ["style", Palette, "Color code"],
-              ["view", MousePointer2, "Views"],
+              ["view", SlidersHorizontal, "Views"],
               ...(canShare ? ([["share", Share2, "Share"]] as const) : []),
             ] as const).map(([panel, Icon, label]) => {
               const active = activeToolPanel === panel;
@@ -1176,6 +1219,7 @@ export function DealFlow({
                   title={label}
                   aria-label={label}
                   onClick={() => {
+                    setCanvasMode("select");
                     setActiveToolPanel((current) => (current === panel ? null : panel));
                     if (panel === "search") setTimeout(() => commandInputRef.current?.focus(), 0);
                   }}
@@ -1801,17 +1845,17 @@ export function DealFlow({
           onNodeClick={onNodeClick}
           onPaneClick={onPaneClick}
           onSelectionChange={onSelectionChange}
-          nodesDraggable={!readOnly}
-          nodesConnectable={!readOnly}
-          elementsSelectable
+          nodesDraggable={!readOnly && canvasMode === "select"}
+          nodesConnectable={!readOnly && canvasMode === "select"}
+          elementsSelectable={canvasMode === "select"}
           fitView
           fitViewOptions={{ padding: 0.22 }}
           proOptions={{ hideAttribution: true }}
           minZoom={0.3}
           maxZoom={1.6}
-          panOnDrag={[1, 2]}
+          panOnDrag={canvasMode === "pan" ? true : [2]}
           panOnScroll
-          selectionOnDrag={!readOnly}
+          selectionOnDrag={!readOnly && canvasMode === "select"}
           selectionMode={SelectionMode.Partial}
           snapToGrid
           snapGrid={[16, 16]}
