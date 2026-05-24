@@ -26,9 +26,12 @@ export default function LoginPage() {
     }
 
     setStatus({ kind: "sending" });
-    const next = typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search).get("next") || "/suite"
-      : "/suite";
+    const next =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("next") ||
+          new URLSearchParams(window.location.search).get("redirect") ||
+          "/suite"
+        : "/suite";
 
     try {
       const response = await fetch("/api/auth/magic/request", {
@@ -53,162 +56,154 @@ export default function LoginPage() {
 
   return (
     <>
-    <style>{`body::before { display: none !important; }`}</style>
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.05fr_1fr] bg-[#0d0c0a] text-white">
-      {/* LEFT — full panel brand */}
-      <aside className="relative flex flex-col justify-between overflow-hidden px-10 py-12 sm:px-16 sm:py-16 bg-gradient-to-br from-[#4a1eb5] via-[#5d2cd6] to-[#7c4ade]">
-        <a href="/" className="inline-flex items-center gap-3 text-2xl font-semibold tracking-tight">
-          <span
-            aria-hidden
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/30 text-base font-bold"
-          >
-            A
-          </span>
-          ADGA
-        </a>
+      <style>{`
+        body::before { display: none !important; }
+        body { background: #f7f5f1 !important; }
+        .login-auth-page button.login-submit {
+          background: #5d2cd6 !important;
+          color: #fff !important;
+        }
+        .login-auth-page button.login-submit:hover {
+          background: #4c1d95 !important;
+        }
+        @media (max-width: 640px) {
+          .login-auth-page .login-proof { display: none !important; }
+          .login-auth-page .login-hero-title { font-size: 40px !important; }
+          .login-auth-page .login-hero-copy { font-size: 16px !important; line-height: 1.65 !important; }
+        }
+      `}</style>
+      <main className="login-auth-page min-h-screen bg-[#f7f5f1] text-[#11100e]">
+        <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-5 py-5 sm:px-8 lg:px-10">
+          <header className="flex items-center justify-between gap-4 border-b border-[#ded9d1] pb-5">
+            <a href="/" className="text-2xl font-semibold tracking-[-0.03em] text-[#5d2cd6]">
+              ADGA
+            </a>
+            <div className="flex items-center gap-2 text-sm text-[#68625a]">
+              <span className="hidden sm:inline">Need a workspace?</span>
+              <a
+                href="/pricing"
+                className="inline-flex h-10 items-center rounded-full border border-[#d8d1c8] bg-white px-4 font-medium text-[#11100e] shadow-sm transition hover:border-[#5d2cd6] hover:text-[#5d2cd6]"
+              >
+                See pricing
+              </a>
+            </div>
+          </header>
 
-        <div className="max-w-xl">
-          <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.025em] sm:text-5xl lg:text-[56px]">
-            Close more deals.
-          </h1>
-          <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-white/85 sm:text-base">
-            Every contact, call, document, and next action stays tied to the deal — so closes happen on schedule, not by accident.
-          </p>
-          <ul className="mt-8 grid gap-3 text-sm text-white/90 sm:text-[15px]">
-            {[
-              "Every party and artifact on the deal",
-              "Templates for Acquire, Series A, M&A, and more",
-              "The next move surfaced before it slips",
-            ].map((item) => (
-              <li key={item} className="flex items-start gap-3">
-                <span aria-hidden className="mt-1.5 inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-white/90" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+          <section className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.72fr)] lg:gap-16 lg:py-16">
+            <div className="max-w-2xl">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#ded9d1] bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6b6760] shadow-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#5d2cd6]" />
+                Secure workspace access
+              </div>
+              <h1 className="login-hero-title text-[44px] font-semibold leading-[0.98] tracking-[-0.045em] text-[#11100e] sm:text-[64px] lg:text-[78px]">
+                Welcome.
+              </h1>
+              <p className="login-hero-copy mt-6 max-w-xl text-lg leading-8 text-[#5f5a52]">
+                Sign in with a single-use link and continue into the workspace, onboarding, billing, or the deal you were working.
+              </p>
+              <div className="login-proof mt-9 grid max-w-2xl gap-3 sm:grid-cols-3">
+                {[
+                  ["No password", "Magic links only"],
+                  ["Session protected", "30-day secure session"],
+                  ["Workspace ready", "Deals, billing, profile"],
+                ].map(([label, body]) => (
+                  <div key={label} className="rounded-2xl border border-[#ded9d1] bg-white/75 p-4 shadow-sm">
+                    <div className="text-sm font-semibold text-[#11100e]">{label}</div>
+                    <div className="mt-1 text-xs leading-5 text-[#6b6760]">{body}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-        <div className="flex items-center gap-3 text-xs text-white/70">
-          <span>Single-use sign-in</span>
-          <span aria-hidden>·</span>
-          <span>Expires in 15 minutes</span>
-          <span aria-hidden>·</span>
-          <span>Encrypted sessions</span>
-        </div>
-      </aside>
-
-      {/* RIGHT — full-height form panel */}
-      <main className="flex flex-col bg-[#f9f7f4] text-[#0d0c0a]">
-        <div className="flex items-center justify-end gap-4 px-8 pt-8 text-sm text-[#6b6760]">
-          <span>New to ADGA?</span>
-          <a
-            href="/pricing"
-            className="rounded-full border border-[#e8e4de] bg-white px-4 py-1.5 text-[#0d0c0a] transition hover:border-[#5d2cd6] hover:text-[#5d2cd6]"
-          >
-            See pricing
-          </a>
-        </div>
-
-        <div className="flex flex-1 items-center justify-center px-6 py-10 sm:px-12">
-          <div className="w-full max-w-md">
-            {status.kind === "sent" ? (
-              <>
-                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">
-                  Check your email
-                </div>
-                <h2 className="text-3xl font-semibold tracking-tight">Your sign-in link is on the way.</h2>
-                <p className="mt-3 text-[15px] text-[#6b6760]">
-                  Sent to <b className="text-[#0d0c0a]">{status.email}</b>. The link expires in 15 minutes and only works once.
-                </p>
-                {status.previewUrl && (
-                  <p className="mt-4 text-sm">
-                    Local preview:{" "}
-                    <a className="text-[#5d2cd6] underline underline-offset-2" href={status.previewUrl}>
-                      open verification link
-                    </a>
+            <section className="rounded-[28px] border border-[#ded9d1] bg-white p-6 shadow-[0_26px_80px_-42px_rgba(33,25,18,0.42)] sm:p-8">
+              {status.kind === "sent" ? (
+                <>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">Check your email</div>
+                  <h2 className="mt-3 text-3xl font-semibold tracking-tight">Your sign-in link is on the way.</h2>
+                  <p className="mt-3 text-[15px] leading-7 text-[#6b6760]">
+                    Sent to <b className="text-[#11100e]">{status.email}</b>. The link expires in 15 minutes and only works once.
                   </p>
-                )}
-                <div className="mt-8 flex flex-col gap-3">
+                  {status.previewUrl && (
+                    <p className="mt-4 text-sm">
+                      Local preview:{" "}
+                      <a className="text-[#5d2cd6] underline underline-offset-2" href={status.previewUrl}>
+                        open verification link
+                      </a>
+                    </p>
+                  )}
                   <button
                     type="button"
                     onClick={() => setStatus({ kind: "idle" })}
-                    className="text-sm font-medium text-[#5d2cd6] hover:underline"
+                    className="mt-8 text-sm font-medium text-[#5d2cd6] hover:underline"
                   >
-                    ← Use a different email
+                    Use a different email
                   </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">
-                  Sign in
-                </div>
-                <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Welcome back.</h1>
-                <p className="mt-3 text-[15px] text-[#6b6760]">
-                  Enter your name and email and we&apos;ll send a verification link to open your workspace.
-                </p>
+                </>
+              ) : (
+                <>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">Sign in</div>
+                  <h2 className="mt-3 text-3xl font-semibold tracking-tight">Open ADGA.</h2>
+                  <p className="mt-3 text-[15px] leading-7 text-[#6b6760]">
+                    Enter your details and we will send the link that opens your account.
+                  </p>
 
-                <form onSubmit={submit} className="mt-8 grid gap-5" noValidate>
-                  <div className="grid gap-2">
-                    <label htmlFor="login-first-name" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6b6760]">
-                      First name
-                    </label>
-                    <input
-                      id="login-first-name"
-                      name="first_name"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      type="text"
-                      autoComplete="given-name"
-                      placeholder="Maren"
+                  <form onSubmit={submit} className="mt-8 grid gap-5" noValidate>
+                    <div className="grid gap-2">
+                      <label htmlFor="login-first-name" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6b6760]">
+                        First name
+                      </label>
+                      <input
+                        id="login-first-name"
+                        name="first_name"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        type="text"
+                        autoComplete="given-name"
+                        placeholder="Maren"
+                        disabled={isSending}
+                        className="h-12 rounded-xl border border-[#ded9d1] bg-[#fbfaf8] px-4 text-[15px] outline-none transition focus:border-[#5d2cd6] focus:bg-white focus:ring-4 focus:ring-[#5d2cd6]/10"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6b6760]">
+                        Email address
+                      </label>
+                      <input
+                        id="login-email"
+                        name="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        type="email"
+                        autoComplete="email"
+                        placeholder="you@company.com"
+                        required
+                        disabled={isSending}
+                        className="h-12 rounded-xl border border-[#ded9d1] bg-[#fbfaf8] px-4 text-[15px] outline-none transition focus:border-[#5d2cd6] focus:bg-white focus:ring-4 focus:ring-[#5d2cd6]/10"
+                      />
+                    </div>
+                    <button
+                      type="submit"
                       disabled={isSending}
-                      className="rounded-lg border border-[#e8e4de] bg-white px-4 py-3 text-[15px] outline-none transition focus:border-[#5d2cd6] focus:ring-2 focus:ring-[#5d2cd6]/15"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6b6760]">
-                      Email address
-                    </label>
-                    <input
-                      id="login-email"
-                      name="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      type="email"
-                      autoComplete="email"
-                      placeholder="you@company.com"
-                      required
-                      disabled={isSending}
-                      className="rounded-lg border border-[#e8e4de] bg-white px-4 py-3 text-[15px] outline-none transition focus:border-[#5d2cd6] focus:ring-2 focus:ring-[#5d2cd6]/15"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={isSending}
-                    className="rounded-full bg-[#5d2cd6] px-5 py-3.5 text-[15px] font-semibold text-white shadow-[0_10px_30px_-12px_rgba(86,36,199,0.6)] transition hover:bg-[#4920b3] disabled:opacity-60"
-                  >
-                    {isSending ? "Sending magic link…" : "Send magic link"}
-                  </button>
-                  {status.kind === "error" && (
-                    <p role="alert" className="text-sm text-[#b91c1c]">
-                      {status.message}
-                    </p>
-                  )}
-                </form>
+                      className="login-submit h-12 rounded-full px-5 text-[15px] font-semibold shadow-[0_18px_34px_-18px_rgba(93,44,214,0.78)] transition disabled:opacity-60"
+                    >
+                      {isSending ? "Sending link..." : "Send sign-in link"}
+                    </button>
+                    {status.kind === "error" && (
+                      <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-[#b91c1c]">
+                        {status.message}
+                      </p>
+                    )}
+                  </form>
 
-                <p className="mt-8 text-xs text-[#6b6760]">
-                  By signing in you agree to ADGA&apos;s{" "}
-                  <a className="underline underline-offset-2" href="/terms">Terms</a> and{" "}
-                  <a className="underline underline-offset-2" href="/privacy">Privacy Policy</a>.
-                </p>
-              </>
-            )}
-          </div>
+                  <p className="mt-7 text-xs leading-6 text-[#6b6760]">
+                    By signing in you agree to ADGA&apos;s <a className="underline underline-offset-2" href="/policies">policies</a>.
+                  </p>
+                </>
+              )}
+            </section>
+          </section>
         </div>
-
-        <footer className="px-8 pb-8 text-xs text-[#9b9eb0]">© {new Date().getFullYear()} ADGA</footer>
       </main>
-    </div>
     </>
   );
 }

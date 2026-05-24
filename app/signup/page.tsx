@@ -158,7 +158,7 @@ function SignupInner() {
         await fetch("/api/auth/magic/request", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: parsed.data.email, first_name: parsed.data.first_name, plan }),
+          body: JSON.stringify({ email: parsed.data.email, first_name: parsed.data.first_name, plan, redirect: "/suite/onboarding" }),
         });
       } catch {
         // best-effort

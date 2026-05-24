@@ -8599,10 +8599,10 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
               would skip the fallback and leave the workspace empty. As more workspaces
               extract into their own page.tsx files, add their route ids to CHILDREN_ROUTES. */}
           {(() => {
-            const CHILDREN_ROUTES = new Set(['map', 'maps']);
+            const CHILDREN_ROUTES = new Set(['map', 'maps', 'settings', 'onboarding']);
             return CHILDREN_ROUTES.has(route) ? children : null;
           })()}
-          {!(new Set(['map', 'maps']).has(route)) && (<>
+          {!(new Set(['map', 'maps', 'settings', 'onboarding']).has(route)) && (<>
           {route === 'home'      && <HomePage deals={deals} openDeal={openDealInMap} setRoute={navigate}/>}
           {route === 'pending'   && <PendingPage deals={deals} openDeal={openDealInMap}/>}
           {route === 'inbox'     && <InboxPage openDeal={openDealInMap} deals={deals} meetingInbox={meetingInbox}/>}

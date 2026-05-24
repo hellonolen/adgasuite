@@ -90,7 +90,7 @@ export async function createStripeCheckout(input: StripeCheckoutInput) {
 
   params.set("mode", "subscription");
   params.set("customer_email", input.email);
-  params.set("success_url", `${input.origin}/auth/verify?checkout=stripe&session_id={CHECKOUT_SESSION_ID}`);
+  params.set("success_url", `${input.origin}/onboarding?checkout=stripe&session_id={CHECKOUT_SESSION_ID}&plan=${plan}&cadence=${cadence}&seats=${seats}`);
   params.set("cancel_url", `${input.origin}/signup?plan=${plan}&cadence=${cadence}&seats=${seats}`);
   params.set("metadata[email]", input.email);
   params.set("metadata[name]", input.name || "");

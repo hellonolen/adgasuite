@@ -70,6 +70,7 @@ export const SUITE_ROUTES: SuiteRoute[] = [
       { id: "ws",           path: "/suite/settings",               label: "General" },
       { id: "brand",        path: "/suite/settings",               label: "Branding" },
       { id: "integrations", path: "/suite/settings/integrations",  label: "Integrations" },
+      { id: "user-billing", path: "/suite/settings/billing",       label: "Billing" },
     ],
     capabilities: ["settings.read", "settings.update"],
   },
@@ -106,6 +107,7 @@ export const SUITE_ROUTES: SuiteRoute[] = [
 
   // Hidden / programmatic — reachable but not in sidebar
   { id: "billing",     path: "/suite/billing",     label: "Billing",     section: "HIDDEN", capabilities: ["billing.read"] },
+  { id: "onboarding",  path: "/suite/onboarding",  label: "Onboarding",  section: "HIDDEN", capabilities: ["settings.update", "billing.read"] },
   { id: "story",       path: "/suite/story",       label: "Story",       section: "HIDDEN", capabilities: ["story.read"] },
   { id: "tasks",       path: "/suite/tasks",       label: "Tasks",       section: "HIDDEN", capabilities: ["task.read"] },
   { id: "teams",       path: "/suite/teams",       label: "Teams",       section: "HIDDEN", capabilities: ["team.read"] },
