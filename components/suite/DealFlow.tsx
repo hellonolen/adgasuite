@@ -714,7 +714,11 @@ export function DealFlow({
   }, [onAddEdge, persistEnabled, setEdges]);
 
   const onNodeClick: NodeMouseHandler = React.useCallback((_event, node) => {
-    if (canvasMode === "pan") return;
+    if (canvasMode === "pan") {
+      setSelectedId(node.id);
+      setEditingLabel(false);
+      return;
+    }
     if (linkMode) {
       if (!linkSourceId) {
         setLinkSourceId(node.id);
@@ -1025,11 +1029,12 @@ export function DealFlow({
           from { opacity: 0; transform: translateX(12px); }
           to { opacity: 1; transform: translateX(0); }
         }
-          .react-flow__attribution { display: none; }
+        .react-flow__attribution { display: none; }
         .react-flow__pane { cursor: ${canvasMode === "pan" ? "grab" : "default"}; }
         .react-flow__pane.dragging { cursor: ${canvasMode === "pan" ? "grabbing" : "default"}; }
-        .react-flow__node { cursor: ${canvasMode === "pan" ? "grab" : "grab"}; }
-        .react-flow__node.dragging { cursor: grabbing; }
+        .react-flow__node { cursor: ${canvasMode === "pan" ? "pointer" : "grab"}; }
+        .react-flow__node:hover { cursor: ${canvasMode === "pan" ? "pointer" : "grab"}; }
+        .react-flow__node.dragging { cursor: ${canvasMode === "pan" ? "pointer" : "grabbing"}; }
         .react-flow__handle { transition: opacity 180ms ease; }
         .react-flow__node:hover .react-flow__handle { opacity: 1; }
         .react-flow__controls { box-shadow: 0 4px 14px -6px rgba(15, 23, 42, 0.12) !important; background: rgba(255, 255, 255, 0.96) !important; border: 1px solid rgba(15, 23, 42, 0.08) !important; backdrop-filter: blur(10px); border-radius: 10px; }
@@ -1847,7 +1852,7 @@ export function DealFlow({
           onSelectionChange={onSelectionChange}
           nodesDraggable={!readOnly && canvasMode === "select"}
           nodesConnectable={!readOnly && canvasMode === "select"}
-          elementsSelectable={canvasMode === "select"}
+          elementsSelectable
           fitView
           fitViewOptions={{ padding: 0.22 }}
           proOptions={{ hideAttribution: true }}
