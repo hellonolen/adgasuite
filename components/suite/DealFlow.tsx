@@ -154,7 +154,7 @@ function DealNodeView({ data, selected }: NodeProps) {
           ? "0 24px 58px rgba(86, 36, 199, 0.36), 0 0 0 3px rgba(86, 36, 199, 0.24)"
           : "0 20px 48px rgba(86, 36, 199, 0.24), 0 3px 10px rgba(86, 36, 199, 0.14)",
         border: "1px solid rgba(255, 255, 255, 0.20)",
-        cursor: "grab",
+        cursor: "inherit",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 8 }}>
@@ -201,7 +201,7 @@ function EntityNodeView({ data, selected }: NodeProps) {
           ? `0 14px 30px rgba(15, 23, 42, 0.12), 0 0 0 3px ${meta.ringSoft}`
           : "0 12px 26px rgba(15, 23, 42, 0.065), 0 2px 5px rgba(15, 23, 42, 0.035)",
         position: "relative",
-        cursor: "grab",
+        cursor: "inherit",
       }}
     >
       {status.pulse && (
