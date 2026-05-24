@@ -120,6 +120,16 @@ export default function AdpPartnerPage() {
     const formElement = event.currentTarget;
     const fields = filledFields(formElement);
     const form = new FormData(formElement);
+    if (form.getAll("needs").length === 0) {
+      setStatus("error");
+      setMessage("Select at least one payroll need so the specialist has context.");
+      trackFunnelEvent("partner_referral.submit_failed", {
+        filled_field_count: fields.length,
+        filled_fields: fields,
+        error: "Missing payroll needs.",
+      });
+      return;
+    }
     setStatus("sending");
     setMessage("");
     trackFunnelEvent("partner_referral.submit_clicked", {
@@ -160,6 +170,8 @@ export default function AdpPartnerPage() {
         }, leadId);
         const params = new URLSearchParams({ partner: adpAffiliateCode });
         if (leadId) params.set("lead", leadId);
+        const firstName = String(form.get("full_name") || "").trim().split(/\s+/)[0];
+        if (firstName) params.set("name", firstName);
         window.location.href = `/adp/thank-you?${params.toString()}`;
       } else {
         trackFunnelEvent("partner_referral.submit_failed", {
@@ -228,9 +240,9 @@ export default function AdpPartnerPage() {
             <div className="adp-form-grid">
               <div className="field"><label>Full name</label><input name="full_name" required /></div>
               <div className="field"><label>Email</label><input name="email" type="email" required /></div>
-              <div className="field"><label>Phone</label><input name="phone" type="tel" /></div>
-              <div className="field"><label>Company</label><input name="company" /></div>
-              <div className="field"><label>Role</label><input name="job_title" /></div>
+              <div className="field"><label>Phone</label><input name="phone" type="tel" required /></div>
+              <div className="field"><label>Company</label><input name="company" required /></div>
+              <div className="field"><label>Position / role</label><input name="job_title" required /></div>
               <div className="field">
                 <label>Company size</label>
                 <select name="company_size">
@@ -241,7 +253,7 @@ export default function AdpPartnerPage() {
               <div className="field"><label>State</label><input name="state" placeholder="State" /></div>
               <div className="field">
                 <label>Payroll timing</label>
-                <select name="payroll_timing">
+                <select name="payroll_timing" required>
                   <option value="">Select timing</option>
                   {timingOptions.map((timing) => <option value={timing} key={timing}>{timing}</option>)}
                 </select>
@@ -250,7 +262,7 @@ export default function AdpPartnerPage() {
             </div>
 
             <fieldset className="field adp-wide">
-              <label>Payroll needs</label>
+              <label>What are they looking for?</label>
               <div className="adp-check-grid">
                 {needs.map((need) => (
                   <label key={need}>
@@ -262,8 +274,8 @@ export default function AdpPartnerPage() {
             </fieldset>
 
             <div className="field">
-              <label>Notes</label>
-              <textarea name="notes" rows={3} placeholder="Anything the payroll specialist should know..." />
+              <label>Purpose / conversation context</label>
+              <textarea name="notes" rows={3} required placeholder="What are they trying to solve, what prompted the request, and what should the payroll specialist know before reaching out?" />
             </div>
 
             <label className="adp-consent">

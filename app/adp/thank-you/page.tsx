@@ -7,10 +7,14 @@ const adpReferralLink = "https://info.adp.com/referral-hub?loid=&adp_pc=PW56143"
 export default async function AdpThankYouPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ lead?: string; partner?: string }>;
+  searchParams?: Promise<{ lead?: string; partner?: string; name?: string }>;
 }) {
   const params = await searchParams;
   const leadId = params?.lead;
+  const firstName = String(params?.name || "")
+    .replace(/[^a-zA-Z.'-]/g, "")
+    .slice(0, 32);
+  const greeting = firstName ? `Thank you, ${firstName}.` : "Thank you.";
 
   return (
     <MarketingLayout>
@@ -22,7 +26,7 @@ export default async function AdpThankYouPage({
               <span>Request received</span>
               <span>ADP partner code {adpAffiliateCode}</span>
             </div>
-            <h1>Thank you. We received your payroll request.</h1>
+            <h1>{greeting} We received your payroll request.</h1>
             <p>
               Your information has been received and routed for ADP payroll follow-up. A payroll specialist will contact you shortly about payroll or HR service options for your company.
             </p>
