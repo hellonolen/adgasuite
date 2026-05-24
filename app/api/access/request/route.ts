@@ -4,6 +4,9 @@ import { getRuntimeContext } from "@/lib/server/runtime";
 import { normalizePlan } from "@/lib/plans";
 import { newId } from "@/lib/server/id";
 import { storeJsonPayload } from "@/lib/server/payload-storage";
+import { normalizeEmail } from "@/lib/server/magic-auth";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
@@ -15,14 +18,17 @@ export async function POST(request: Request) {
     plan?: string;
     seats?: string;
     notes?: string;
+    lead_magnet?: string;
   }>(request);
 
   if (!body.email) return errorJson("email is required.");
+  const email = normalizeEmail(body.email);
+  if (!EMAIL_PATTERN.test(email)) return errorJson("valid email is required.");
   const plan = normalizePlan(body.plan);
   const requestId = newId("access");
   const requestPayload = {
     id: requestId,
-    email: body.email,
+    email,
     name: body.name || "",
     company: body.company || "",
     role: body.role || "",

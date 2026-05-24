@@ -12,7 +12,7 @@ export const BRAND = {
   name: "ADGA",
   tagline: "Deal flow platform",
   footerDescription:
-    "Designed for the closers, dealmakers, and operators who carry the number.",
+    "A dealflow workspace for closers, dealmakers, and operators: leads, contacts, files, invoices, and follow-up tied to the deal.",
   productName: "ADGA Suite",
 } as const;
 
@@ -35,7 +35,7 @@ export const NAV_LINKS: ReadonlyArray<NavLink> = [
   { label: "Plan", href: "/plan" },
   { label: "Process", href: "/process" },
   { label: "Use Cases", href: "/cases" },
-  { label: "Resources", href: "/resources/deal-pipeline-audit" },
+  { label: "Resources", href: "/5-secrets" },
   { label: "Pricing", href: "/pricing" },
 ];
 
@@ -51,7 +51,7 @@ export const FOOTER_COLUMNS: ReadonlyArray<FooterColumn> = [
       { label: "Plan", href: "/plan" },
       { label: "Process", href: "/process" },
       { label: "Use Cases", href: "/cases" },
-      { label: "Free Checklist", href: "/resources/deal-pipeline-audit" },
+      { label: "5 Secrets", href: "/5-secrets" },
       { label: "Pricing", href: "/pricing" },
     ],
   },
@@ -61,12 +61,14 @@ export const FOOTER_COLUMNS: ReadonlyArray<FooterColumn> = [
       { label: "About", href: "/about" },
       { label: "Stories", href: "/stories" },
       { label: "Contact", href: "/contact" },
-      { label: "Sign in", href: "/login" },
     ],
   },
   {
-    heading: "Home",
+    heading: "Suite",
     links: [
+      { label: "Sign in", href: "/login" },
+      { label: "Deals", href: "/login?next=/suite/deals" },
+      { label: "Onboarding", href: "/onboarding" },
       { label: PRIMARY_CTA.label, href: PRIMARY_CTA.href },
     ],
   },
@@ -75,6 +77,7 @@ export const FOOTER_COLUMNS: ReadonlyArray<FooterColumn> = [
     links: [
       { label: "Security", href: "/security" },
       { label: "Policy Center", href: "/policies" },
+      { label: "Support", href: "/support" },
     ],
   },
 ];
@@ -84,6 +87,7 @@ export const FOOTER_COLUMNS: ReadonlyArray<FooterColumn> = [
  */
 export const FOOTER_END_LINKS: ReadonlyArray<NavLink> = [
   { label: "Policy Center", href: "/policies" },
+  { label: "Security", href: "/security" },
   { label: "Support", href: "/support" },
   { label: "Contact", href: "/contact" },
 ];
@@ -162,9 +166,9 @@ export const PAGE_SEO = {
       "ADGA is built for closers, dealmakers, advisors, and operators who need every lead, contact, file, invoice, and next action attached to the deal.",
   },
   resources: {
-    title: "Deal Pipeline Audit Checklist",
+    title: "Five Secrets to Not Losing Million-Dollar Deals",
     description:
-      "Download the ADGA Deal Pipeline Audit Checklist to find stale deals, missed follow-ups, missing owners, invoice gaps, and close blockers before your next pipeline review.",
+      "Get the private ADGA guide for protecting high-stakes conversations before timing, trust, or follow-up costs you the deal.",
   },
   security: {
     title: "Security",

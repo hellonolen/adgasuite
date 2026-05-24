@@ -1,38 +1,16 @@
-ADGA Deal Pipeline Audit Checklist
+Five Secrets to Not Losing Million-Dollar Deals
 
-Use this before a pipeline review or close-week standup.
+1. Control the problem before you present the solution.
+Million-dollar deals are lost when the seller moves faster than the buyer's real concern. Before you pitch, confirm the problem in the buyer's words.
 
-1. Lead capture
-- Which new leads arrived this week?
-- Does every lead have source, owner, urgency, and first next action?
-- Which hot leads have not been touched inside the expected response window?
+2. Map the decision path, not just the decision-maker.
+One champion is not the same as a closed deal. Know who can approve, who can delay, and who can quietly kill the deal.
 
-2. Ownership
-- Does every active deal have one accountable owner?
-- Are team members, outside advisors, clients, or counterparties attached to the deal?
-- Is the represented client clear?
+3. Never leave the next move implied.
+Momentum dies when the next step lives in somebody's memory. Give the next action an owner, a date, and a reason.
 
-3. Next action
-- Does every active deal have a next action?
-- Does every next action have a due date?
-- Which actions are overdue, unclear, or waiting on another person?
+4. Attach proof before doubt appears.
+Trust is built before the objection is spoken. Give the other side the proof they need to feel safe.
 
-4. Stage health
-- Which deals have been in the same stage too long?
-- Which stage confidence scores are based on evidence rather than optimism?
-- Which deals need to move backward, forward, or out of the active pipeline?
-
-5. Proof and context
-- Are call notes, voice notes, transcripts, emails, files, and meeting summaries attached?
-- Can another team member understand the deal without asking the owner?
-- Are risks, blockers, commitments, and decisions visible?
-
-6. Close path
-- Are terms, signatures, invoice details, payment links, and handoff steps connected?
-- Which deals are verbally closed but not signed or paid?
-- Which invoices need to be sent, followed up, or reconciled?
-
-7. Recovery list
-- Pick the five deals most likely to stall.
-- Assign one owner and one next action for each.
-- Review again within 48 hours.
+5. Remove friction from the close path.
+A deal is not closed because everyone feels good. Terms, signature, invoice, payment, onboarding, and handoff need to be visible before the close.

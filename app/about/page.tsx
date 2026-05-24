@@ -89,7 +89,7 @@ export default function AboutPage() {
             <p>Choose a plan, verify email, and open the workspace built for deal flow management, pipeline follow-up, invoices, and close execution.</p>
             <div className="ctas">
               <a href="/pricing" className="btn primary lg">Start closing deals</a>
-              <a href="/resources/deal-pipeline-audit" className="btn lg">Get the checklist</a>
+              <a href="/5-secrets" className="btn lg">Get the 5 Secrets</a>
             </div>
           </div>
         </section>

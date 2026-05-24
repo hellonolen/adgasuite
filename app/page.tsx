@@ -97,7 +97,7 @@ const VALUE_STACK = [
   {
     icon: "02",
     title: "Keep every deal moving",
-    body: "Surface stale stages, missing proof, upcoming meetings, voice notes, documents, and map activity before momentum slips.",
+    body: "Surface missing context, proof, upcoming meetings, voice notes, documents, and next moves before momentum slips.",
   },
   {
     icon: "03",
@@ -129,9 +129,9 @@ const SIMPLE_PLAN = [
 ];
 
 const LEAD_MAGNET_BENEFITS = [
-  "Find the leads and deals most likely to stall this week",
-  "Spot missing owners, next actions, follow-ups, proof, invoices, and close blockers",
-  "Turn a messy pipeline review into a concrete recovery list",
+  "Confirm the contact, company, role, purpose, and decision position",
+  "Spot missing owners, next moves, proof, invoices, and close blockers",
+  "Turn an unclear deal into one assigned next action",
 ];
 
 const FAQ_ITEMS = [
@@ -165,13 +165,12 @@ function LeadMagnetForm({ source }: { source: string }) {
     const form = new FormData(event.currentTarget);
     setStatus("submitting");
 
-    const response = await fetch("/api/access/request", {
+    const response = await fetch("/api/lead-magnets/five-secrets/request", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name: String(form.get("name") || ""),
         email: String(form.get("email") || ""),
-        notes: `Lead magnet requested: Deal Pipeline Audit Checklist (${source})`,
+        source,
       }),
     }).catch(() => null);
 
@@ -180,16 +179,7 @@ function LeadMagnetForm({ source }: { source: string }) {
 
   return (
     <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-        <label style={{ display: "grid", gap: 7, fontSize: 12, color: "var(--adga-text-2)" }}>
-          Name
-          <input
-            name="name"
-            autoComplete="name"
-            placeholder="Your name"
-            style={{ height: 44, border: "1px solid var(--rule)", borderRadius: 10, padding: "0 12px", background: "var(--surface)" }}
-          />
-        </label>
+      <div style={{ display: "grid", gap: 12 }}>
         <label style={{ display: "grid", gap: 7, fontSize: 12, color: "var(--adga-text-2)" }}>
           Email
           <input
@@ -203,16 +193,16 @@ function LeadMagnetForm({ source }: { source: string }) {
         </label>
       </div>
       <button className="btn primary" type="submit" disabled={status === "submitting"} style={{ justifySelf: "start" }}>
-        {status === "submitting" ? "Sending..." : "Get the checklist"}
+        {status === "submitting" ? "Sending..." : "Get Access"}
       </button>
       {status === "sent" ? (
         <p style={{ margin: 0, fontSize: 13, color: "var(--adga-text-2)" }}>
-          Request captured. <a href="/adga/deal-pipeline-audit-checklist.txt">Open the checklist</a>.
+          Check your email for the Five Secrets access link.
         </p>
       ) : null}
       {status === "error" ? (
         <p style={{ margin: 0, fontSize: 13, color: "#8a1f1a" }}>
-          The form did not submit. Open the checklist and try again from the pricing page.
+          The form did not submit. Please try again.
         </p>
       ) : null}
     </form>
@@ -568,7 +558,7 @@ export default function HomePage() {
           </p>
           <div className="ctas" style={{ marginTop: 24 }}>
             <a href="/pricing" className="btn primary lg">Start closing deals</a>
-            <a href="#lead-magnet" className="btn lg">Get the checklist</a>
+            <a href="/5-secrets" className="btn lg">Get the 5 Secrets</a>
           </div>
         </section>
 
@@ -588,10 +578,10 @@ export default function HomePage() {
             }}
           >
             <div>
-              <span className="ed-label">Free resource</span>
-              <h2 className="title">Deal Pipeline Audit Checklist</h2>
+              <span className="ed-label">Five secrets access</span>
+              <h2 className="title">Five Secrets to Not Losing Million-Dollar Deals</h2>
               <p style={{ marginTop: 12, color: "var(--adga-text-2)", lineHeight: 1.6 }}>
-                Use this before your next pipeline review to find the deals most likely to stall, the follow-ups most likely to slip, and the payment steps that need to be attached before close.
+                Get the private ADGA guide for protecting high-stakes conversations before timing, trust, or follow-up costs you the deal.
               </p>
               <ul style={{ margin: "18px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
                 {LEAD_MAGNET_BENEFITS.map((benefit) => (
@@ -648,12 +638,10 @@ export default function HomePage() {
             >
               <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "start" }}>
                 <div>
-                  <span className="ed-label">Free resource</span>
-                  <h2 id="lead-magnet-title" style={{ margin: "8px 0 8px", fontSize: 28, lineHeight: 1.1 }}>
-                    Deal Pipeline Audit Checklist
-                  </h2>
+                  <span className="ed-label">Five secrets access</span>
+                  <h2 id="lead-magnet-title" style={{ margin: "8px 0 8px", fontSize: 28, lineHeight: 1.1 }}>Five Secrets to Not Losing Million-Dollar Deals</h2>
                   <p style={{ margin: "0 0 18px", color: "var(--adga-text-2)", lineHeight: 1.55 }}>
-                    Get the quick checklist for finding stale deals, missing follow-ups, and close blockers.
+                    Get the free guide for creating clearer deal conversations.
                   </p>
                 </div>
                 <button type="button" className="btn" onClick={() => setLeadMagnetOpen(false)} aria-label="Close popup">
