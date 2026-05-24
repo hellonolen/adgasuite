@@ -2,7 +2,7 @@ import { z } from "zod";
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
-import { createMap, listMaps } from "@/lib/server/repository";
+import { createDealFlow, listDealFlows } from "@/lib/server/repository";
 import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
 const DEFAULT_ORG_ID = "org_adga_primary";
@@ -20,12 +20,12 @@ export async function GET(request: Request) {
   const auth = await requireSession(request);
   if (auth.unauthorized) return errorJson("Authentication required.", 401);
 
-  const rows = await listMaps(auth.context.env.DB, DEFAULT_ORG_ID);
-  const maps = await Promise.all(rows.map(async (row) => {
+  const rows = await listDealFlows(auth.context.env.DB, DEFAULT_ORG_ID);
+  const dealFlows = await Promise.all(rows.map(async (row) => {
     const payload = await readJsonPayload<Record<string, unknown>>(auth.context.env, row.payload_r2_key);
     return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
   }));
-  return json({ ok: true, maps });
+  return json({ ok: true, dealFlows, maps: dealFlows });
 }
 
 const createSchema = z.object({
@@ -44,9 +44,9 @@ export async function POST(request: Request) {
     return errorJson("Invalid payload.", 400, parsed.error.flatten());
   }
 
-  const record = await createMap(auth.context.env.DB, {
+  const record = await createDealFlow(auth.context.env.DB, {
     organization_id: DEFAULT_ORG_ID,
-    name: "Map payload in R2",
+    name: "DealFlow payload in R2",
     deal_id: parsed.data.deal_id ?? null,
     template: parsed.data.template ?? null,
     created_by_user_id: auth.sessionUser?.user_id || auth.context.user.email || null,
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
         env: auth.context.env,
         db: auth.context.env.DB,
         organization_id: DEFAULT_ORG_ID,
-        resource_type: "map",
+        resource_type: "dealflow",
         resource_id: record.id,
         payload,
         created_by: auth.sessionUser?.email || auth.context.user.email || null,
@@ -69,5 +69,6 @@ export async function POST(request: Request) {
       .run();
   }
 
-  return json({ ok: true, map: { ...record, ...payload, payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null } }, { status: 201 });
+  const dealFlow = { ...record, ...payload, payload_r2_key: stored?.r2_key || null, storage_object_id: stored?.storage_object_id || null };
+  return json({ ok: true, dealFlow, map: dealFlow }, { status: 201 });
 }

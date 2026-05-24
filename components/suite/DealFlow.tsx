@@ -24,7 +24,24 @@ import {
 import { Hand, Link2, MousePointer2, Palette, Plus, Search, Share2, SlidersHorizontal, Trash2, X } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 
-export type DealFlowEntityKind = "group" | "contact" | "company" | "document" | "task" | "call" | "meeting" | "action";
+export type DealFlowEntityKind =
+  | "group"
+  | "contact"
+  | "company"
+  | "bank"
+  | "document"
+  | "email"
+  | "website"
+  | "audio"
+  | "video"
+  | "task"
+  | "call"
+  | "call_step"
+  | "meeting"
+  | "journey_step"
+  | "invoice"
+  | "financial"
+  | "action";
 export type DealFlowStatus = "neutral" | "active" | "warning" | "overdue" | "done";
 
 export interface DealFlowDeal {
@@ -86,10 +103,10 @@ interface DealFlowProps extends DealFlowPersistenceCallbacks {
   deal: DealFlowDeal;
   entities: DealFlowEntity[];
   /**
-   * When set, the toolbar exposes a Share popover backed by /api/maps/[mapId]/share.
+   * When set, the toolbar exposes a Share popover backed by /api/dealflows/[dealFlowId]/share.
    * Omit on read-only or sample views to keep the share surface internal-only.
    */
-  mapId?: string;
+  dealFlowId?: string;
   /**
    * Public/shared views render the canvas in non-interactive mode.
    * Nodes can be selected/inspected but not dragged, connected, or removed.
@@ -99,7 +116,7 @@ interface DealFlowProps extends DealFlowPersistenceCallbacks {
   initialNodes?: DealFlowInitialNode[];
   /** Initial edges loaded from D1 (Phase 9d). */
   initialEdges?: DealFlowInitialEdge[];
-  /** Base URL for built-in persistence (e.g. `/api/maps/<id>`). When set, the component auto-persists changes. */
+  /** Base URL for built-in persistence (e.g. `/api/dealflows/<id>`). When set, the component auto-persists changes. */
   persistApiBase?: string;
 }
 
@@ -112,14 +129,23 @@ interface ShareInfo {
 }
 
 const KIND_META: Record<DealFlowEntityKind, { label: string; color: string; ring: string; ringSoft: string }> = {
-  group:    { label: "Group",    color: "#5d2cd6", ring: "rgba(93, 44, 214, 0.18)", ringSoft: "rgba(93, 44, 214, 0.08)" },
-  contact:  { label: "Contact",  color: "#16a34a", ring: "rgba(22, 163, 74, 0.18)", ringSoft: "rgba(22, 163, 74, 0.08)" },
-  company:  { label: "Company",  color: "#0ea5e9", ring: "rgba(14, 165, 233, 0.18)", ringSoft: "rgba(14, 165, 233, 0.08)" },
-  document: { label: "File",     color: "#f59e0b", ring: "rgba(245, 158, 11, 0.18)", ringSoft: "rgba(245, 158, 11, 0.08)" },
-  task:     { label: "Task",     color: "#a855f7", ring: "rgba(168, 85, 247, 0.18)", ringSoft: "rgba(168, 85, 247, 0.08)" },
-  call:     { label: "Call",     color: "#ef4444", ring: "rgba(239, 68, 68, 0.18)", ringSoft: "rgba(239, 68, 68, 0.08)" },
-  meeting:  { label: "Meeting",  color: "#3b82f6", ring: "rgba(59, 130, 246, 0.18)", ringSoft: "rgba(59, 130, 246, 0.08)" },
-  action:   { label: "Next",     color: "#5d2cd6", ring: "rgba(86, 36, 199, 0.20)", ringSoft: "rgba(86, 36, 199, 0.08)" },
+  group:        { label: "Collection", color: "#5d2cd6", ring: "rgba(93, 44, 214, 0.18)", ringSoft: "rgba(93, 44, 214, 0.08)" },
+  contact:      { label: "Person",     color: "#16a34a", ring: "rgba(22, 163, 74, 0.18)", ringSoft: "rgba(22, 163, 74, 0.08)" },
+  company:      { label: "Company",    color: "#0ea5e9", ring: "rgba(14, 165, 233, 0.18)", ringSoft: "rgba(14, 165, 233, 0.08)" },
+  bank:         { label: "Bank",       color: "#2563eb", ring: "rgba(37, 99, 235, 0.18)", ringSoft: "rgba(37, 99, 235, 0.08)" },
+  document:     { label: "File",       color: "#f59e0b", ring: "rgba(245, 158, 11, 0.18)", ringSoft: "rgba(245, 158, 11, 0.08)" },
+  email:        { label: "Email",      color: "#0891b2", ring: "rgba(8, 145, 178, 0.18)", ringSoft: "rgba(8, 145, 178, 0.08)" },
+  website:      { label: "Website",    color: "#059669", ring: "rgba(5, 150, 105, 0.18)", ringSoft: "rgba(5, 150, 105, 0.08)" },
+  audio:        { label: "Audio",      color: "#7c3aed", ring: "rgba(124, 58, 237, 0.18)", ringSoft: "rgba(124, 58, 237, 0.08)" },
+  video:        { label: "Video",      color: "#db2777", ring: "rgba(219, 39, 119, 0.18)", ringSoft: "rgba(219, 39, 119, 0.08)" },
+  task:         { label: "Task",       color: "#a855f7", ring: "rgba(168, 85, 247, 0.18)", ringSoft: "rgba(168, 85, 247, 0.08)" },
+  call:         { label: "Call",       color: "#ef4444", ring: "rgba(239, 68, 68, 0.18)", ringSoft: "rgba(239, 68, 68, 0.08)" },
+  call_step:    { label: "Call step",  color: "#f97316", ring: "rgba(249, 115, 22, 0.18)", ringSoft: "rgba(249, 115, 22, 0.08)" },
+  meeting:      { label: "Meeting",    color: "#3b82f6", ring: "rgba(59, 130, 246, 0.18)", ringSoft: "rgba(59, 130, 246, 0.08)" },
+  journey_step: { label: "Journey",    color: "#6366f1", ring: "rgba(99, 102, 241, 0.18)", ringSoft: "rgba(99, 102, 241, 0.08)" },
+  invoice:      { label: "Invoice",    color: "#0f766e", ring: "rgba(15, 118, 110, 0.18)", ringSoft: "rgba(15, 118, 110, 0.08)" },
+  financial:    { label: "Financial",  color: "#64748b", ring: "rgba(100, 116, 139, 0.18)", ringSoft: "rgba(100, 116, 139, 0.08)" },
+  action:       { label: "Next",       color: "#5d2cd6", ring: "rgba(86, 36, 199, 0.20)", ringSoft: "rgba(86, 36, 199, 0.08)" },
 };
 
 const STATUS_META: Record<DealFlowStatus, { dot: string; pulse: boolean; label: string }> = {
@@ -131,11 +157,13 @@ const STATUS_META: Record<DealFlowStatus, { dot: string; pulse: boolean; label: 
 };
 
 const VIEW_MODES = [
-  { id: "relationship", label: "Relationships", kinds: ["contact", "company"] },
-  { id: "task", label: "Tasks", kinds: ["task", "action", "meeting"] },
-  { id: "document", label: "Documents", kinds: ["document"] },
-  { id: "risk", label: "Risk", kinds: ["task", "action", "call", "meeting"] },
-  { id: "invoice", label: "Invoices", kinds: ["document", "action"] },
+  { id: "relationship", label: "Relationships", kinds: ["group", "contact", "company", "bank"] },
+  { id: "communication", label: "Communications", kinds: ["group", "email", "call", "meeting", "audio", "video"] },
+  { id: "document", label: "Files & web", kinds: ["group", "document", "website", "audio", "video"] },
+  { id: "journey", label: "Journey", kinds: ["group", "journey_step", "call_step", "call"] },
+  { id: "task", label: "Tasks", kinds: ["group", "task", "action", "meeting"] },
+  { id: "financial", label: "Financial", kinds: ["group", "invoice", "financial", "bank"] },
+  { id: "risk", label: "Risk", kinds: ["task", "action", "call", "meeting", "invoice", "financial"] },
 ] as const;
 
 type ViewMode = (typeof VIEW_MODES)[number]["id"];
@@ -294,7 +322,7 @@ function buildInitial(deal: DealFlowDeal, entities: DealFlowEntity[]) {
     },
   ];
   const edges: Edge[] = [];
-  const inner: DealFlowEntityKind[] = ["group", "contact", "company", "action"];
+  const inner: DealFlowEntityKind[] = ["group", "contact", "company", "bank", "action"];
   const innerEntities = entities.filter((e) => inner.includes(e.kind));
   const outerEntities = entities.filter((e) => !inner.includes(e.kind));
 
@@ -336,12 +364,44 @@ function nodeKindFromNode(node: Node | null | undefined): DealFlowEntityKind | "
   return data?.kind || null;
 }
 
-const KINDS_TO_ADD: DealFlowEntityKind[] = ["group", "contact", "company", "document", "task", "call", "meeting", "action"];
+const KINDS_TO_ADD: DealFlowEntityKind[] = [
+  "group",
+  "contact",
+  "company",
+  "bank",
+  "email",
+  "call",
+  "meeting",
+  "document",
+  "website",
+  "audio",
+  "video",
+  "journey_step",
+  "call_step",
+  "task",
+  "invoice",
+  "financial",
+  "action",
+];
+
+const COLLECTION_PRESETS: Array<{ childKind: DealFlowEntityKind; label: string; helper: string; defaultCount?: number }> = [
+  { childKind: "contact", label: "People", helper: "Decision-makers, advisors, operators, internal team" },
+  { childKind: "bank", label: "Banks & lenders", helper: "Banks, lenders, underwriters, capital sources" },
+  { childKind: "company", label: "Organizations", helper: "Buyer, seller, vendors, partners, counterparties" },
+  { childKind: "email", label: "Communications", helper: "Email threads, SMS, notes, call follow-ups" },
+  { childKind: "document", label: "Files & diligence", helper: "Contracts, LOIs, CIMs, diligence rooms, exhibits" },
+  { childKind: "website", label: "Web assets", helper: "Websites, portals, data rooms, external links" },
+  { childKind: "audio", label: "Recordings", helper: "Audio, video, transcripts, summaries" },
+  { childKind: "journey_step", label: "9-step journey", helper: "Customer journey milestones tied to this deal", defaultCount: 9 },
+  { childKind: "call_step", label: "9-step call", helper: "Call framework, objections, commitments, next steps", defaultCount: 9 },
+  { childKind: "invoice", label: "Invoices & billing", helper: "Invoices, payment status, billing history" },
+  { childKind: "task", label: "Workstreams", helper: "Actions, approvals, risks, owner-specific work" },
+];
 
 export function DealFlow({
   deal,
   entities,
-  mapId,
+  dealFlowId,
   readOnly = false,
   initialNodes,
   initialEdges,
@@ -485,14 +545,14 @@ export function DealFlow({
     return () => window.removeEventListener("pointerdown", onPointerDown, true);
   }, [activeToolPanel, readOnly]);
 
-  const canShare = Boolean(mapId) && !readOnly;
+  const canShare = Boolean(dealFlowId) && !readOnly;
 
   const loadShare = React.useCallback(async () => {
-    if (!mapId) return;
+    if (!dealFlowId) return;
     setShareLoading(true);
     setShareError(null);
     try {
-      const res = await fetch(`/api/maps/${encodeURIComponent(mapId)}/share`, { credentials: "include" });
+      const res = await fetch(`/api/dealflows/${encodeURIComponent(dealFlowId)}/share`, { credentials: "include" });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
         setShareError(body?.error || "Could not load share link.");
@@ -507,20 +567,20 @@ export function DealFlow({
     } finally {
       setShareLoading(false);
     }
-  }, [mapId]);
+  }, [dealFlowId]);
 
   React.useEffect(() => {
-    if (activeToolPanel === "share" && mapId && !share && !shareLoading) {
+    if (activeToolPanel === "share" && dealFlowId && !share && !shareLoading) {
       void loadShare();
     }
-  }, [activeToolPanel, mapId, share, shareLoading, loadShare]);
+  }, [activeToolPanel, dealFlowId, share, shareLoading, loadShare]);
 
   const createOrRotateShare = React.useCallback(async () => {
-    if (!mapId) return;
+    if (!dealFlowId) return;
     setShareLoading(true);
     setShareError(null);
     try {
-      const res = await fetch(`/api/maps/${encodeURIComponent(mapId)}/share`, {
+      const res = await fetch(`/api/dealflows/${encodeURIComponent(dealFlowId)}/share`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -537,14 +597,14 @@ export function DealFlow({
     } finally {
       setShareLoading(false);
     }
-  }, [mapId, sharePermission]);
+  }, [dealFlowId, sharePermission]);
 
   const revokeShare = React.useCallback(async () => {
-    if (!mapId) return;
+    if (!dealFlowId) return;
     setShareLoading(true);
     setShareError(null);
     try {
-      const res = await fetch(`/api/maps/${encodeURIComponent(mapId)}/share`, {
+      const res = await fetch(`/api/dealflows/${encodeURIComponent(dealFlowId)}/share`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -559,7 +619,7 @@ export function DealFlow({
     } finally {
       setShareLoading(false);
     }
-  }, [mapId]);
+  }, [dealFlowId]);
 
   const copyShareUrl = React.useCallback(async () => {
     if (!share?.url) return;
@@ -573,7 +633,7 @@ export function DealFlow({
   }, [share?.url]);
 
   // ─── Phase 9d persistence wiring ──────────────────────────────────────────
-  // When `persistApiBase` is provided we auto-sync changes to D1 via the maps API.
+  // When `persistApiBase` is provided we auto-sync changes to D1 via the dealflows API.
   // Callers can also pass explicit callbacks to integrate with their own store.
   const persistEnabled = Boolean(persistApiBase) && !readOnly;
   const persistBaseRef = React.useRef(persistApiBase);
@@ -858,10 +918,10 @@ export function DealFlow({
     }
   };
 
-  const addGroupNode = (childKind: DealFlowEntityKind, childrenCount = 0) => {
+  const addGroupNode = (childKind: DealFlowEntityKind, childrenCount = 0, labelOverride?: string, helperOverride?: string) => {
     const id = `mnode_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
     const childLabel = KIND_META[childKind]?.label || "Record";
-    const label = `${childLabel}s`;
+    const label = labelOverride || `${childLabel}s`;
     const sourceNode = selectedNode || nodes.find((node) => node.id === deal.id);
     const position = sourceNode
       ? { x: sourceNode.position.x + 260, y: sourceNode.position.y + (Math.random() - 0.5) * 160 }
@@ -879,7 +939,7 @@ export function DealFlow({
         id,
         kind: "group",
         label,
-        sublabel: childrenCount > 0 ? `${childrenCount.toLocaleString()} ${childLabel.toLowerCase()} records associated with this deal` : `Add ${childLabel.toLowerCase()} records without crowding the canvas`,
+        sublabel: helperOverride || (childrenCount > 0 ? `${childrenCount.toLocaleString()} ${childLabel.toLowerCase()} records associated with this deal` : `Add ${childLabel.toLowerCase()} records without crowding the canvas`),
         status: "neutral",
         data,
       } as unknown as Record<string, unknown>,
@@ -1150,7 +1210,7 @@ export function DealFlow({
               form.set("file", file);
               form.set("deal_id", deal.id);
               form.set("folder", "dealflow");
-              if (mapId) form.set("map_id", mapId);
+              if (dealFlowId) form.set("map_id", dealFlowId);
               const uploadResponse = await fetch("/api/documents/upload", {
                 method: "POST",
                 credentials: "include",
@@ -1168,10 +1228,10 @@ export function DealFlow({
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 agent: "documents",
-                job_type: "map.ingest",
+                job_type: "dealflow.ingest",
                 prompt: text || `Ingest ${uploadedFiles.length || files.length} dropped file(s): ${files.map(f => f.name).join(", ")}`,
                 context: {
-                  mapId,
+                  dealFlowId,
                   dealId: deal.id,
                   fileNames: files.map(f => f.name),
                   uploadedFiles: uploadedFiles.map((item) => ({
@@ -1381,7 +1441,7 @@ export function DealFlow({
                       messages: [{ role: "user", content: value }],
                       context: {
                         kind: "dealflow",
-                        mapId,
+                        dealFlowId,
                         deal: { id: deal.id, name: deal.name, stage: deal.stage, value: deal.value, nextAction: deal.nextAction },
                         selectedNode: selectedNode ? {
                           id: selectedNode.id,
@@ -1584,15 +1644,11 @@ export function DealFlow({
             {activeToolPanel === "nodes" && (
               <div style={{ display: "grid", gap: 10 }}>
                 <div style={{ display: "grid", gap: 7 }}>
-                  {[
-                    ["contact", "Contact group", "For 50, 300, or more stakeholders"],
-                    ["document", "Document group", "For diligence files and exhibits"],
-                    ["task", "Workstream group", "For actions, approvals, and owners"],
-                  ].map(([childKind, label, helper]) => (
+                  {COLLECTION_PRESETS.map(({ childKind, label, helper, defaultCount }) => (
                     <button
-                      key={childKind}
+                      key={`${childKind}-${label}`}
                       type="button"
-                      onClick={() => addGroupNode(childKind as DealFlowEntityKind)}
+                      onClick={() => addGroupNode(childKind, defaultCount || 0, label, helper)}
                       title={`Create ${label}`}
                       style={{
                         display: "grid",
@@ -1608,7 +1664,7 @@ export function DealFlow({
                         textAlign: "left",
                       }}
                     >
-                      <span style={{ width: 10, height: 10, borderRadius: 4, background: KIND_META[childKind as DealFlowEntityKind].color }} />
+                      <span style={{ width: 10, height: 10, borderRadius: 4, background: KIND_META[childKind].color }} />
                       <span style={{ minWidth: 0 }}>
                         <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 12.2, fontWeight: 820, color: "#0d0c0a" }}>{label}</span>
                         <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 10.8, fontWeight: 650, color: "#6b6760", marginTop: 2 }}>{helper}</span>
@@ -2327,6 +2383,24 @@ function NodeDetailPanel({
                 style={{ resize: "vertical", border: "1px solid rgba(15, 23, 42, 0.10)", borderRadius: 9, background: "#fff", color: "#0d0c0a", padding: "9px 10px", fontSize: 12.5, lineHeight: 1.45 }}
               />
             </label>
+          </div>
+        )}
+
+        {!isDeal && data.kind === "group" && (
+          <div style={{ marginTop: 14, display: "grid", gap: 7 }}>
+            <div style={{ fontSize: 10, fontWeight: 850, letterSpacing: "0.14em", color: "#6b6760", textTransform: "uppercase" }}>
+              Collection coverage
+            </div>
+            {[
+              ["Searchable records", "Children should live behind this node in a drawer/table, not as hundreds of canvas cards."],
+              ["ADGA context", "The AI should search this collection when answering deal questions."],
+              ["Canvas rule", "Promote only the most important child records onto the canvas."],
+            ].map(([title, copy]) => (
+              <div key={title} style={{ padding: "8px 9px", border: "1px solid rgba(15, 23, 42, 0.07)", borderRadius: 10, background: "rgba(255, 255, 255, 0.72)" }}>
+                <div style={{ fontSize: 11.5, fontWeight: 780, color: "#0d0c0a" }}>{title}</div>
+                <div style={{ fontSize: 11, lineHeight: 1.35, color: "#6b6760", marginTop: 2 }}>{copy}</div>
+              </div>
+            ))}
           </div>
         )}
 

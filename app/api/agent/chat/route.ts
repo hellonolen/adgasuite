@@ -13,7 +13,7 @@ const ContextSchema = z
   .object({
     kind: z.enum(["deal", "pipeline", "workspace", "dealflow", "map"]),
     id: z.string().min(1).max(120).optional(),
-    mapId: z.string().min(1).max(120).optional(),
+    dealFlowId: z.string().min(1).max(120).optional(),
     route: z.string().min(1).max(60).optional(),
     deal: z
       .object({
@@ -87,7 +87,7 @@ async function buildContextBlock(
     | {
         kind: "deal" | "pipeline" | "workspace" | "dealflow" | "map";
         id?: string;
-        mapId?: string;
+        dealFlowId?: string;
         route?: string;
         deal?: { id: string; name?: string; stage?: string; value?: string; nextAction?: string };
         nodeCount?: number;
@@ -123,7 +123,7 @@ async function buildContextBlock(
       if (ctx.deal.value) headerLines.push(`- Value: ${ctx.deal.value}`);
       if (ctx.deal.nextAction) headerLines.push(`- Next action: ${ctx.deal.nextAction}`);
     }
-    if (ctx?.mapId) headerLines.push(`- Dealflow id: ${ctx.mapId}`);
+    if (ctx?.dealFlowId) headerLines.push(`- Dealflow id: ${ctx.dealFlowId}`);
     if (ctx?.nodeCount != null) headerLines.push(`- Nodes on canvas: ${ctx.nodeCount}`);
     if (ctx?.edgeCount != null) headerLines.push(`- Edges on canvas: ${ctx.edgeCount}`);
     if (ctx?.viewMode) headerLines.push(`- Active DealFlow view: ${ctx.viewMode}`);
@@ -225,7 +225,7 @@ function buildSystemPrompt(contextBlock: string): string {
     onMap
       ? "The user is currently looking at dealflow, a canvas of people, files, calls, tasks, and meetings. Reference what is on the canvas. Suggest the next node to add when the next move is obvious."
       : "The user is in the suite workspace (lists, pipeline, inbox). Reference live data, not the canvas.",
-    "When the user implies a structured dealflow mutation (add a contact, add a group of contacts/files/tasks, link a company, create a task, advance a stage), append a fenced ```json``` code block at the end with shape: {\"actions\":[{\"type\":\"add_node\",\"kind\":\"contact\",\"label\":\"...\",\"sublabel\":\"...\"}]} or {\"actions\":[{\"type\":\"add_node\",\"kind\":\"group\",\"label\":\"Contacts\",\"sublabel\":\"300 records associated with this deal\",\"data\":{\"child_kind\":\"contact\",\"children_count\":300}}]}. Only include the block when an action is actually proposed.",
+    "When the user implies a structured dealflow mutation, append a fenced ```json``` code block at the end. Use add_node actions with kinds: contact, company, bank, document, email, website, audio, video, task, call, call_step, meeting, journey_step, invoice, financial, action, or group. Use group for large collections, for example {\"actions\":[{\"type\":\"add_node\",\"kind\":\"group\",\"label\":\"Banks & lenders\",\"sublabel\":\"Capital sources tied to this deal\",\"data\":{\"child_kind\":\"bank\",\"children_count\":12}}]}. Use group nodes for the 9-step customer journey and 9-step call framework instead of dumping every child onto the canvas. Only include the block when an action is actually proposed.",
     "Keep the visible reply free of JSON. Use plain text with optional **bold** or *italic* for emphasis. Do not use headings or bullet lists unless explicitly asked.",
     "",
     contextBlock,

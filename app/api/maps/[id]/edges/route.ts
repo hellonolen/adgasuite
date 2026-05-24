@@ -2,18 +2,18 @@ import { z } from "zod";
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
-import { createMapEdge, deleteMapEdge, getMap } from "@/lib/server/repository";
+import { createDealFlowEdge, deleteDealFlowEdge, getDealFlow } from "@/lib/server/repository";
 import { storeJsonPayload } from "@/lib/server/payload-storage";
 
 const DEFAULT_ORG_ID = "org_adga_primary";
 
-async function requireSessionAndMap(request: Request, mapId: string) {
+async function requireSessionAndDealFlow(request: Request, dealFlowId: string) {
   const context = getRuntimeContext(request);
   const sessionUser = await validateSession(context.env.DB, readSessionCookie(request));
   if (!sessionUser && !context.user.isLocalAdminBypass) {
     return { unauthorized: true as const };
   }
-  const map = await getMap(context.env.DB, mapId, DEFAULT_ORG_ID);
+  const map = await getDealFlow(context.env.DB, dealFlowId, DEFAULT_ORG_ID);
   if (!map) return { notFound: true as const, context };
   return { context, sessionUser, map };
 }
@@ -28,9 +28,9 @@ const createEdgeSchema = z.object({
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const auth = await requireSessionAndMap(request, id);
+  const auth = await requireSessionAndDealFlow(request, id);
   if ("unauthorized" in auth) return errorJson("Authentication required.", 401);
-  if ("notFound" in auth) return errorJson("Map not found.", 404);
+  if ("notFound" in auth) return errorJson("DealFlow not found.", 404);
 
   const body = await readJson(request);
   const parsed = createEdgeSchema.safeParse(body);
@@ -40,7 +40,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return errorJson("source_node_id and target_node_id must differ.", 400);
   }
 
-  const edge = await createMapEdge(auth.context.env.DB, id, {
+  const edge = await createDealFlowEdge(auth.context.env.DB, id, {
     id: parsed.data.id,
     source_node_id: parsed.data.source_node_id,
     target_node_id: parsed.data.target_node_id,
@@ -53,7 +53,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         env: auth.context.env,
         db: auth.context.env.DB,
         organization_id: DEFAULT_ORG_ID,
-        resource_type: "map_edge",
+        resource_type: "dealflow_edge",
         resource_id: edge.id,
         payload,
         created_by: auth.sessionUser?.email || auth.context.user.email || null,
@@ -69,15 +69,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const auth = await requireSessionAndMap(request, id);
+  const auth = await requireSessionAndDealFlow(request, id);
   if ("unauthorized" in auth) return errorJson("Authentication required.", 401);
-  if ("notFound" in auth) return errorJson("Map not found.", 404);
+  if ("notFound" in auth) return errorJson("DealFlow not found.", 404);
 
   const url = new URL(request.url);
   const edgeId = url.searchParams.get("edgeId");
   if (!edgeId) return errorJson("edgeId query param is required.", 400);
 
-  const removed = await deleteMapEdge(auth.context.env.DB, id, edgeId);
+  const removed = await deleteDealFlowEdge(auth.context.env.DB, id, edgeId);
   if (!removed) return errorJson("Edge not found.", 404);
   return json({ ok: true });
 }

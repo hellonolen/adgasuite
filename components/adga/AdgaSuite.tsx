@@ -5528,7 +5528,7 @@ function SettingsTeam() {
         <div className="card-h"><div className="ttl">Sharing rules</div></div>
         <div className="card-b" style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:12}}>
           {[
-            ['Auto-share new maps', 'Team and Enterprise only', true],
+            ['Auto-share new dealflows', 'Team and Enterprise only', true],
             ['Require owner on external invite', 'Applies to guests and counterparties', true],
             ['Allow team handoff', 'Move owner and tasks together', true],
           ].map(([title, desc, on]) => (
@@ -8319,10 +8319,10 @@ function getInitialSuiteRoute() {
   }
 }
 
-const MapWorkspace = React.lazy(() =>
+const DealFlowWorkspace = React.lazy(() =>
   import('@/components/suite/DealFlow').then(mod => ({
-    default: function MapWorkspaceInner({ mapData }) {
-      if (!mapData?.deal) {
+    default: function DealFlowWorkspaceInner({ dealFlowData }) {
+      if (!dealFlowData?.deal) {
         return (
           <div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>
             No dealflow selected. Open a deal from Deals.
@@ -8332,12 +8332,12 @@ const MapWorkspace = React.lazy(() =>
       return (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', minHeight: 0 }}>
           <mod.DealFlow
-            deal={mapData.deal}
-            entities={mapData.entities || []}
-            mapId={mapData.mapId}
-            initialNodes={mapData.initialNodes}
-            initialEdges={mapData.initialEdges}
-            persistApiBase={mapData.persistApiBase}
+            deal={dealFlowData.deal}
+            entities={dealFlowData.entities || []}
+            dealFlowId={dealFlowData.dealFlowId || dealFlowData.mapId}
+            initialNodes={dealFlowData.initialNodes}
+            initialEdges={dealFlowData.initialEdges}
+            persistApiBase={dealFlowData.persistApiBase}
           />
         </div>
       );
@@ -8409,7 +8409,7 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
     if (pathRoute && pathRoute !== route) setRoute(pathRoute);
   }, [pathRoute]);
   const sectionFromUrl = pathSection || bootstrap?.section;
-  const mapData = bootstrap?.mapData || null;
+  const dealFlowData = bootstrap?.dealFlowData || bootstrap?.mapData || null;
   const [deals, setDeals] = React.useState(DEALS);
   const [leads, setLeads] = React.useState(LEADS);
   const [selectedLead, setSelectedLead] = React.useState(null);
@@ -8561,8 +8561,8 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const crumb = route === 'map' && mapData?.deal
-    ? `Dealflow · ${mapData.deal.name?.split(' — ')[0] || mapData.deal.name || ''}`.trim().replace(/·\s*$/, '')
+  const crumb = route === 'map' && dealFlowData?.deal
+    ? `Dealflow · ${dealFlowData.deal.name?.split(' — ')[0] || dealFlowData.deal.name || ''}`.trim().replace(/·\s*$/, '')
     : (ROUTE_LABELS[route] || 'Home');
 
   // Context value exposed to every extracted workspace. As more workspaces migrate out of this
@@ -8643,7 +8643,7 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
           {route === 'settings'  && <SettingsPage tweaks={tweaks} setTweak={setTweak} initialSection={sectionFromUrl}/>}
           {route === 'map'       && (
             <React.Suspense fallback={<div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>Loading dealflow...</div>}>
-              <MapWorkspace mapData={mapData}/>
+              <DealFlowWorkspace dealFlowData={dealFlowData}/>
             </React.Suspense>
           )}
           {/* /suite/deals renders through children. No in-monolith renderer. */}
@@ -8658,12 +8658,12 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
         onWorkflow={handleWorkflow}
         deals={deals}
         leads={leads}
-        activeContext={route === 'map' && mapData ? {
-          kind: 'map',
-          mapId: mapData.mapId,
-          deal: mapData.deal,
-          nodeCount: (mapData.initialNodes || []).length,
-          edgeCount: (mapData.initialEdges || []).length,
+        activeContext={route === 'map' && dealFlowData ? {
+          kind: 'dealflow',
+          dealFlowId: dealFlowData.dealFlowId || dealFlowData.mapId,
+          deal: dealFlowData.deal,
+          nodeCount: (dealFlowData.initialNodes || []).length,
+          edgeCount: (dealFlowData.initialEdges || []).length,
         } : { kind: 'workspace', route }}
       />
       <button

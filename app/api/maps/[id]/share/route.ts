@@ -30,7 +30,7 @@ interface RouteContext {
 }
 
 function publicShareUrl(request: Request, token: string): string {
-  const url = new URL(`/share/map/${encodeURIComponent(token)}`, request.url);
+  const url = new URL(`/share/dealflow/${encodeURIComponent(token)}`, request.url);
   return url.toString();
 }
 
@@ -54,7 +54,7 @@ function serializeShare(row: ShareRow, request: Request) {
   };
 }
 
-async function loadActiveShare(db: D1Database, mapId: string): Promise<ShareRow | null> {
+async function loadActiveShare(db: D1Database, dealFlowId: string): Promise<ShareRow | null> {
   return db
     .prepare(
       `SELECT token, map_id, permission, created_by_user_id, created_at, expires_at, revoked_at
@@ -63,15 +63,15 @@ async function loadActiveShare(db: D1Database, mapId: string): Promise<ShareRow 
        ORDER BY created_at DESC
        LIMIT 1`,
     )
-    .bind(mapId)
+    .bind(dealFlowId)
     .first<ShareRow>();
 }
 
-async function ensureMapExists(db: D1Database, mapId: string): Promise<boolean> {
+async function ensureDealFlowExists(db: D1Database, dealFlowId: string): Promise<boolean> {
   try {
     const row = await db
       .prepare("SELECT id FROM maps WHERE id = ? LIMIT 1")
-      .bind(mapId)
+      .bind(dealFlowId)
       .first<{ id: string }>();
     return Boolean(row);
   } catch {
@@ -81,7 +81,7 @@ async function ensureMapExists(db: D1Database, mapId: string): Promise<boolean> 
 }
 
 export async function GET(request: Request, ctx: RouteContext) {
-  const { id: mapId } = await ctx.params;
+  const { id: dealFlowId } = await ctx.params;
   const context = getRuntimeContext(request);
   const db = context.env.DB;
 
@@ -92,12 +92,12 @@ export async function GET(request: Request, ctx: RouteContext) {
     return errorJson("Authentication required.", 401);
   }
 
-  if (!(await ensureMapExists(db, mapId))) {
-    return errorJson("Map not found.", 404);
+  if (!(await ensureDealFlowExists(db, dealFlowId))) {
+    return errorJson("DealFlow not found.", 404);
   }
 
   try {
-    const row = await loadActiveShare(db, mapId);
+    const row = await loadActiveShare(db, dealFlowId);
     return json({ ok: true, share: row ? serializeShare(row, request) : null });
   } catch {
     return errorJson("Share storage is not configured.", 503);
@@ -105,7 +105,7 @@ export async function GET(request: Request, ctx: RouteContext) {
 }
 
 export async function POST(request: Request, ctx: RouteContext) {
-  const { id: mapId } = await ctx.params;
+  const { id: dealFlowId } = await ctx.params;
   const context = getRuntimeContext(request);
   const db = context.env.DB;
 
@@ -116,8 +116,8 @@ export async function POST(request: Request, ctx: RouteContext) {
     return errorJson("Authentication required.", 401);
   }
 
-  if (!(await ensureMapExists(db, mapId))) {
-    return errorJson("Map not found.", 404);
+  if (!(await ensureDealFlowExists(db, dealFlowId))) {
+    return errorJson("DealFlow not found.", 404);
   }
 
   const body = await readJson<ShareBody>(request);
@@ -125,7 +125,7 @@ export async function POST(request: Request, ctx: RouteContext) {
   const expiresAt = typeof body.expires_at === "string" && body.expires_at ? body.expires_at : null;
 
   try {
-    const existing = await loadActiveShare(db, mapId);
+    const existing = await loadActiveShare(db, dealFlowId);
     // POST creates OR rotates: any existing live token is revoked first.
     if (existing) {
       await db
@@ -143,12 +143,12 @@ export async function POST(request: Request, ctx: RouteContext) {
         `INSERT INTO map_shares (token, map_id, permission, created_by_user_id, created_at, expires_at, revoked_at)
          VALUES (?, ?, ?, ?, ?, ?, NULL)`,
       )
-      .bind(token, mapId, permission, createdBy, createdAt, expiresAt)
+      .bind(token, dealFlowId, permission, createdBy, createdAt, expiresAt)
       .run();
 
     const row: ShareRow = {
       token,
-      map_id: mapId,
+      map_id: dealFlowId,
       permission,
       created_by_user_id: createdBy,
       created_at: createdAt,
@@ -163,7 +163,7 @@ export async function POST(request: Request, ctx: RouteContext) {
 }
 
 export async function DELETE(request: Request, ctx: RouteContext) {
-  const { id: mapId } = await ctx.params;
+  const { id: dealFlowId } = await ctx.params;
   const context = getRuntimeContext(request);
   const db = context.env.DB;
 
@@ -174,14 +174,14 @@ export async function DELETE(request: Request, ctx: RouteContext) {
     return errorJson("Authentication required.", 401);
   }
 
-  if (!(await ensureMapExists(db, mapId))) {
-    return errorJson("Map not found.", 404);
+  if (!(await ensureDealFlowExists(db, dealFlowId))) {
+    return errorJson("DealFlow not found.", 404);
   }
 
   try {
     // Hard delete every share for this map. Revocation already prevents access,
     // but DELETE is the explicit "wipe the share footprint" operation.
-    await db.prepare("DELETE FROM map_shares WHERE map_id = ?").bind(mapId).run();
+    await db.prepare("DELETE FROM map_shares WHERE map_id = ?").bind(dealFlowId).run();
     return json({ ok: true, share: null });
   } catch {
     return errorJson("Could not revoke share links.", 500);

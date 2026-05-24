@@ -52,14 +52,14 @@ export interface DealLostEvent extends BaseEvent {
   payload: { deal_id: string; reason: string };
 }
 
-// ─── Map / canvas ─────────────────────────────────────────────────────────────
-export interface MapNodeAddedEvent extends BaseEvent {
-  event_type: "map.node_added";
-  payload: { map_id: string; node_id: string; kind: string };
+// ─── DealFlow canvas ─────────────────────────────────────────────────────────
+export interface DealFlowNodeAddedEvent extends BaseEvent {
+  event_type: "dealflow.node_added";
+  payload: { dealflow_id: string; node_id: string; kind: string };
 }
-export interface MapNodeRemovedEvent extends BaseEvent {
-  event_type: "map.node_removed";
-  payload: { map_id: string; node_id: string };
+export interface DealFlowNodeRemovedEvent extends BaseEvent {
+  event_type: "dealflow.node_removed";
+  payload: { dealflow_id: string; node_id: string };
 }
 
 // ─── Approval queue ───────────────────────────────────────────────────────────
@@ -118,8 +118,8 @@ export type DomainEvent =
   | DealStageChangedEvent
   | DealWonEvent
   | DealLostEvent
-  | MapNodeAddedEvent
-  | MapNodeRemovedEvent
+  | DealFlowNodeAddedEvent
+  | DealFlowNodeRemovedEvent
   | ApprovalRequestedEvent
   | ApprovalApprovedEvent
   | ApprovalRejectedEvent

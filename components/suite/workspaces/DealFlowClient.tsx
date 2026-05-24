@@ -20,7 +20,7 @@ import Link from "next/link";
 export interface DealFlowClientProps {
   deal: DealFlowDeal;
   entities: DealFlowEntity[];
-  mapId?: string;
+  dealFlowId?: string;
   initialNodes?: DealFlowInitialNode[];
   initialEdges?: DealFlowInitialEdge[];
   persistApiBase?: string;
@@ -29,7 +29,7 @@ export interface DealFlowClientProps {
 export default function DealFlowClient({
   deal,
   entities,
-  mapId,
+  dealFlowId,
   initialNodes,
   initialEdges,
   persistApiBase,
@@ -43,7 +43,7 @@ export default function DealFlowClient({
       <DealFlow
         deal={deal}
         entities={entities || []}
-        mapId={mapId}
+        dealFlowId={dealFlowId}
         initialNodes={initialNodes}
         initialEdges={initialEdges}
         persistApiBase={persistApiBase}

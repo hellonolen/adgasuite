@@ -20,7 +20,8 @@ type CreateState =
   | { kind: "wiring-pending"; message: string }
   | { kind: "error"; message: string };
 
-interface CreatedMap {
+interface CreatedDealFlow {
+  dealFlow?: { id: string };
   map?: { id: string };
   id?: string;
 }
@@ -42,24 +43,24 @@ async function postJSON<T>(url: string, body: unknown): Promise<T> {
   return (await res.json()) as T;
 }
 
-async function createMapFromTemplate(template: DealTemplate, name: string): Promise<string> {
+async function createDealFlowFromTemplate(template: DealTemplate, name: string): Promise<string> {
   // 1. Create the canvas shell
-  const created = await postJSON<CreatedMap>("/api/maps", {
+  const created = await postJSON<CreatedDealFlow>("/api/dealflows", {
     name,
     template: template.id,
     deal_id: null,
   });
-  const mapId = created.map?.id || created.id;
-  if (!mapId) throw new Error("Deal was created but no dealflow id was returned.");
+  const dealFlowId = created.dealFlow?.id || created.map?.id || created.id;
+  if (!dealFlowId) throw new Error("Deal was created but no dealflow id was returned.");
   const nodeIdFor = (templateNodeId: string) =>
-    templateNodeId === "deal" ? mapId : `${mapId}_${templateNodeId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+    templateNodeId === "deal" ? dealFlowId : `${dealFlowId}_${templateNodeId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
 
   // 2. Materialize each template node
   const center = { x: 480, y: 320 };
   const radius = template.nodes.length > 8 ? 430 : 330;
   for (const [index, node] of template.nodes.entries()) {
     const angle = ((index / Math.max(template.nodes.length, 1)) * Math.PI * 2) - Math.PI / 2;
-    await postJSON(`/api/maps/${mapId}/nodes`, {
+    await postJSON(`/api/dealflows/${dealFlowId}/nodes`, {
       id: nodeIdFor(node.id),
       kind: node.kind,
       label: node.label,
@@ -72,24 +73,24 @@ async function createMapFromTemplate(template: DealTemplate, name: string): Prom
 
   // 3. Materialize each edge (default: deal -> every node)
   for (const edge of template.edges) {
-    await postJSON(`/api/maps/${mapId}/edges`, {
+    await postJSON(`/api/dealflows/${dealFlowId}/edges`, {
       source_node_id: nodeIdFor(edge.source),
       target_node_id: nodeIdFor(edge.target),
     });
   }
 
-  return mapId;
+  return dealFlowId;
 }
 
 export default function NewDealFlowPickerClient() {
   return (
     <Suspense fallback={<div style={{ minHeight: 400 }} />}>
-      <NewMapInner />
+      <NewDealFlowInner />
     </Suspense>
   );
 }
 
-function NewMapInner() {
+function NewDealFlowInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const prefilledTemplate = searchParams.get("template");
@@ -102,8 +103,8 @@ function NewMapInner() {
     setState({ kind: "creating", templateId: template.id });
     startTransition(async () => {
       try {
-        const mapId = await createMapFromTemplate(template, template.name);
-        router.push(`/suite/dealflow/${mapId}`);
+        const dealFlowId = await createDealFlowFromTemplate(template, template.name);
+        router.push(`/suite/dealflow/${dealFlowId}`);
       } catch (err) {
         if (err instanceof Error && err.name === "RoutesNotReady") {
           setState({

@@ -1024,10 +1024,28 @@ export async function listAgentJobs(db?: D1Database) {
 // DealFlow persistence. Database tables still use the legacy map_* names until a safe migration renames them.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type MapNodeKind = "deal" | "group" | "contact" | "company" | "document" | "task" | "call" | "meeting" | "action";
-export type MapNodeStatus = "neutral" | "active" | "warning" | "overdue" | "done";
+export type DealFlowNodeKind =
+  | "deal"
+  | "group"
+  | "contact"
+  | "company"
+  | "bank"
+  | "document"
+  | "email"
+  | "website"
+  | "audio"
+  | "video"
+  | "task"
+  | "call"
+  | "call_step"
+  | "meeting"
+  | "journey_step"
+  | "invoice"
+  | "financial"
+  | "action";
+export type DealFlowNodeStatus = "neutral" | "active" | "warning" | "overdue" | "done";
 
-export interface MapRecord {
+export interface DealFlowRecord {
   id: string;
   organization_id: string;
   name: string;
@@ -1040,13 +1058,13 @@ export interface MapRecord {
   updated_at: string;
 }
 
-export interface MapNodeRecord {
+export interface DealFlowNodeRecord {
   id: string;
   map_id: string;
-  kind: MapNodeKind;
+  kind: DealFlowNodeKind;
   label: string;
   sublabel: string | null;
-  status: MapNodeStatus | null;
+  status: DealFlowNodeStatus | null;
   position_x: number;
   position_y: number;
   data: Record<string, unknown>;
@@ -1056,7 +1074,7 @@ export interface MapNodeRecord {
   updated_at: string;
 }
 
-export interface MapEdgeRecord {
+export interface DealFlowEdgeRecord {
   id: string;
   map_id: string;
   source_node_id: string;
@@ -1070,17 +1088,17 @@ export interface MapEdgeRecord {
 
 // Use globalThis so the in-memory fallback survives Next.js dev HMR. In production
 // the D1 path is taken and this object is never touched.
-interface MapMemoryStore {
-  maps: MapRecord[];
-  nodes: MapNodeRecord[];
-  edges: MapEdgeRecord[];
+interface DealFlowMemoryStore {
+  maps: DealFlowRecord[];
+  nodes: DealFlowNodeRecord[];
+  edges: DealFlowEdgeRecord[];
 }
-const mapMemoryGlobal = globalThis as unknown as { __adgaMapMemory?: MapMemoryStore };
-const mapMemory: MapMemoryStore =
-  mapMemoryGlobal.__adgaMapMemory ||
-  (mapMemoryGlobal.__adgaMapMemory = { maps: [], nodes: [], edges: [] });
+const dealFlowMemoryGlobal = globalThis as unknown as { __adgaDealFlowMemory?: DealFlowMemoryStore };
+const dealFlowMemory: DealFlowMemoryStore =
+  dealFlowMemoryGlobal.__adgaDealFlowMemory ||
+  (dealFlowMemoryGlobal.__adgaDealFlowMemory = { maps: [], nodes: [], edges: [] });
 
-function mapMapRow(row: Record<string, unknown>): MapRecord {
+function mapDealFlowRow(row: Record<string, unknown>): DealFlowRecord {
   return {
     id: String(row.id),
     organization_id: String(row.organization_id),
@@ -1095,14 +1113,14 @@ function mapMapRow(row: Record<string, unknown>): MapRecord {
   };
 }
 
-function mapMapNodeRow(row: Record<string, unknown>): MapNodeRecord {
+function mapDealFlowNodeRow(row: Record<string, unknown>): DealFlowNodeRecord {
   return {
     id: String(row.id),
     map_id: String(row.map_id),
-    kind: String(row.kind) as MapNodeKind,
+    kind: String(row.kind) as DealFlowNodeKind,
     label: String(row.label),
     sublabel: row.sublabel ? String(row.sublabel) : null,
-    status: row.status ? (String(row.status) as MapNodeStatus) : null,
+    status: row.status ? (String(row.status) as DealFlowNodeStatus) : null,
     position_x: Number(row.position_x || 0),
     position_y: Number(row.position_y || 0),
     data: parseJson(String(row.data_json || "{}"), {} as Record<string, unknown>),
@@ -1113,7 +1131,7 @@ function mapMapNodeRow(row: Record<string, unknown>): MapNodeRecord {
   };
 }
 
-function mapMapEdgeRow(row: Record<string, unknown>): MapEdgeRecord {
+function mapDealFlowEdgeRow(row: Record<string, unknown>): DealFlowEdgeRecord {
   return {
     id: String(row.id),
     map_id: String(row.map_id),
@@ -1127,48 +1145,48 @@ function mapMapEdgeRow(row: Record<string, unknown>): MapEdgeRecord {
   };
 }
 
-export async function listMaps(db: D1Database | undefined, organizationId: string = DEFAULT_ORG_ID): Promise<MapRecord[]> {
-  if (!db) return mapMemory.maps.filter((m) => m.organization_id === organizationId).sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+export async function listDealFlows(db: D1Database | undefined, organizationId: string = DEFAULT_ORG_ID): Promise<DealFlowRecord[]> {
+  if (!db) return dealFlowMemory.maps.filter((m) => m.organization_id === organizationId).sort((a, b) => b.updated_at.localeCompare(a.updated_at));
   const result = await db
     .prepare("SELECT * FROM maps WHERE organization_id = ? ORDER BY updated_at DESC LIMIT 200")
     .bind(organizationId)
     .all<Record<string, unknown>>();
-  return (result.results || []).map(mapMapRow);
+  return (result.results || []).map(mapDealFlowRow);
 }
 
-export async function getMap(db: D1Database | undefined, id: string, organizationId: string = DEFAULT_ORG_ID): Promise<MapRecord | null> {
-  if (!db) return mapMemory.maps.find((m) => m.id === id && m.organization_id === organizationId) || null;
+export async function getDealFlow(db: D1Database | undefined, id: string, organizationId: string = DEFAULT_ORG_ID): Promise<DealFlowRecord | null> {
+  if (!db) return dealFlowMemory.maps.find((m) => m.id === id && m.organization_id === organizationId) || null;
   const row = await db
     .prepare("SELECT * FROM maps WHERE id = ? AND organization_id = ? LIMIT 1")
     .bind(id, organizationId)
     .first<Record<string, unknown>>();
-  return row ? mapMapRow(row) : null;
+  return row ? mapDealFlowRow(row) : null;
 }
 
-export async function getMapNodes(db: D1Database | undefined, mapId: string): Promise<MapNodeRecord[]> {
-  if (!db) return mapMemory.nodes.filter((n) => n.map_id === mapId);
+export async function getDealFlowNodes(db: D1Database | undefined, dealFlowId: string): Promise<DealFlowNodeRecord[]> {
+  if (!db) return dealFlowMemory.nodes.filter((n) => n.map_id === dealFlowId);
   const result = await db
     .prepare("SELECT * FROM map_nodes WHERE map_id = ? ORDER BY created_at ASC")
-    .bind(mapId)
+    .bind(dealFlowId)
     .all<Record<string, unknown>>();
-  return (result.results || []).map(mapMapNodeRow);
+  return (result.results || []).map(mapDealFlowNodeRow);
 }
 
-export async function getMapEdges(db: D1Database | undefined, mapId: string): Promise<MapEdgeRecord[]> {
-  if (!db) return mapMemory.edges.filter((e) => e.map_id === mapId);
+export async function getDealFlowEdges(db: D1Database | undefined, dealFlowId: string): Promise<DealFlowEdgeRecord[]> {
+  if (!db) return dealFlowMemory.edges.filter((e) => e.map_id === dealFlowId);
   const result = await db
     .prepare("SELECT * FROM map_edges WHERE map_id = ? ORDER BY created_at ASC")
-    .bind(mapId)
+    .bind(dealFlowId)
     .all<Record<string, unknown>>();
-  return (result.results || []).map(mapMapEdgeRow);
+  return (result.results || []).map(mapDealFlowEdgeRow);
 }
 
-export async function createMap(
+export async function createDealFlow(
   db: D1Database | undefined,
-  input: Pick<MapRecord, "name"> & Partial<Pick<MapRecord, "organization_id" | "deal_id" | "template" | "created_by_user_id">>,
-): Promise<MapRecord> {
+  input: Pick<DealFlowRecord, "name"> & Partial<Pick<DealFlowRecord, "organization_id" | "deal_id" | "template" | "created_by_user_id">>,
+): Promise<DealFlowRecord> {
   const timestamp = nowIso();
-  const record: MapRecord = {
+  const record: DealFlowRecord = {
     id: newId("map"),
     organization_id: input.organization_id || DEFAULT_ORG_ID,
     name: input.name,
@@ -1182,7 +1200,7 @@ export async function createMap(
   };
 
   if (!db) {
-    mapMemory.maps.push(record);
+    dealFlowMemory.maps.push(record);
     return record;
   }
 
@@ -1206,16 +1224,16 @@ export async function createMap(
   return record;
 }
 
-export async function updateMap(
+export async function updateDealFlow(
   db: D1Database | undefined,
   id: string,
   organizationId: string,
-  patch: Partial<Pick<MapRecord, "name" | "deal_id" | "template">>,
-): Promise<MapRecord | null> {
-  const existing = await getMap(db, id, organizationId);
+  patch: Partial<Pick<DealFlowRecord, "name" | "deal_id" | "template">>,
+): Promise<DealFlowRecord | null> {
+  const existing = await getDealFlow(db, id, organizationId);
   if (!existing) return null;
 
-  const next: MapRecord = {
+  const next: DealFlowRecord = {
     ...existing,
     name: patch.name ?? existing.name,
     deal_id: patch.deal_id === undefined ? existing.deal_id : patch.deal_id,
@@ -1224,8 +1242,8 @@ export async function updateMap(
   };
 
   if (!db) {
-    const index = mapMemory.maps.findIndex((m) => m.id === id);
-    if (index >= 0) mapMemory.maps[index] = next;
+    const index = dealFlowMemory.maps.findIndex((m) => m.id === id);
+    if (index >= 0) dealFlowMemory.maps[index] = next;
     return next;
   }
 
@@ -1240,18 +1258,18 @@ export async function updateMap(
   return next;
 }
 
-export async function deleteMap(
+export async function deleteDealFlow(
   db: D1Database | undefined,
   id: string,
   organizationId: string,
 ): Promise<boolean> {
-  const existing = await getMap(db, id, organizationId);
+  const existing = await getDealFlow(db, id, organizationId);
   if (!existing) return false;
 
   if (!db) {
-    mapMemory.maps = mapMemory.maps.filter((m) => m.id !== id);
-    mapMemory.nodes = mapMemory.nodes.filter((n) => n.map_id !== id);
-    mapMemory.edges = mapMemory.edges.filter((e) => e.map_id !== id);
+    dealFlowMemory.maps = dealFlowMemory.maps.filter((m) => m.id !== id);
+    dealFlowMemory.nodes = dealFlowMemory.nodes.filter((n) => n.map_id !== id);
+    dealFlowMemory.edges = dealFlowMemory.edges.filter((e) => e.map_id !== id);
     return true;
   }
 
@@ -1262,34 +1280,34 @@ export async function deleteMap(
   return true;
 }
 
-async function touchMap(db: D1Database | undefined, mapId: string) {
+async function touchDealFlow(db: D1Database | undefined, dealFlowId: string) {
   const timestamp = nowIso();
   if (!db) {
-    const index = mapMemory.maps.findIndex((m) => m.id === mapId);
-    if (index >= 0) mapMemory.maps[index] = { ...mapMemory.maps[index], updated_at: timestamp };
+    const index = dealFlowMemory.maps.findIndex((m) => m.id === dealFlowId);
+    if (index >= 0) dealFlowMemory.maps[index] = { ...dealFlowMemory.maps[index], updated_at: timestamp };
     return;
   }
-  await db.prepare("UPDATE maps SET updated_at = ? WHERE id = ?").bind(timestamp, mapId).run();
+  await db.prepare("UPDATE maps SET updated_at = ? WHERE id = ?").bind(timestamp, dealFlowId).run();
 }
 
-export async function createMapNode(
+export async function createDealFlowNode(
   db: D1Database | undefined,
-  mapId: string,
+  dealFlowId: string,
   input: {
-    kind: MapNodeKind;
+    kind: DealFlowNodeKind;
     label: string;
     sublabel?: string | null;
-    status?: MapNodeStatus | null;
+    status?: DealFlowNodeStatus | null;
     position_x: number;
     position_y: number;
     data?: Record<string, unknown>;
     id?: string;
   },
-): Promise<MapNodeRecord> {
+): Promise<DealFlowNodeRecord> {
   const timestamp = nowIso();
-  const record: MapNodeRecord = {
+  const record: DealFlowNodeRecord = {
     id: input.id || newId("mnode"),
-    map_id: mapId,
+    map_id: dealFlowId,
     kind: input.kind,
     label: input.label,
     sublabel: input.sublabel ?? null,
@@ -1304,8 +1322,8 @@ export async function createMapNode(
   };
 
   if (!db) {
-    mapMemory.nodes.push(record);
-    await touchMap(undefined, mapId);
+    dealFlowMemory.nodes.push(record);
+    await touchDealFlow(undefined, dealFlowId);
     return record;
   }
 
@@ -1329,23 +1347,23 @@ export async function createMapNode(
     )
     .run();
 
-  await touchMap(db, mapId);
+  await touchDealFlow(db, dealFlowId);
   return record;
 }
 
-export async function updateMapNode(
+export async function updateDealFlowNode(
   db: D1Database | undefined,
-  mapId: string,
+  dealFlowId: string,
   nodeId: string,
-  patch: Partial<Pick<MapNodeRecord, "label" | "sublabel" | "status" | "position_x" | "position_y" | "kind"> & { data: Record<string, unknown> }>,
-): Promise<MapNodeRecord | null> {
+  patch: Partial<Pick<DealFlowNodeRecord, "label" | "sublabel" | "status" | "position_x" | "position_y" | "kind"> & { data: Record<string, unknown> }>,
+): Promise<DealFlowNodeRecord | null> {
   const timestamp = nowIso();
 
   if (!db) {
-    const index = mapMemory.nodes.findIndex((n) => n.id === nodeId && n.map_id === mapId);
+    const index = dealFlowMemory.nodes.findIndex((n) => n.id === nodeId && n.map_id === dealFlowId);
     if (index < 0) return null;
-    const next: MapNodeRecord = {
-      ...mapMemory.nodes[index],
+    const next: DealFlowNodeRecord = {
+      ...dealFlowMemory.nodes[index],
       ...(patch.label !== undefined ? { label: patch.label } : {}),
       ...(patch.sublabel !== undefined ? { sublabel: patch.sublabel } : {}),
       ...(patch.status !== undefined ? { status: patch.status } : {}),
@@ -1355,19 +1373,19 @@ export async function updateMapNode(
       ...(patch.data !== undefined ? { data: patch.data } : {}),
       updated_at: timestamp,
     };
-    mapMemory.nodes[index] = next;
-    await touchMap(undefined, mapId);
+    dealFlowMemory.nodes[index] = next;
+    await touchDealFlow(undefined, dealFlowId);
     return next;
   }
 
   const existing = await db
     .prepare("SELECT * FROM map_nodes WHERE id = ? AND map_id = ? LIMIT 1")
-    .bind(nodeId, mapId)
+    .bind(nodeId, dealFlowId)
     .first<Record<string, unknown>>();
   if (!existing) return null;
-  const current = mapMapNodeRow(existing);
+  const current = mapDealFlowNodeRow(existing);
 
-  const next: MapNodeRecord = {
+  const next: DealFlowNodeRecord = {
     ...current,
     label: patch.label ?? current.label,
     sublabel: patch.sublabel === undefined ? current.sublabel : patch.sublabel,
@@ -1395,17 +1413,17 @@ export async function updateMapNode(
       JSON.stringify(next.data),
       next.updated_at,
       nodeId,
-      mapId,
+      dealFlowId,
     )
     .run();
 
-  await touchMap(db, mapId);
+  await touchDealFlow(db, dealFlowId);
   return next;
 }
 
-export async function bulkUpdateMapNodePositions(
+export async function bulkUpdateDealFlowNodePositions(
   db: D1Database | undefined,
-  mapId: string,
+  dealFlowId: string,
   positions: Array<{ id: string; position_x: number; position_y: number }>,
 ): Promise<number> {
   if (positions.length === 0) return 0;
@@ -1414,17 +1432,17 @@ export async function bulkUpdateMapNodePositions(
   if (!db) {
     let count = 0;
     for (const pos of positions) {
-      const index = mapMemory.nodes.findIndex((n) => n.id === pos.id && n.map_id === mapId);
+      const index = dealFlowMemory.nodes.findIndex((n) => n.id === pos.id && n.map_id === dealFlowId);
       if (index < 0) continue;
-      mapMemory.nodes[index] = {
-        ...mapMemory.nodes[index],
+      dealFlowMemory.nodes[index] = {
+        ...dealFlowMemory.nodes[index],
         position_x: pos.position_x,
         position_y: pos.position_y,
         updated_at: timestamp,
       };
       count++;
     }
-    await touchMap(undefined, mapId);
+    await touchDealFlow(undefined, dealFlowId);
     return count;
   }
 
@@ -1432,44 +1450,44 @@ export async function bulkUpdateMapNodePositions(
     "UPDATE map_nodes SET position_x = ?, position_y = ?, updated_at = ? WHERE id = ? AND map_id = ?",
   );
   for (const pos of positions) {
-    await stmt.bind(pos.position_x, pos.position_y, timestamp, pos.id, mapId).run();
+    await stmt.bind(pos.position_x, pos.position_y, timestamp, pos.id, dealFlowId).run();
   }
-  await touchMap(db, mapId);
+  await touchDealFlow(db, dealFlowId);
   return positions.length;
 }
 
-export async function deleteMapNode(
+export async function deleteDealFlowNode(
   db: D1Database | undefined,
-  mapId: string,
+  dealFlowId: string,
   nodeId: string,
 ): Promise<boolean> {
   if (!db) {
-    const before = mapMemory.nodes.length;
-    mapMemory.nodes = mapMemory.nodes.filter((n) => !(n.id === nodeId && n.map_id === mapId));
-    mapMemory.edges = mapMemory.edges.filter((e) => e.map_id !== mapId || (e.source_node_id !== nodeId && e.target_node_id !== nodeId));
-    if (mapMemory.nodes.length === before) return false;
-    await touchMap(undefined, mapId);
+    const before = dealFlowMemory.nodes.length;
+    dealFlowMemory.nodes = dealFlowMemory.nodes.filter((n) => !(n.id === nodeId && n.map_id === dealFlowId));
+    dealFlowMemory.edges = dealFlowMemory.edges.filter((e) => e.map_id !== dealFlowId || (e.source_node_id !== nodeId && e.target_node_id !== nodeId));
+    if (dealFlowMemory.nodes.length === before) return false;
+    await touchDealFlow(undefined, dealFlowId);
     return true;
   }
 
   const existing = await db
     .prepare("SELECT id FROM map_nodes WHERE id = ? AND map_id = ? LIMIT 1")
-    .bind(nodeId, mapId)
+    .bind(nodeId, dealFlowId)
     .first<{ id: string }>();
   if (!existing) return false;
 
   await db
     .prepare("DELETE FROM map_edges WHERE map_id = ? AND (source_node_id = ? OR target_node_id = ?)")
-    .bind(mapId, nodeId, nodeId)
+    .bind(dealFlowId, nodeId, nodeId)
     .run();
-  await db.prepare("DELETE FROM map_nodes WHERE id = ? AND map_id = ?").bind(nodeId, mapId).run();
-  await touchMap(db, mapId);
+  await db.prepare("DELETE FROM map_nodes WHERE id = ? AND map_id = ?").bind(nodeId, dealFlowId).run();
+  await touchDealFlow(db, dealFlowId);
   return true;
 }
 
-export async function createMapEdge(
+export async function createDealFlowEdge(
   db: D1Database | undefined,
-  mapId: string,
+  dealFlowId: string,
   input: {
     source_node_id: string;
     target_node_id: string;
@@ -1477,10 +1495,10 @@ export async function createMapEdge(
     style?: Record<string, unknown> | null;
     id?: string;
   },
-): Promise<MapEdgeRecord> {
-  const record: MapEdgeRecord = {
+): Promise<DealFlowEdgeRecord> {
+  const record: DealFlowEdgeRecord = {
     id: input.id || newId("medge"),
-    map_id: mapId,
+    map_id: dealFlowId,
     source_node_id: input.source_node_id,
     target_node_id: input.target_node_id,
     label: input.label ?? null,
@@ -1491,8 +1509,8 @@ export async function createMapEdge(
   };
 
   if (!db) {
-    mapMemory.edges.push(record);
-    await touchMap(undefined, mapId);
+    dealFlowMemory.edges.push(record);
+    await touchDealFlow(undefined, dealFlowId);
     return record;
   }
 
@@ -1512,30 +1530,30 @@ export async function createMapEdge(
     )
     .run();
 
-  await touchMap(db, mapId);
+  await touchDealFlow(db, dealFlowId);
   return record;
 }
 
-export async function deleteMapEdge(
+export async function deleteDealFlowEdge(
   db: D1Database | undefined,
-  mapId: string,
+  dealFlowId: string,
   edgeId: string,
 ): Promise<boolean> {
   if (!db) {
-    const before = mapMemory.edges.length;
-    mapMemory.edges = mapMemory.edges.filter((e) => !(e.id === edgeId && e.map_id === mapId));
-    if (mapMemory.edges.length === before) return false;
-    await touchMap(undefined, mapId);
+    const before = dealFlowMemory.edges.length;
+    dealFlowMemory.edges = dealFlowMemory.edges.filter((e) => !(e.id === edgeId && e.map_id === dealFlowId));
+    if (dealFlowMemory.edges.length === before) return false;
+    await touchDealFlow(undefined, dealFlowId);
     return true;
   }
 
   const existing = await db
     .prepare("SELECT id FROM map_edges WHERE id = ? AND map_id = ? LIMIT 1")
-    .bind(edgeId, mapId)
+    .bind(edgeId, dealFlowId)
     .first<{ id: string }>();
   if (!existing) return false;
 
-  await db.prepare("DELETE FROM map_edges WHERE id = ? AND map_id = ?").bind(edgeId, mapId).run();
-  await touchMap(db, mapId);
+  await db.prepare("DELETE FROM map_edges WHERE id = ? AND map_id = ?").bind(edgeId, dealFlowId).run();
+  await touchDealFlow(db, dealFlowId);
   return true;
 }

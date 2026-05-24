@@ -2,21 +2,21 @@ import { z } from "zod";
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
-import { deleteMapNode, getMap, updateMapNode } from "@/lib/server/repository";
+import { deleteDealFlowNode, getDealFlow, updateDealFlowNode } from "@/lib/server/repository";
 import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
 const DEFAULT_ORG_ID = "org_adga_primary";
 
-const NODE_KINDS = ["deal", "group", "contact", "company", "document", "task", "call", "meeting", "action"] as const;
+const NODE_KINDS = ["deal", "group", "contact", "company", "bank", "document", "email", "website", "audio", "video", "task", "call", "call_step", "meeting", "journey_step", "invoice", "financial", "action"] as const;
 const NODE_STATUSES = ["neutral", "active", "warning", "overdue", "done"] as const;
 
-async function requireSessionAndMap(request: Request, mapId: string) {
+async function requireSessionAndDealFlow(request: Request, dealFlowId: string) {
   const context = getRuntimeContext(request);
   const sessionUser = await validateSession(context.env.DB, readSessionCookie(request));
   if (!sessionUser && !context.user.isLocalAdminBypass) {
     return { unauthorized: true as const };
   }
-  const map = await getMap(context.env.DB, mapId, DEFAULT_ORG_ID);
+  const map = await getDealFlow(context.env.DB, dealFlowId, DEFAULT_ORG_ID);
   if (!map) return { notFound: true as const, context };
   return { context, sessionUser, map };
 }
@@ -36,9 +36,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; nodeId: string }> },
 ) {
   const { id, nodeId } = await params;
-  const auth = await requireSessionAndMap(request, id);
+  const auth = await requireSessionAndDealFlow(request, id);
   if ("unauthorized" in auth) return errorJson("Authentication required.", 401);
-  if ("notFound" in auth) return errorJson("Map not found.", 404);
+  if ("notFound" in auth) return errorJson("DealFlow not found.", 404);
 
   const body = await readJson(request);
   const parsed = patchSchema.safeParse(body);
@@ -56,15 +56,15 @@ export async function PATCH(
         env: auth.context.env,
         db: auth.context.env.DB,
         organization_id: DEFAULT_ORG_ID,
-        resource_type: "map_node",
+        resource_type: "dealflow_node",
         resource_id: nodeId,
         payload: nextPayload,
         created_by: auth.sessionUser?.email || auth.context.user.email || null,
       })
     : null;
-  const node = await updateMapNode(auth.context.env.DB, id, nodeId, {
+  const node = await updateDealFlowNode(auth.context.env.DB, id, nodeId, {
     ...parsed.data,
-    label: parsed.data.label ? "Node payload in R2" : undefined,
+    label: parsed.data.label ? "DealFlow node payload in R2" : undefined,
     sublabel: parsed.data.sublabel === undefined ? undefined : null,
     data: parsed.data.data ? {} : undefined,
   });
@@ -82,11 +82,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; nodeId: string }> },
 ) {
   const { id, nodeId } = await params;
-  const auth = await requireSessionAndMap(request, id);
+  const auth = await requireSessionAndDealFlow(request, id);
   if ("unauthorized" in auth) return errorJson("Authentication required.", 401);
-  if ("notFound" in auth) return errorJson("Map not found.", 404);
+  if ("notFound" in auth) return errorJson("DealFlow not found.", 404);
 
-  const removed = await deleteMapNode(auth.context.env.DB, id, nodeId);
+  const removed = await deleteDealFlowNode(auth.context.env.DB, id, nodeId);
   if (!removed) return errorJson("Node not found.", 404);
   return json({ ok: true });
 }

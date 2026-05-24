@@ -16,7 +16,7 @@ interface ShareRow {
   revoked_at: string | null;
 }
 
-interface MapRow {
+interface DealFlowRow {
   id: string;
   name?: string | null;
   title?: string | null;
@@ -24,7 +24,7 @@ interface MapRow {
   organization_id?: string | null;
 }
 
-interface MapNodeRow {
+interface DealFlowNodeRow {
   id: string;
   map_id: string;
   kind?: string | null;
@@ -35,7 +35,7 @@ interface MapNodeRow {
   data?: string | null;
 }
 
-interface MapEdgeRow {
+interface DealFlowEdgeRow {
   id: string;
   map_id: string;
   source_id?: string | null;
@@ -101,48 +101,48 @@ async function loadShare(db: D1Database, token: string): Promise<ShareRow | null
   }
 }
 
-async function loadMap(db: D1Database, mapId: string): Promise<MapRow | null> {
+async function loadDealFlow(db: D1Database, dealFlowId: string): Promise<DealFlowRow | null> {
   try {
-    return await db.prepare("SELECT * FROM maps WHERE id = ? LIMIT 1").bind(mapId).first<MapRow>();
+    return await db.prepare("SELECT * FROM maps WHERE id = ? LIMIT 1").bind(dealFlowId).first<DealFlowRow>();
   } catch {
     return null;
   }
 }
 
-async function loadNodes(db: D1Database, mapId: string): Promise<MapNodeRow[]> {
+async function loadNodes(db: D1Database, dealFlowId: string): Promise<DealFlowNodeRow[]> {
   try {
     const result = await db
       .prepare("SELECT * FROM map_nodes WHERE map_id = ? LIMIT 500")
-      .bind(mapId)
-      .all<MapNodeRow>();
+      .bind(dealFlowId)
+      .all<DealFlowNodeRow>();
     return result.results || [];
   } catch {
     return [];
   }
 }
 
-async function loadEdges(db: D1Database, mapId: string): Promise<MapEdgeRow[]> {
+async function loadEdges(db: D1Database, dealFlowId: string): Promise<DealFlowEdgeRow[]> {
   try {
     const result = await db
       .prepare("SELECT * FROM map_edges WHERE map_id = ? LIMIT 1000")
-      .bind(mapId)
-      .all<MapEdgeRow>();
+      .bind(dealFlowId)
+      .all<DealFlowEdgeRow>();
     return result.results || [];
   } catch {
     return [];
   }
 }
 
-function buildDeal(map: MapRow): DealFlowDeal {
+function buildDeal(dealFlow: DealFlowRow): DealFlowDeal {
   // SECURITY: do NOT leak owner/org/private fields. Only id + display name.
   return {
-    id: map.id,
-    name: map.title || map.name || "Shared dealflow",
+    id: dealFlow.id,
+    name: dealFlow.title || dealFlow.name || "Shared dealflow",
     stage: "Shared",
   };
 }
 
-function buildEntities(nodes: MapNodeRow[]): DealFlowEntity[] {
+function buildEntities(nodes: DealFlowNodeRow[]): DealFlowEntity[] {
   return nodes.map((node) => ({
     id: node.id,
     kind: normalizeKind(node.kind || node.type),
@@ -183,7 +183,7 @@ export default async function PublicSharedMapPage({ params }: PageProps) {
 
   // If a signed-in member of the org hits the public link, send them to the
   // authenticated view so they get full org context instead of read-only.
-  const map = await loadMap(db, share.map_id);
+  const map = await loadDealFlow(db, share.map_id);
   if (!map) notFound();
 
   const sessionCookie = requestHeaders.get("cookie");

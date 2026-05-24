@@ -8,7 +8,7 @@ import {
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { redirect } from "next/navigation";
-import { getMap, getMapEdges, getMapNodes } from "@/lib/server/repository";
+import { getDealFlow, getDealFlowEdges, getDealFlowNodes } from "@/lib/server/repository";
 import DealFlowClient from "@/components/suite/workspaces/DealFlowClient";
 import { readJsonPayload } from "@/lib/server/payload-storage";
 
@@ -145,12 +145,12 @@ export default async function DealDetailPage({ params }: PageProps) {
   }
 
   // 1. Try the persisted canvas path first. Storage IDs may still use the legacy `map_*` prefix.
-  const mapRecord = await getMap(db, id);
+  const mapRecord = await getDealFlow(db, id);
   if (mapRecord) {
     const [mapPayload, nodeRows, edgeRows] = await Promise.all([
       readJsonPayload<Record<string, unknown>>(context.env, mapRecord.payload_r2_key),
-      getMapNodes(db, mapRecord.id),
-      getMapEdges(db, mapRecord.id),
+      getDealFlowNodes(db, mapRecord.id),
+      getDealFlowEdges(db, mapRecord.id),
     ]);
 
     const [hydratedNodes, hydratedEdges] = await Promise.all([
@@ -307,16 +307,16 @@ function renderMap(
   deal: DealFlowDeal,
   initialNodes: DealFlowInitialNode[],
   initialEdges: DealFlowInitialEdge[],
-  mapId: string,
+  dealFlowId: string,
 ) {
   return (
     <DealFlowClient
       deal={deal}
       entities={[]}
-      mapId={mapId}
+      dealFlowId={dealFlowId}
       initialNodes={initialNodes}
       initialEdges={initialEdges}
-      persistApiBase={`/api/maps/${encodeURIComponent(mapId)}`}
+      persistApiBase={`/api/dealflows/${encodeURIComponent(dealFlowId)}`}
     />
   );
 }

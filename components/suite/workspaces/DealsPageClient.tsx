@@ -132,7 +132,7 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
 
     startTransition(async () => {
       try {
-        const endpoint = item.source === "canvas" ? `/api/maps/${encodeURIComponent(item.id)}` : `/api/deals/${encodeURIComponent(item.id)}`;
+        const endpoint = item.source === "canvas" ? `/api/dealflows/${encodeURIComponent(item.id)}` : `/api/deals/${encodeURIComponent(item.id)}`;
         await requestJson(endpoint, {
           method: "PATCH",
           body: JSON.stringify({ name }),
@@ -150,11 +150,11 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
     setError(null);
     startTransition(async () => {
       try {
-        const created = await requestJson<{ map?: { id: string }; id?: string }>("/api/maps", {
+        const created = await requestJson<{ dealFlow?: { id: string }; map?: { id: string }; id?: string }>("/api/dealflows", {
           method: "POST",
           body: JSON.stringify({ name, template: "blank-deal", deal_id: null }),
         });
-        const id = created.map?.id || created.id;
+        const id = created.dealFlow?.id || created.map?.id || created.id;
         if (!id) throw new Error("Deal was created without an ID.");
         router.push(`/suite/dealflow/${encodeURIComponent(id)}`);
       } catch (err) {
