@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 
 // Shell skeleton rendered ONCE on the first /suite/* visit while the suite bundle loads.
 // After hydration, the shell is persistent across child route changes, so subsequent
@@ -97,5 +98,68 @@ interface SuiteClientProps {
 }
 
 export default function SuiteClient({ children, bootstrap = null }: SuiteClientProps) {
+  const pathname = usePathname();
+  const billing = bootstrap?.billing;
+  const recoveryRoute = pathname === "/suite/settings/billing" || pathname === "/suite/billing" || pathname === "/suite/onboarding";
+
+  if (billing && !billing.accessAllowed && !recoveryRoute) {
+    return <BillingRecovery billing={billing} />;
+  }
+
   return <AdgaSuite bootstrap={bootstrap}>{children}</AdgaSuite>;
+}
+
+function BillingRecovery({ billing }: { billing: any }) {
+  return (
+    <div className="min-h-screen bg-background px-5 py-8 text-foreground">
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl items-center">
+        <section className="w-full rounded-2xl border border-border bg-card p-6 shadow-sm md:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Billing action required</p>
+          <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">Restore workspace access</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                This workspace is in {billing.status.replace(/_/g, " ")} state. Update the payment method or resolve the invoice in Stripe to reopen the suite.
+              </p>
+            </div>
+            <span className="inline-flex w-fit rounded-full border border-destructive/20 bg-destructive/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-destructive">
+              {billing.status}
+            </span>
+          </div>
+          <div className="mt-6 grid gap-3 md:grid-cols-3">
+            <Metric label="Plan" value={title(billing.plan)} />
+            <Metric label="Payment profile" value={billing.hasStripeCustomer ? "Connected" : "Not connected"} />
+            <Metric label="Renewal" value={billing.currentPeriodEnd ? new Date(billing.currentPeriodEnd).toLocaleDateString() : "Pending"} />
+          </div>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <a
+              href="/suite/settings/billing"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm"
+            >
+              Open billing settings
+            </a>
+            <a
+              href="/pricing"
+              className="inline-flex h-11 items-center justify-center rounded-full border border-border bg-background px-5 text-sm font-semibold hover:bg-secondary"
+            >
+              Review plans
+            </a>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-background p-4">
+      <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
+      <div className="mt-2 text-lg font-semibold">{value}</div>
+    </div>
+  );
+}
+
+function title(value: string) {
+  return value.replace(/[-_]+/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

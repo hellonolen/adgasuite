@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
-import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
+import { readStoredJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { DEFAULT_ORG_ID } from "@/lib/server/tenant";
 
@@ -41,7 +41,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     .first<DealRow>();
   if (!existing) return errorJson("Deal not found.", 404);
 
-  const existingPayload = await readJsonPayload<Record<string, unknown>>(context.env, existing.payload_r2_key);
+  const existingPayload = await readStoredJsonPayload<Record<string, unknown>>(
+    context.env,
+    context.env.DB,
+    existing.payload_r2_key,
+    existing.storage_object_id,
+  );
   const timestamp = new Date().toISOString();
   const nextPayload = {
     ...(existingPayload || {}),

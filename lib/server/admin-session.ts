@@ -18,8 +18,12 @@ async function buildRequest(): Promise<Request> {
   const headerList = await headers();
   const requestHeaders = new Headers();
   const bypassEmail = headerList.get("x-adga-admin-email");
+  const cookieHeader = headerList.get("cookie");
+  const host = headerList.get("x-forwarded-host") || headerList.get("host") || "internal.local";
+  const proto = headerList.get("x-forwarded-proto") || "https";
   if (bypassEmail) requestHeaders.set("x-adga-admin-email", bypassEmail);
-  return new Request("http://localhost/", { headers: requestHeaders });
+  if (cookieHeader) requestHeaders.set("cookie", cookieHeader);
+  return new Request(`${proto}://${host}/`, { headers: requestHeaders });
 }
 
 export async function getAdminRuntime(): Promise<{

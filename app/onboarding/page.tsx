@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 const schema = z.object({
@@ -10,6 +10,8 @@ const schema = z.object({
 
 type Status =
   | { kind: "idle" }
+  | { kind: "checking_checkout" }
+  | { kind: "checkout_verified"; email: string }
   | { kind: "sending" }
   | { kind: "sent"; email: string; previewUrl?: string }
   | { kind: "error"; message: string };
@@ -26,11 +28,49 @@ function OnboardingInner() {
   const [plan, setPlan] = useState("team");
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
+  const [lockedEmail, setLockedEmail] = useState(false);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const checkoutCompleted = useRef(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setPlan(params.get("plan") || "team");
+
+    const sessionId = params.get("session_id");
+    if (!sessionId || checkoutCompleted.current) return;
+    checkoutCompleted.current = true;
+    setStatus({ kind: "checking_checkout" });
+
+    fetch("/api/billing/stripe/checkout/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId }),
+    })
+      .then(async (response) => {
+        const data = (await response.json().catch(() => ({}))) as {
+          error?: string;
+          email?: string;
+          plan?: string;
+          redirect?: string;
+        };
+        if (!response.ok) throw new Error(data.error || "Could not verify checkout.");
+        if (data.email) {
+          setEmail(data.email);
+          setLockedEmail(true);
+          setStatus({ kind: "checkout_verified", email: data.email });
+        }
+        if (data.plan) setPlan(data.plan);
+        window.setTimeout(() => {
+          window.location.href = data.redirect || "/suite/onboarding";
+        }, 900);
+      })
+      .catch((error) => {
+        setLockedEmail(false);
+        setStatus({
+          kind: "error",
+          message: error instanceof Error ? error.message : "Could not verify checkout. Use your billing email to continue.",
+        });
+      });
   }, []);
 
   async function submit(event: React.FormEvent) {
@@ -116,6 +156,30 @@ function OnboardingInner() {
                   </a>
                 )}
               </>
+            ) : status.kind === "checking_checkout" || status.kind === "checkout_verified" ? (
+              <>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">
+                  {status.kind === "checking_checkout" ? "Verifying checkout" : "Checkout verified"}
+                </div>
+                <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+                  {status.kind === "checking_checkout" ? "Confirming your payment." : "Opening onboarding."}
+                </h2>
+                <p className="mt-3 text-[15px] leading-7 text-[#6b6760]">
+                  {status.kind === "checking_checkout"
+                    ? "We are checking the Stripe session before creating your workspace session."
+                    : (
+                      <>
+                        Verified for <b className="text-[#11100e]">{status.email}</b>. Taking you to workspace onboarding.
+                      </>
+                    )}
+                </p>
+                {email && (
+                  <div className="mt-6 grid gap-2">
+                    <label htmlFor="onboarding-email-locked" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6b6760]">Billing email</label>
+                    <input id="onboarding-email-locked" type="email" value={email} readOnly className="h-12 rounded-xl border border-[#ded9d1] bg-[#f1eee8] px-4 text-[#5f5a52] outline-none" />
+                  </div>
+                )}
+              </>
             ) : (
               <>
                 <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5d2cd6]">Account owner</div>
@@ -130,7 +194,7 @@ function OnboardingInner() {
                   </div>
                   <div className="grid gap-2">
                     <label htmlFor="onboarding-email" className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6b6760]">Work email</label>
-                    <input id="onboarding-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="h-12 rounded-xl border border-[#ded9d1] bg-[#fbfaf8] px-4 outline-none focus:border-[#5d2cd6] focus:bg-white focus:ring-4 focus:ring-[#5d2cd6]/10" placeholder="you@company.com" />
+                    <input id="onboarding-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} readOnly={lockedEmail} className="h-12 rounded-xl border border-[#ded9d1] bg-[#fbfaf8] px-4 outline-none focus:border-[#5d2cd6] focus:bg-white focus:ring-4 focus:ring-[#5d2cd6]/10 read-only:bg-[#f1eee8] read-only:text-[#5f5a52]" placeholder="you@company.com" />
                   </div>
                   <button className="onboarding-submit h-12 rounded-full px-5 text-[15px] font-semibold shadow-[0_18px_34px_-18px_rgba(93,44,214,0.78)] transition" disabled={status.kind === "sending"}>
                     {status.kind === "sending" ? "Sending activation link..." : "Send activation link"}

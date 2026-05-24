@@ -3,6 +3,7 @@ import { sendPostmarkEmail } from "@/lib/integrations/postmark";
 import { createEvent, createStorageObject } from "@/lib/server/repository";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
+import { getLikelyTestAdpLeadReason, resolveAdpReferralRecipient } from "@/lib/server/email-safety";
 
 type AdpLeadBody = {
   full_name?: string;
@@ -320,9 +321,17 @@ export async function POST(request: Request) {
     );
   }
   if (!body.consent_to_contact) return errorJson("consent_to_contact is required before routing to ADP.", 400);
+  const likelyTestReason = getLikelyTestAdpLeadReason({ ...body, needs });
+  if (likelyTestReason) {
+    return errorJson("ADP routing requires a real lead. Test, dummy, sample, or incomplete lead data will not be emailed.", 400, {
+      reason: likelyTestReason,
+    });
+  }
   if (!context.env.DB) return errorJson("Lead database is not configured. ADP routing was not attempted.", 503);
   const leadBucket = context.env.UPLOADS_BUCKET || context.env.DOCUMENTS_BUCKET;
   if (!leadBucket) return errorJson("Lead payload storage is not configured. ADP routing was not attempted.", 503);
+  const adpRecipient = resolveAdpReferralRecipient(context.env);
+  if (!adpRecipient.ok) return errorJson(adpRecipient.error, 503);
 
   const timestamp = nowIso();
   const leadId = newId("adp");
@@ -333,10 +342,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return errorJson("Lead reference could not be allocated. ADP routing was not attempted.", 502, { error: String(error) });
   }
-  const toEmail =
-    context.env.ADP_REFERRAL_TO_EMAIL ||
-    context.env.ADGA_ADMIN_EMAIL ||
-    "matt.ganton@adp.com";
+  const toEmail = adpRecipient.toEmail;
 
   const lead: StoredAdpLead = {
     id: leadId,

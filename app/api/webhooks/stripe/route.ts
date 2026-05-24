@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     normalizedString(object.metadata?.organization_id) ||
     (await findOrganizationIdForStripeObject(context.env.DB, object)) ||
     (email ? orgIdForEmail(email) : DEFAULT_ORG_ID);
-  const plan = String(object.metadata?.plan || "team");
+  const plan = String(object.metadata?.plan || (await findPlanForStripeObject(context.env.DB, object)) || "team");
   const status = subscriptionStatus(payload.type, object);
   const now = nowIso();
 
@@ -45,13 +45,15 @@ export async function POST(request: Request) {
       )
       .run();
 
-    if (payload.type.startsWith("checkout.session.") || payload.type.startsWith("customer.subscription.")) {
+    if (shouldReconcileSubscription(payload.type)) {
       await context.env.DB
         .prepare(
           `INSERT INTO subscriptions
             (id, organization_id, provider, provider_customer_id, provider_subscription_id, status, plan, current_period_end, created_at, updated_at)
            VALUES (?, ?, 'stripe', ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET
+             provider_customer_id = COALESCE(excluded.provider_customer_id, provider_customer_id),
+             provider_subscription_id = COALESCE(excluded.provider_subscription_id, provider_subscription_id),
              status = excluded.status,
              plan = excluded.plan,
              current_period_end = excluded.current_period_end,
@@ -60,8 +62,8 @@ export async function POST(request: Request) {
         .bind(
           subscriptionRowId(object),
           organizationId,
-          stringValue(object.customer),
-          stringValue(object.subscription || object.id),
+          stripeCustomerId(object),
+          stripeSubscriptionId(object),
           status,
           plan,
           periodEnd(object),
@@ -102,15 +104,32 @@ interface StripeObject {
   customer_email?: string;
   customer_details?: { email?: string };
   subscription?: unknown;
+  parent?: {
+    subscription_details?: {
+      subscription?: unknown;
+      metadata?: Record<string, string | undefined>;
+    };
+  };
   status?: string;
+  payment_status?: string;
   current_period_end?: number;
+  lines?: {
+    data?: Array<{
+      period?: { end?: number };
+      parent?: {
+        subscription_item_details?: {
+          subscription?: unknown;
+        };
+      };
+    }>;
+  };
   metadata?: Record<string, string | undefined>;
 }
 
 async function findOrganizationIdForStripeObject(db: D1Database | undefined, object: StripeObject) {
   if (!db) return null;
-  const customerId = stringValue(object.customer);
-  const subscriptionId = stringValue(object.subscription || object.id);
+  const customerId = stripeCustomerId(object);
+  const subscriptionId = stripeSubscriptionId(object);
   if (!customerId && !subscriptionId) return null;
 
   const row = await db
@@ -131,17 +150,50 @@ async function findOrganizationIdForStripeObject(db: D1Database | undefined, obj
   return row?.organization_id || null;
 }
 
+async function findPlanForStripeObject(db: D1Database | undefined, object: StripeObject) {
+  if (!db) return null;
+  const customerId = stripeCustomerId(object);
+  const subscriptionId = stripeSubscriptionId(object);
+  if (!customerId && !subscriptionId) return null;
+
+  const row = await db
+    .prepare(
+      `SELECT plan
+       FROM subscriptions
+       WHERE provider = 'stripe'
+         AND (
+           (? IS NOT NULL AND provider_subscription_id = ?)
+           OR (? IS NOT NULL AND provider_customer_id = ?)
+         )
+       ORDER BY updated_at DESC
+       LIMIT 1`,
+    )
+    .bind(subscriptionId, subscriptionId, customerId, customerId)
+    .first<{ plan: string | null }>()
+    .catch(() => null);
+  return row?.plan || null;
+}
+
 function extractEmail(object: StripeObject) {
   return (
     object.customer_email ||
     object.customer_details?.email ||
     object.metadata?.email ||
+    object.parent?.subscription_details?.metadata?.email ||
     ""
   ).toLowerCase();
 }
 
 function subscriptionStatus(type: string, object: StripeObject) {
-  const raw = String(object.status || type).toLowerCase();
+  const raw = String(object.status || object.payment_status || type).toLowerCase();
+  if (type === "invoice.payment_failed") return "past_due";
+  if (type === "invoice.marked_uncollectible") return "unpaid";
+  if (type === "invoice.payment_succeeded" || type === "invoice.paid") return "active";
+  if (type === "customer.subscription.paused") return "paused";
+  if (type === "customer.subscription.deleted") return "canceled";
+  if (raw.includes("incomplete_expired")) return "incomplete_expired";
+  if (raw.includes("incomplete")) return "incomplete";
+  if (raw.includes("unpaid")) return "unpaid";
   if (raw.includes("cancel")) return "canceled";
   if (raw.includes("past_due") || raw.includes("failed")) return "past_due";
   if (raw.includes("trial")) return "trialing";
@@ -150,20 +202,44 @@ function subscriptionStatus(type: string, object: StripeObject) {
 }
 
 function subscriptionRowId(object: StripeObject) {
-  const id = stringValue(object.subscription || object.id);
+  const id = stripeSubscriptionId(object) || stripeCustomerId(object);
   return id ? `stripe_${id}` : newId("sub");
 }
 
 function periodEnd(object: StripeObject) {
-  return object.current_period_end
-    ? new Date(object.current_period_end * 1000).toISOString()
-    : null;
+  const linePeriodEnd = object.lines?.data?.find((line) => line.period?.end)?.period?.end;
+  const timestamp = object.current_period_end || linePeriodEnd;
+  return timestamp ? new Date(timestamp * 1000).toISOString() : null;
 }
 
 function stringValue(value: unknown) {
   if (typeof value === "string" && value.trim()) return value.trim();
   if (typeof value === "number") return String(value);
   return null;
+}
+
+function stripeCustomerId(object: StripeObject) {
+  return stringValue(object.customer);
+}
+
+function stripeSubscriptionId(object: StripeObject) {
+  return (
+    stringValue(object.subscription) ||
+    stringValue(object.parent?.subscription_details?.subscription) ||
+    stringValue(object.lines?.data?.find((line) => line.parent?.subscription_item_details?.subscription)?.parent?.subscription_item_details?.subscription) ||
+    (String(object.id || "").startsWith("sub_") ? stringValue(object.id) : null)
+  );
+}
+
+function shouldReconcileSubscription(type: string) {
+  return (
+    type.startsWith("checkout.session.") ||
+    type.startsWith("customer.subscription.") ||
+    type === "invoice.payment_failed" ||
+    type === "invoice.payment_succeeded" ||
+    type === "invoice.paid" ||
+    type === "invoice.marked_uncollectible"
+  );
 }
 
 function normalizedString(value: unknown) {

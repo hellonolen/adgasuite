@@ -179,9 +179,11 @@ export async function DELETE(request: Request, ctx: RouteContext) {
   }
 
   try {
-    // Hard delete every share for this map. Revocation already prevents access,
-    // but DELETE is the explicit "wipe the share footprint" operation.
-    await db.prepare("DELETE FROM map_shares WHERE map_id = ?").bind(dealFlowId).run();
+    const timestamp = new Date().toISOString();
+    await db.prepare("UPDATE map_shares SET revoked_at = COALESCE(revoked_at, ?), archived_at = ? WHERE map_id = ?")
+      .bind(timestamp, timestamp, dealFlowId)
+      .run()
+      .catch(() => db.prepare("UPDATE map_shares SET revoked_at = COALESCE(revoked_at, ?) WHERE map_id = ?").bind(timestamp, dealFlowId).run());
     return json({ ok: true, share: null });
   } catch {
     return errorJson("Could not revoke share links.", 500);

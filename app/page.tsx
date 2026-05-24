@@ -58,7 +58,7 @@ const SUITE_FEATURES = [
     label: "Execution",
     head: "Move the deal to close.",
     body: "Track client, internal team, decisions, documents, approvals, invoices, and payment connectors in one record — without leaving the deal.",
-    bullets: ["Secure deal files in R2 storage", "Due-diligence checklists", "Invoicing with payment payouts", "Watermark + scoped redaction"],
+    bullets: ["Secure deal files", "Due-diligence checklists", "Invoicing with payment payouts", "Watermark + scoped redaction"],
   },
 ];
 
@@ -108,7 +108,7 @@ const VALUE_STACK = [
 
 const GUIDE_PROOF = [
   "Built around real deal records, not generic tasks",
-  "Cloudflare D1 for workspace data and R2 for files, notes, and generated documents",
+  "Encrypted workspace records, files, notes, and generated documents",
   "Checkout, payment events, and invoicing paths wired into the close flow",
   "Voice notes, transcripts, DealFlows, contacts, calendars, and pipeline activity in one suite",
 ];
@@ -149,7 +149,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Where does my data live?",
-    a: "Cloudflare D1 for deal records and metadata. Cloudflare R2 for documents, voice notes, and generated files. Encrypted in transit and at rest. Your workspace is yours — no shared tenants in your data.",
+    a: "Deal records, documents, voice notes, and generated files are encrypted in transit and at rest. Your workspace is yours, with no shared customer data.",
   },
   {
     q: "Does the workspace act on its own?",

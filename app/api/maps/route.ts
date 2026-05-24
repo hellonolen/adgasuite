@@ -3,9 +3,8 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { createDealFlow, listDealFlows } from "@/lib/server/repository";
-import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
-
-const DEFAULT_ORG_ID = "org_adga_primary";
+import { readStoredJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
+import { organizationIdForSession } from "@/lib/server/tenant";
 
 async function requireSession(request: Request) {
   const context = getRuntimeContext(request);
@@ -20,9 +19,15 @@ export async function GET(request: Request) {
   const auth = await requireSession(request);
   if (auth.unauthorized) return errorJson("Authentication required.", 401);
 
-  const rows = await listDealFlows(auth.context.env.DB, DEFAULT_ORG_ID);
+  const organizationId = organizationIdForSession(auth.sessionUser);
+  const rows = await listDealFlows(auth.context.env.DB, organizationId);
   const dealFlows = await Promise.all(rows.map(async (row) => {
-    const payload = await readJsonPayload<Record<string, unknown>>(auth.context.env, row.payload_r2_key);
+    const payload = await readStoredJsonPayload<Record<string, unknown>>(
+      auth.context.env,
+      auth.context.env.DB,
+      row.payload_r2_key,
+      row.storage_object_id,
+    );
     return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
   }));
   return json({ ok: true, dealFlows, maps: dealFlows });
@@ -37,6 +42,7 @@ const createSchema = z.object({
 export async function POST(request: Request) {
   const auth = await requireSession(request);
   if (auth.unauthorized) return errorJson("Authentication required.", 401);
+  const organizationId = organizationIdForSession(auth.sessionUser);
 
   const body = await readJson(request);
   const parsed = createSchema.safeParse(body);
@@ -45,7 +51,7 @@ export async function POST(request: Request) {
   }
 
   const record = await createDealFlow(auth.context.env.DB, {
-    organization_id: DEFAULT_ORG_ID,
+    organization_id: organizationId,
     name: "DealFlow payload in R2",
     deal_id: parsed.data.deal_id ?? null,
     template: parsed.data.template ?? null,
@@ -56,7 +62,7 @@ export async function POST(request: Request) {
     ? await storeJsonPayload({
         env: auth.context.env,
         db: auth.context.env.DB,
-        organization_id: DEFAULT_ORG_ID,
+        organization_id: organizationId,
         resource_type: "dealflow",
         resource_id: record.id,
         payload,

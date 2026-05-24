@@ -86,6 +86,8 @@ export interface VoiceCall {
   summary: string | null;
   related_records: Record<string, unknown>;
   agentic_outputs: Record<string, unknown>;
+  payload_r2_key: string | null;
+  storage_object_id: string | null;
   provider: string | null;
   provider_call_id: string | null;
   created_by: string | null;
@@ -156,6 +158,7 @@ export interface DealRecord {
   expected_close_at: string | null;
   payload_r2_key: string | null;
   storage_object_id: string | null;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -299,6 +302,8 @@ function mapVoiceCall(row: Record<string, unknown>): VoiceCall {
     summary: row.summary ? String(row.summary) : null,
     related_records: parseJson(String(row.related_records_json || "{}"), {}),
     agentic_outputs: parseJson(String(row.agentic_outputs_json || "{}"), {}),
+    payload_r2_key: row.payload_r2_key ? String(row.payload_r2_key) : null,
+    storage_object_id: row.storage_object_id ? String(row.storage_object_id) : null,
     provider: row.provider ? String(row.provider) : null,
     provider_call_id: row.provider_call_id ? String(row.provider_call_id) : null,
     created_by: row.created_by ? String(row.created_by) : null,
@@ -406,6 +411,7 @@ function mapDealRecord(row: Record<string, unknown>): DealRecord {
     expected_close_at: row.expected_close_at ? String(row.expected_close_at) : null,
     payload_r2_key: row.payload_r2_key ? String(row.payload_r2_key) : null,
     storage_object_id: row.storage_object_id ? String(row.storage_object_id) : null,
+    archived_at: row.archived_at ? String(row.archived_at) : null,
     created_at: String(row.created_at || nowIso()),
     updated_at: String(row.updated_at || nowIso()),
   };
@@ -574,6 +580,7 @@ export async function createDeal(
     expected_close_at: input.expected_close_at || null,
     payload_r2_key: null,
     storage_object_id: null,
+    archived_at: null,
     created_at: timestamp,
     updated_at: timestamp,
   };
@@ -1130,14 +1137,21 @@ export async function updateCalendarEvent(
 }
 
 export async function deleteCalendarEvent(db: D1Database | undefined, id: string, organizationId = DEFAULT_ORG_ID) {
+  return archiveCalendarEvent(db, id, organizationId);
+}
+
+export async function archiveCalendarEvent(db: D1Database | undefined, id: string, organizationId = DEFAULT_ORG_ID) {
   const existing = await getCalendarEvent(db, id, organizationId);
   if (!existing) return null;
+  const timestamp = nowIso();
+  const archived = { ...existing, status: "canceled" as const, updated_at: timestamp };
   if (!db) {
-    memory.calendarEvents = memory.calendarEvents.filter((event) => event.id !== id || event.organization_id !== organizationId);
-    return existing;
+    const index = memory.calendarEvents.findIndex((event) => event.id === id && event.organization_id === organizationId);
+    if (index >= 0) memory.calendarEvents[index] = archived;
+    return archived;
   }
-  await db.prepare("DELETE FROM calendar_events WHERE id = ? AND organization_id = ?").bind(id, organizationId).run();
-  return existing;
+  await db.prepare("UPDATE calendar_events SET status = ?, updated_at = ? WHERE id = ? AND organization_id = ?").bind("canceled", timestamp, id, organizationId).run();
+  return archived;
 }
 
 export async function listCalendarAvailability(
@@ -1230,6 +1244,8 @@ export async function createVoiceCall(
     summary: input.summary || null,
     related_records: input.related_records || {},
     agentic_outputs: input.agentic_outputs || {},
+    payload_r2_key: null,
+    storage_object_id: null,
     provider: input.provider || null,
     provider_call_id: input.provider_call_id || null,
     created_by: input.created_by || null,
@@ -1246,8 +1262,8 @@ export async function createVoiceCall(
     `INSERT INTO voice_calls
       (id, organization_id, direction, status, started_at, ended_at, duration_seconds, participants_json, consent_json,
        recording_json, transcript_json, transcript_text, summary, related_records_json, agentic_outputs_json,
-       provider, provider_call_id, created_by, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       payload_r2_key, storage_object_id, provider, provider_call_id, created_by, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
       call.id,
@@ -1265,6 +1281,8 @@ export async function createVoiceCall(
       call.summary,
       JSON.stringify(call.related_records),
       JSON.stringify(call.agentic_outputs),
+      call.payload_r2_key,
+      call.storage_object_id,
       call.provider,
       call.provider_call_id,
       call.created_by,
@@ -1296,7 +1314,8 @@ export async function updateVoiceCall(
     `UPDATE voice_calls
      SET direction = ?, status = ?, started_at = ?, ended_at = ?, duration_seconds = ?, participants_json = ?,
          consent_json = ?, recording_json = ?, transcript_json = ?, transcript_text = ?, summary = ?,
-         related_records_json = ?, agentic_outputs_json = ?, provider = ?, provider_call_id = ?, created_by = ?, updated_at = ?
+         related_records_json = ?, agentic_outputs_json = ?, payload_r2_key = ?, storage_object_id = ?,
+         provider = ?, provider_call_id = ?, created_by = ?, updated_at = ?
      WHERE id = ? AND organization_id = ?`,
   )
     .bind(
@@ -1313,6 +1332,8 @@ export async function updateVoiceCall(
       updated.summary,
       JSON.stringify(updated.related_records),
       JSON.stringify(updated.agentic_outputs),
+      updated.payload_r2_key,
+      updated.storage_object_id,
       updated.provider,
       updated.provider_call_id,
       updated.created_by,
@@ -1613,6 +1634,7 @@ export interface DealFlowRecord {
   payload_r2_key: string | null;
   storage_object_id: string | null;
   created_by_user_id: string | null;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -1629,6 +1651,7 @@ export interface DealFlowNodeRecord {
   data: Record<string, unknown>;
   payload_r2_key: string | null;
   storage_object_id: string | null;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -1642,6 +1665,7 @@ export interface DealFlowEdgeRecord {
   style: Record<string, unknown> | null;
   payload_r2_key: string | null;
   storage_object_id: string | null;
+  archived_at: string | null;
   created_at: string;
 }
 
@@ -1667,6 +1691,7 @@ function mapDealFlowRow(row: Record<string, unknown>): DealFlowRecord {
     payload_r2_key: row.payload_r2_key ? String(row.payload_r2_key) : null,
     storage_object_id: row.storage_object_id ? String(row.storage_object_id) : null,
     created_by_user_id: row.created_by_user_id ? String(row.created_by_user_id) : null,
+    archived_at: row.archived_at ? String(row.archived_at) : null,
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
   };
@@ -1685,6 +1710,7 @@ function mapDealFlowNodeRow(row: Record<string, unknown>): DealFlowNodeRecord {
     data: parseJson(String(row.data_json || "{}"), {} as Record<string, unknown>),
     payload_r2_key: row.payload_r2_key ? String(row.payload_r2_key) : null,
     storage_object_id: row.storage_object_id ? String(row.storage_object_id) : null,
+    archived_at: row.archived_at ? String(row.archived_at) : null,
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
   };
@@ -1700,43 +1726,50 @@ function mapDealFlowEdgeRow(row: Record<string, unknown>): DealFlowEdgeRecord {
     style: row.style ? parseJson(String(row.style), {} as Record<string, unknown>) : null,
     payload_r2_key: row.payload_r2_key ? String(row.payload_r2_key) : null,
     storage_object_id: row.storage_object_id ? String(row.storage_object_id) : null,
+    archived_at: row.archived_at ? String(row.archived_at) : null,
     created_at: String(row.created_at),
   };
 }
 
 export async function listDealFlows(db: D1Database | undefined, organizationId: string = DEFAULT_ORG_ID): Promise<DealFlowRecord[]> {
-  if (!db) return dealFlowMemory.maps.filter((m) => m.organization_id === organizationId).sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+  if (!db) return dealFlowMemory.maps.filter((m) => m.organization_id === organizationId && !m.archived_at).sort((a, b) => b.updated_at.localeCompare(a.updated_at));
   const result = await db
-    .prepare("SELECT * FROM maps WHERE organization_id = ? ORDER BY updated_at DESC LIMIT 200")
+    .prepare("SELECT * FROM maps WHERE organization_id = ? AND archived_at IS NULL ORDER BY updated_at DESC LIMIT 200")
     .bind(organizationId)
-    .all<Record<string, unknown>>();
+    .all<Record<string, unknown>>()
+    .catch(() =>
+      db.prepare("SELECT * FROM maps WHERE organization_id = ? ORDER BY updated_at DESC LIMIT 200").bind(organizationId).all<Record<string, unknown>>()
+    );
   return (result.results || []).map(mapDealFlowRow);
 }
 
 export async function getDealFlow(db: D1Database | undefined, id: string, organizationId: string = DEFAULT_ORG_ID): Promise<DealFlowRecord | null> {
-  if (!db) return dealFlowMemory.maps.find((m) => m.id === id && m.organization_id === organizationId) || null;
+  if (!db) return dealFlowMemory.maps.find((m) => m.id === id && m.organization_id === organizationId && !m.archived_at) || null;
   const row = await db
-    .prepare("SELECT * FROM maps WHERE id = ? AND organization_id = ? LIMIT 1")
+    .prepare("SELECT * FROM maps WHERE id = ? AND organization_id = ? AND archived_at IS NULL LIMIT 1")
     .bind(id, organizationId)
-    .first<Record<string, unknown>>();
+    .first<Record<string, unknown>>()
+    .catch(() => db.prepare("SELECT * FROM maps WHERE id = ? AND organization_id = ? LIMIT 1").bind(id, organizationId).first<Record<string, unknown>>());
   return row ? mapDealFlowRow(row) : null;
 }
 
 export async function getDealFlowNodes(db: D1Database | undefined, dealFlowId: string): Promise<DealFlowNodeRecord[]> {
-  if (!db) return dealFlowMemory.nodes.filter((n) => n.map_id === dealFlowId);
+  if (!db) return dealFlowMemory.nodes.filter((n) => n.map_id === dealFlowId && !n.archived_at);
   const result = await db
-    .prepare("SELECT * FROM map_nodes WHERE map_id = ? ORDER BY created_at ASC")
+    .prepare("SELECT * FROM map_nodes WHERE map_id = ? AND archived_at IS NULL ORDER BY created_at ASC")
     .bind(dealFlowId)
-    .all<Record<string, unknown>>();
+    .all<Record<string, unknown>>()
+    .catch(() => db.prepare("SELECT * FROM map_nodes WHERE map_id = ? ORDER BY created_at ASC").bind(dealFlowId).all<Record<string, unknown>>());
   return (result.results || []).map(mapDealFlowNodeRow);
 }
 
 export async function getDealFlowEdges(db: D1Database | undefined, dealFlowId: string): Promise<DealFlowEdgeRecord[]> {
-  if (!db) return dealFlowMemory.edges.filter((e) => e.map_id === dealFlowId);
+  if (!db) return dealFlowMemory.edges.filter((e) => e.map_id === dealFlowId && !e.archived_at);
   const result = await db
-    .prepare("SELECT * FROM map_edges WHERE map_id = ? ORDER BY created_at ASC")
+    .prepare("SELECT * FROM map_edges WHERE map_id = ? AND archived_at IS NULL ORDER BY created_at ASC")
     .bind(dealFlowId)
-    .all<Record<string, unknown>>();
+    .all<Record<string, unknown>>()
+    .catch(() => db.prepare("SELECT * FROM map_edges WHERE map_id = ? ORDER BY created_at ASC").bind(dealFlowId).all<Record<string, unknown>>());
   return (result.results || []).map(mapDealFlowEdgeRow);
 }
 
@@ -1754,6 +1787,7 @@ export async function createDealFlow(
     payload_r2_key: null,
     storage_object_id: null,
     created_by_user_id: input.created_by_user_id || null,
+    archived_at: null,
     created_at: timestamp,
     updated_at: timestamp,
   };
@@ -1822,20 +1856,37 @@ export async function deleteDealFlow(
   id: string,
   organizationId: string,
 ): Promise<boolean> {
+  return archiveDealFlow(db, id, organizationId);
+}
+
+export async function archiveDealFlow(
+  db: D1Database | undefined,
+  id: string,
+  organizationId: string,
+): Promise<boolean> {
   const existing = await getDealFlow(db, id, organizationId);
   if (!existing) return false;
+  const timestamp = nowIso();
 
   if (!db) {
-    dealFlowMemory.maps = dealFlowMemory.maps.filter((m) => m.id !== id);
-    dealFlowMemory.nodes = dealFlowMemory.nodes.filter((n) => n.map_id !== id);
-    dealFlowMemory.edges = dealFlowMemory.edges.filter((e) => e.map_id !== id);
+    dealFlowMemory.maps = dealFlowMemory.maps.map((m) =>
+      m.id === id && m.organization_id === organizationId ? { ...m, archived_at: timestamp, updated_at: timestamp } : m,
+    );
+    dealFlowMemory.nodes = dealFlowMemory.nodes.map((n) => n.map_id === id ? { ...n, archived_at: timestamp, updated_at: timestamp } : n);
+    dealFlowMemory.edges = dealFlowMemory.edges.map((e) => e.map_id === id ? { ...e, archived_at: timestamp } : e);
     return true;
   }
 
-  // map_nodes / map_edges drop via FK cascade; some D1 environments don't honor it, so be explicit.
-  await db.prepare("DELETE FROM map_edges WHERE map_id = ?").bind(id).run();
-  await db.prepare("DELETE FROM map_nodes WHERE map_id = ?").bind(id).run();
-  await db.prepare("DELETE FROM maps WHERE id = ? AND organization_id = ?").bind(id, organizationId).run();
+  await db.prepare("UPDATE map_edges SET archived_at = ? WHERE map_id = ?").bind(timestamp, id).run().catch(() => null);
+  await db.prepare("UPDATE map_nodes SET archived_at = ?, updated_at = ? WHERE map_id = ?").bind(timestamp, timestamp, id).run().catch(() => null);
+  await db.prepare("UPDATE maps SET archived_at = ?, updated_at = ? WHERE id = ? AND organization_id = ?")
+    .bind(timestamp, timestamp, id, organizationId)
+    .run()
+    .catch(() =>
+      db.prepare("UPDATE maps SET template = ?, updated_at = ? WHERE id = ? AND organization_id = ?")
+        .bind("archived", timestamp, id, organizationId)
+        .run()
+    );
   return true;
 }
 
@@ -1876,6 +1927,7 @@ export async function createDealFlowNode(
     data: input.data || {},
     payload_r2_key: null,
     storage_object_id: null,
+    archived_at: null,
     created_at: timestamp,
     updated_at: timestamp,
   };
@@ -2020,26 +2072,41 @@ export async function deleteDealFlowNode(
   dealFlowId: string,
   nodeId: string,
 ): Promise<boolean> {
+  return archiveDealFlowNode(db, dealFlowId, nodeId);
+}
+
+export async function archiveDealFlowNode(
+  db: D1Database | undefined,
+  dealFlowId: string,
+  nodeId: string,
+): Promise<boolean> {
+  const timestamp = nowIso();
   if (!db) {
-    const before = dealFlowMemory.nodes.length;
-    dealFlowMemory.nodes = dealFlowMemory.nodes.filter((n) => !(n.id === nodeId && n.map_id === dealFlowId));
-    dealFlowMemory.edges = dealFlowMemory.edges.filter((e) => e.map_id !== dealFlowId || (e.source_node_id !== nodeId && e.target_node_id !== nodeId));
-    if (dealFlowMemory.nodes.length === before) return false;
+    const index = dealFlowMemory.nodes.findIndex((n) => n.id === nodeId && n.map_id === dealFlowId && !n.archived_at);
+    if (index < 0) return false;
+    dealFlowMemory.nodes[index] = { ...dealFlowMemory.nodes[index], archived_at: timestamp, updated_at: timestamp };
+    dealFlowMemory.edges = dealFlowMemory.edges.map((e) =>
+      e.map_id === dealFlowId && (e.source_node_id === nodeId || e.target_node_id === nodeId)
+        ? { ...e, archived_at: timestamp }
+        : e,
+    );
     await touchDealFlow(undefined, dealFlowId);
     return true;
   }
 
   const existing = await db
-    .prepare("SELECT id FROM map_nodes WHERE id = ? AND map_id = ? LIMIT 1")
+    .prepare("SELECT id FROM map_nodes WHERE id = ? AND map_id = ? AND archived_at IS NULL LIMIT 1")
     .bind(nodeId, dealFlowId)
-    .first<{ id: string }>();
+    .first<{ id: string }>()
+    .catch(() => db.prepare("SELECT id FROM map_nodes WHERE id = ? AND map_id = ? LIMIT 1").bind(nodeId, dealFlowId).first<{ id: string }>());
   if (!existing) return false;
 
   await db
-    .prepare("DELETE FROM map_edges WHERE map_id = ? AND (source_node_id = ? OR target_node_id = ?)")
-    .bind(dealFlowId, nodeId, nodeId)
-    .run();
-  await db.prepare("DELETE FROM map_nodes WHERE id = ? AND map_id = ?").bind(nodeId, dealFlowId).run();
+    .prepare("UPDATE map_edges SET archived_at = ? WHERE map_id = ? AND (source_node_id = ? OR target_node_id = ?)")
+    .bind(timestamp, dealFlowId, nodeId, nodeId)
+    .run()
+    .catch(() => null);
+  await db.prepare("UPDATE map_nodes SET archived_at = ?, updated_at = ? WHERE id = ? AND map_id = ?").bind(timestamp, timestamp, nodeId, dealFlowId).run();
   await touchDealFlow(db, dealFlowId);
   return true;
 }
@@ -2064,6 +2131,7 @@ export async function createDealFlowEdge(
     style: input.style ?? null,
     payload_r2_key: null,
     storage_object_id: null,
+    archived_at: null,
     created_at: nowIso(),
   };
 
@@ -2098,21 +2166,31 @@ export async function deleteDealFlowEdge(
   dealFlowId: string,
   edgeId: string,
 ): Promise<boolean> {
+  return archiveDealFlowEdge(db, dealFlowId, edgeId);
+}
+
+export async function archiveDealFlowEdge(
+  db: D1Database | undefined,
+  dealFlowId: string,
+  edgeId: string,
+): Promise<boolean> {
+  const timestamp = nowIso();
   if (!db) {
-    const before = dealFlowMemory.edges.length;
-    dealFlowMemory.edges = dealFlowMemory.edges.filter((e) => !(e.id === edgeId && e.map_id === dealFlowId));
-    if (dealFlowMemory.edges.length === before) return false;
+    const index = dealFlowMemory.edges.findIndex((e) => e.id === edgeId && e.map_id === dealFlowId && !e.archived_at);
+    if (index < 0) return false;
+    dealFlowMemory.edges[index] = { ...dealFlowMemory.edges[index], archived_at: timestamp };
     await touchDealFlow(undefined, dealFlowId);
     return true;
   }
 
   const existing = await db
-    .prepare("SELECT id FROM map_edges WHERE id = ? AND map_id = ? LIMIT 1")
+    .prepare("SELECT id FROM map_edges WHERE id = ? AND map_id = ? AND archived_at IS NULL LIMIT 1")
     .bind(edgeId, dealFlowId)
-    .first<{ id: string }>();
+    .first<{ id: string }>()
+    .catch(() => db.prepare("SELECT id FROM map_edges WHERE id = ? AND map_id = ? LIMIT 1").bind(edgeId, dealFlowId).first<{ id: string }>());
   if (!existing) return false;
 
-  await db.prepare("DELETE FROM map_edges WHERE id = ? AND map_id = ?").bind(edgeId, dealFlowId).run();
+  await db.prepare("UPDATE map_edges SET archived_at = ? WHERE id = ? AND map_id = ?").bind(timestamp, edgeId, dealFlowId).run();
   await touchDealFlow(db, dealFlowId);
   return true;
 }

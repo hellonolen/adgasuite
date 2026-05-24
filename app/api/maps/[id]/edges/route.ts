@@ -2,10 +2,9 @@ import { z } from "zod";
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
-import { createDealFlowEdge, deleteDealFlowEdge, getDealFlow } from "@/lib/server/repository";
+import { archiveDealFlowEdge, createDealFlowEdge, getDealFlow } from "@/lib/server/repository";
 import { storeJsonPayload } from "@/lib/server/payload-storage";
-
-const DEFAULT_ORG_ID = "org_adga_primary";
+import { organizationIdForSession } from "@/lib/server/tenant";
 
 async function requireSessionAndDealFlow(request: Request, dealFlowId: string) {
   const context = getRuntimeContext(request);
@@ -13,9 +12,10 @@ async function requireSessionAndDealFlow(request: Request, dealFlowId: string) {
   if (!sessionUser && !context.user.isLocalAdminBypass) {
     return { unauthorized: true as const };
   }
-  const map = await getDealFlow(context.env.DB, dealFlowId, DEFAULT_ORG_ID);
+  const organizationId = organizationIdForSession(sessionUser);
+  const map = await getDealFlow(context.env.DB, dealFlowId, organizationId);
   if (!map) return { notFound: true as const, context };
-  return { context, sessionUser, map };
+  return { context, sessionUser, map, organizationId };
 }
 
 const createEdgeSchema = z.object({
@@ -52,7 +52,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     ? await storeJsonPayload({
         env: auth.context.env,
         db: auth.context.env.DB,
-        organization_id: DEFAULT_ORG_ID,
+        organization_id: auth.organizationId,
         resource_type: "dealflow_edge",
         resource_id: edge.id,
         payload,
@@ -77,7 +77,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   const edgeId = url.searchParams.get("edgeId");
   if (!edgeId) return errorJson("edgeId query param is required.", 400);
 
-  const removed = await deleteDealFlowEdge(auth.context.env.DB, id, edgeId);
-  if (!removed) return errorJson("Edge not found.", 404);
-  return json({ ok: true });
+  const archived = await archiveDealFlowEdge(auth.context.env.DB, id, edgeId);
+  if (!archived) return errorJson("Edge not found.", 404);
+  return json({ ok: true, archived: true });
 }

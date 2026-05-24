@@ -63,7 +63,7 @@ export function ApprovalsClient({ approvals }: { approvals: Approval[] }) {
         <div>
           <h1><em>Approvals</em>.</h1>
           <div className="sub">
-            {pendingCount} pending prepared actions - {highCount} high risk - external sends, payments, and legal actions stay approval gated.
+            {pendingCount} pending prepared actions - {highCount} high risk - external sends, calls, payments, legal edits, and archive requests stay approval gated.
           </div>
         </div>
         <div className="page-actions">

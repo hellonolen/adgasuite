@@ -44,7 +44,7 @@ const COMPARISON_GROUPS: Array<{ section: string; rows: Array<[string, string | 
     rows: [
       ["Active deals", "Unlimited", "Unlimited", "Unlimited"],
       ["Contacts and companies", "Unlimited", "Unlimited", "Unlimited"],
-      ["Files in storage (R2)", "20 GB", "200 GB", "Custom"],
+      ["Protected file storage", "20 GB", "200 GB", "Custom"],
       ["Nine-stage deal process", true, true, true],
       ["Live DealFlow per deal", true, true, true],
       ["Voice notes with transcription", true, true, true],
@@ -76,7 +76,7 @@ const COMPARISON_GROUPS: Array<{ section: string; rows: Array<[string, string | 
     section: "Security and compliance",
     rows: [
       ["Magic-link sign in", true, true, true],
-      ["Cloudflare D1 + R2 storage", true, true, true],
+      ["Encrypted workspace storage", true, true, true],
       ["Role-based permissions", "—", true, true],
       ["Immutable audit logs", "—", "—", true],
       ["Revocable client access", "—", true, true],
@@ -101,7 +101,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "What happens after checkout?",
-    a: "Checkout processes the payment, ADGA provisions the workspace, and the magic-link email lands in your inbox. Click it and you are inside the suite.",
+    a: "Checkout processes the payment, ADGA provisions the workspace, and opens onboarding. A sign-in link is still available for returning to the suite later.",
   },
   {
     q: "Can I move between plans?",
@@ -109,7 +109,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Is my data secure?",
-    a: "Workspace data lives on Cloudflare D1 (encrypted at rest and in transit). Documents and voice notes sit in your dedicated Cloudflare R2 bucket. No shared tenants, no co-mingled storage.",
+    a: "Workspace records, documents, and voice notes are encrypted in transit and at rest. Your workspace is isolated from other customers.",
   },
 ];
 
@@ -431,8 +431,8 @@ export default function PricingPage() {
             }}
           >
             <div>
-              <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--adga-accent, #5d2cd6)", marginBottom: 6 }}>Hosted on Cloudflare</div>
-              <p style={{ margin: 0, fontSize: 14, color: "var(--adga-text-2)" }}>Workers, D1, R2. Your data, your bucket, edge-fast everywhere.</p>
+              <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--adga-accent, #5d2cd6)", marginBottom: 6 }}>Secure workspace</div>
+              <p style={{ margin: 0, fontSize: 14, color: "var(--adga-text-2)" }}>Your records, documents, voice notes, and invoices stay encrypted and tied to the deal.</p>
             </div>
             <div>
               <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--adga-accent, #5d2cd6)", marginBottom: 6 }}>Approval-gated AI</div>

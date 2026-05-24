@@ -2,11 +2,10 @@ import { z } from "zod";
 import { errorJson, json, readJson } from "@/lib/server/http";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
-import { deleteDealFlowNode, getDealFlow, updateDealFlowNode } from "@/lib/server/repository";
-import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
+import { archiveDealFlowNode, getDealFlow, updateDealFlowNode } from "@/lib/server/repository";
+import { readStoredJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 import { publish } from "@/lib/events/bus";
-
-const DEFAULT_ORG_ID = "org_adga_primary";
+import { organizationIdForSession } from "@/lib/server/tenant";
 
 const NODE_KINDS = ["deal", "group", "contact", "company", "bank", "document", "email", "website", "audio", "video", "task", "call", "call_step", "meeting", "journey_step", "invoice", "financial", "action"] as const;
 const NODE_STATUSES = ["neutral", "active", "warning", "overdue", "done"] as const;
@@ -17,9 +16,10 @@ async function requireSessionAndDealFlow(request: Request, dealFlowId: string) {
   if (!sessionUser && !context.user.isLocalAdminBypass) {
     return { unauthorized: true as const };
   }
-  const map = await getDealFlow(context.env.DB, dealFlowId, DEFAULT_ORG_ID);
+  const organizationId = organizationIdForSession(sessionUser);
+  const map = await getDealFlow(context.env.DB, dealFlowId, organizationId);
   if (!map) return { notFound: true as const, context };
-  return { context, sessionUser, map };
+  return { context, sessionUser, map, organizationId };
 }
 
 const patchSchema = z.object({
@@ -50,13 +50,18 @@ export async function PATCH(
   const existingRows = auth.context.env.DB
     ? await auth.context.env.DB.prepare("SELECT * FROM map_nodes WHERE id = ? AND map_id = ? LIMIT 1").bind(nodeId, id).first<Record<string, unknown>>()
     : null;
-  const existingPayload = await readJsonPayload<Record<string, unknown>>(auth.context.env, String(existingRows?.payload_r2_key || ""));
+  const existingPayload = await readStoredJsonPayload<Record<string, unknown>>(
+    auth.context.env,
+    auth.context.env.DB,
+    String(existingRows?.payload_r2_key || ""),
+    existingRows?.storage_object_id ? String(existingRows.storage_object_id) : null,
+  );
   const nextPayload = { ...(existingPayload || existingRows || {}), ...parsed.data, id: nodeId, map_id: id };
   const stored = auth.context.env.DB
     ? await storeJsonPayload({
         env: auth.context.env,
         db: auth.context.env.DB,
-        organization_id: DEFAULT_ORG_ID,
+        organization_id: auth.organizationId,
         resource_type: "dealflow_node",
         resource_id: nodeId,
         payload: nextPayload,
@@ -76,7 +81,7 @@ export async function PATCH(
       .run();
   }
   await publish(auth.context.env.DB, {
-    organization_id: DEFAULT_ORG_ID,
+    organization_id: auth.organizationId,
     event_type: "dealflow.node_updated",
     actor_type: "user",
     actor_id: auth.sessionUser?.email || auth.context.user.email || null,
@@ -100,16 +105,16 @@ export async function DELETE(
   if ("unauthorized" in auth) return errorJson("Authentication required.", 401);
   if ("notFound" in auth) return errorJson("DealFlow not found.", 404);
 
-  const removed = await deleteDealFlowNode(auth.context.env.DB, id, nodeId);
-  if (!removed) return errorJson("Node not found.", 404);
+  const archived = await archiveDealFlowNode(auth.context.env.DB, id, nodeId);
+  if (!archived) return errorJson("Node not found.", 404);
   await publish(auth.context.env.DB, {
-    organization_id: DEFAULT_ORG_ID,
-    event_type: "dealflow.node_removed",
+    organization_id: auth.organizationId,
+    event_type: "dealflow.node_archived",
     actor_type: "user",
     actor_id: auth.sessionUser?.email || auth.context.user.email || null,
     resource_type: "dealflow_node",
     resource_id: nodeId,
     payload: { dealflow_id: id, node_id: nodeId },
   });
-  return json({ ok: true });
+  return json({ ok: true, archived: true });
 }

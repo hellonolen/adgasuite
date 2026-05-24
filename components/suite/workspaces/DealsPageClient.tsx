@@ -252,10 +252,13 @@ export default function DealsPageClient({ data }: { data: DealsPageData }) {
         {filtered.length === 0 ? (
           <div className="deals-page-empty">
             <div>No deals yet</div>
-            <p>Create the first square, then open it to work the canvas.</p>
+            <p>Create a blank deal square or start from a template. Production workspaces stay empty until you add real customer records.</p>
             <button className="btn primary" type="button" onClick={() => setCreateOpen(true)}>
               <Plus aria-hidden="true" size={16} /> New deal
             </button>
+            <Link className="btn" href="/suite/deals/new">
+              <LayoutTemplate aria-hidden="true" size={16} /> From template
+            </Link>
           </div>
         ) : (
           <div className="deals-grid">

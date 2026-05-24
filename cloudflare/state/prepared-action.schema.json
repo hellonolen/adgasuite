@@ -16,7 +16,7 @@
     "event_id": { "type": ["string", "null"] },
     "action_type": {
       "type": "string",
-      "description": "Examples: draft.email, draft.sms, calendar.invite, call.outbound, invoice.payment_link, deal.stage_update, task.create, document.generate."
+      "description": "Examples: draft.email, draft.sms, calendar.invite, call.outbound, invoice.payment_link, deal.stage_update, task.create, document.generate, record.archive."
     },
     "lane": {
       "type": "string",
@@ -45,7 +45,10 @@
     "reason": { "type": ["string", "null"] },
     "risk_flags": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string",
+        "description": "Use explicit_approval_required for external email/SMS/calls, invoice/payment actions, legal/document edits, and destructive/archive requests. Destructive requests must archive rather than delete."
+      }
     },
     "requires_actor_type": {
       "type": "string",

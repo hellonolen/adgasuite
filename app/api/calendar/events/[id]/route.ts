@@ -1,5 +1,5 @@
 import { errorJson, json, readJson } from "@/lib/server/http";
-import { createEvent, deleteCalendarEvent, getCalendarEvent, updateCalendarEvent } from "@/lib/server/repository";
+import { archiveCalendarEvent, createEvent, getCalendarEvent, updateCalendarEvent } from "@/lib/server/repository";
 import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
 import { DEFAULT_ORG_ID } from "@/lib/server/tenant";
 
@@ -54,12 +54,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   const context = getRuntimeContext(request);
   requireAdmin(context);
 
-  const event = await deleteCalendarEvent(context.env.DB, id, DEFAULT_ORG_ID);
+  const event = await archiveCalendarEvent(context.env.DB, id, DEFAULT_ORG_ID);
   if (!event) return errorJson("Calendar event not found.", 404);
 
   await createEvent(context.env.DB, {
     organization_id: event.organization_id,
-    event_type: "calendar_event.deleted",
+    event_type: "calendar_event.archived",
     actor_type: "user",
     actor_id: context.user.email,
     resource_type: "calendar_event",
@@ -67,5 +67,5 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     payload: { calendar_event_id: event.id, title: event.title },
   });
 
-  return json({ ok: true, event });
+  return json({ ok: true, event, archived: true });
 }

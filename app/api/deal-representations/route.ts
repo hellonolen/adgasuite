@@ -2,7 +2,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
-import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
+import { readStoredJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
 type RepresentationBody = {
   deal_id?: string;
@@ -32,7 +32,12 @@ export async function GET(request: Request) {
       ? await statement.bind("org_adga_primary", dealId).all()
       : await statement.bind("org_adga_primary").all();
     const representations = await Promise.all((result.results || []).map(async (row: Record<string, unknown>) => {
-      const payload = await readJsonPayload<Record<string, unknown>>(context.env, String(row.payload_r2_key || ""));
+      const payload = await readStoredJsonPayload<Record<string, unknown>>(
+        context.env,
+        context.env.DB,
+        String(row.payload_r2_key || ""),
+        row.storage_object_id ? String(row.storage_object_id) : null,
+      );
       return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
     }));
     return json({ ok: true, representations });

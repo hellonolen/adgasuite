@@ -4,7 +4,7 @@ import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { newId, nowIso } from "@/lib/server/id";
 import { createEvent } from "@/lib/server/repository";
-import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
+import { readStoredJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
 const ORG_ID = "org_adga_primary";
 
@@ -115,7 +115,12 @@ export async function GET(request: Request) {
         .sort();
 
     const contacts = await Promise.all((rows.results || []).map(async (row) => {
-      const payload = await readJsonPayload<Record<string, unknown>>(context.env, String(row.payload_r2_key || ""));
+      const payload = await readStoredJsonPayload<Record<string, unknown>>(
+        context.env,
+        db,
+        String(row.payload_r2_key || ""),
+        row.storage_object_id ? String(row.storage_object_id) : null,
+      );
       return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
     }));
 

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const PROOF = [
   "Deal records, contacts, pipeline stages, files, invoices, maps, voice notes, and activity in one workspace",
-  "Cloudflare D1 for workspace records and Cloudflare R2 for files, voice notes, and generated documents",
+  "Encrypted workspace records, files, voice notes, and generated documents",
   "Checkout and payment event paths connected to workspace provisioning and billing events",
   "Built for closers, advisors, capital raisers, M&A teams, partnership teams, and high-ticket sellers",
 ];

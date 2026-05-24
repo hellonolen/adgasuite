@@ -264,6 +264,8 @@ CREATE TABLE IF NOT EXISTS voice_calls (
   summary TEXT,
   related_records_json TEXT NOT NULL DEFAULT '{}',
   agentic_outputs_json TEXT NOT NULL DEFAULT '{}',
+  payload_r2_key TEXT,
+  storage_object_id TEXT,
   provider TEXT,
   provider_call_id TEXT,
   created_by TEXT,
@@ -300,6 +302,7 @@ CREATE INDEX IF NOT EXISTS idx_voice_notes_payload_storage ON voice_notes (organ
 CREATE INDEX IF NOT EXISTS idx_voice_calls_org_created ON voice_calls (organization_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_voice_calls_status ON voice_calls (organization_id, status, started_at);
 CREATE INDEX IF NOT EXISTS idx_voice_calls_provider ON voice_calls (provider, provider_call_id);
+CREATE INDEX IF NOT EXISTS idx_voice_calls_payload_storage ON voice_calls (organization_id, storage_object_id);
 CREATE INDEX IF NOT EXISTS idx_sms_messages_org_created ON sms_messages (organization_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sms_messages_resource ON sms_messages (resource_type, resource_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sms_messages_payload_storage ON sms_messages (organization_id, storage_object_id);
@@ -504,6 +507,7 @@ CREATE TABLE IF NOT EXISTS deals (
   expected_close_at TEXT,
   payload_r2_key TEXT,
   storage_object_id TEXT,
+  archived_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
@@ -522,12 +526,15 @@ CREATE TABLE IF NOT EXISTS maps (
   payload_r2_key TEXT,
   storage_object_id TEXT,
   created_by_user_id TEXT,
+  archived_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_maps_org ON maps(organization_id, updated_at);
 CREATE INDEX IF NOT EXISTS idx_maps_deal ON maps(deal_id);
 CREATE INDEX IF NOT EXISTS idx_maps_payload_storage ON maps (organization_id, storage_object_id);
+CREATE INDEX IF NOT EXISTS idx_deals_org_archive ON deals (organization_id, archived_at, updated_at);
+CREATE INDEX IF NOT EXISTS idx_maps_org_archive ON maps (organization_id, archived_at, updated_at);
 
 CREATE TABLE IF NOT EXISTS map_nodes (
   id TEXT PRIMARY KEY,
@@ -541,12 +548,14 @@ CREATE TABLE IF NOT EXISTS map_nodes (
   data_json TEXT,
   payload_r2_key TEXT,
   storage_object_id TEXT,
+  archived_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_map_nodes_map ON map_nodes(map_id);
 CREATE INDEX IF NOT EXISTS idx_map_nodes_payload_storage ON map_nodes (map_id, storage_object_id);
+CREATE INDEX IF NOT EXISTS idx_map_nodes_archive ON map_nodes (map_id, archived_at);
 
 CREATE TABLE IF NOT EXISTS map_edges (
   id TEXT PRIMARY KEY,
@@ -557,11 +566,28 @@ CREATE TABLE IF NOT EXISTS map_edges (
   style TEXT,
   payload_r2_key TEXT,
   storage_object_id TEXT,
+  archived_at TEXT,
   created_at TEXT NOT NULL,
   FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_map_edges_map ON map_edges(map_id);
 CREATE INDEX IF NOT EXISTS idx_map_edges_payload_storage ON map_edges (map_id, storage_object_id);
+CREATE INDEX IF NOT EXISTS idx_map_edges_archive ON map_edges (map_id, archived_at);
+
+CREATE TABLE IF NOT EXISTS map_shares (
+  token TEXT PRIMARY KEY,
+  map_id TEXT NOT NULL,
+  permission TEXT NOT NULL DEFAULT 'view',
+  created_by_user_id TEXT,
+  created_at TEXT NOT NULL,
+  expires_at TEXT,
+  revoked_at TEXT,
+  archived_at TEXT,
+  FOREIGN KEY (map_id) REFERENCES maps(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_map_shares_map ON map_shares(map_id);
+CREATE INDEX IF NOT EXISTS idx_map_shares_archive ON map_shares (map_id, archived_at, revoked_at);
 
 CREATE TABLE IF NOT EXISTS deal_representations (
   id TEXT PRIMARY KEY,

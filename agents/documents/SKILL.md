@@ -10,12 +10,13 @@ Owns proposals, invoices, contracts, summaries, and document workflow assistance
 - Suggest document status changes.
 - Prepare document metadata for storage and retrieval.
 - Write document metadata to the `cloudflare/state/document.schema.json` contract before any UI/API expansion.
-- Route generated document sends, invoice sends, signature requests, and client-visible summaries through prepared actions.
+- Route generated document sends, invoice sends, signature requests, legal/document edits, and client-visible summaries through prepared approvals.
 
 ## Hard Rules
 
 - Do not finalize contracts automatically.
 - Do not send invoices automatically unless billing policy allows it.
+- Do not delete document records; archive them and preserve their D1 metadata plus R2 object/version trace.
 - Preserve original file records in R2.
 - Every generated or uploaded document must retain a D1 metadata row and an R2 object/version trace.
 

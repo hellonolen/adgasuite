@@ -2,7 +2,7 @@ import { errorJson, json, readJson } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
 import { newId, nowIso } from "@/lib/server/id";
 import { getRuntimeContext } from "@/lib/server/runtime";
-import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
+import { readStoredJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 import { resolveTenantSession } from "@/lib/server/tenant";
 
 const MAX_PLATFORM_FEE_BPS = 500;
@@ -18,7 +18,12 @@ export async function GET(request: Request) {
       "SELECT * FROM client_invoices WHERE organization_id = ? ORDER BY created_at DESC LIMIT 250",
     ).bind(session.organizationId).all();
     const invoices = await Promise.all((result.results || []).map(async (row: Record<string, unknown>) => {
-      const payload = await readJsonPayload<Record<string, unknown>>(context.env, String(row.payload_r2_key || ""));
+      const payload = await readStoredJsonPayload<Record<string, unknown>>(
+        context.env,
+        context.env.DB,
+        String(row.payload_r2_key || ""),
+        row.storage_object_id ? String(row.storage_object_id) : null,
+      );
       return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
     }));
     return json({ ok: true, invoices });

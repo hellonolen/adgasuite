@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import {
   type DealFlowDeal,
   type DealFlowEntity,
@@ -11,6 +12,7 @@ import { redirect } from "next/navigation";
 import { getDealFlow, getDealFlowEdges, getDealFlowNodes } from "@/lib/server/repository";
 import DealFlowClient from "@/components/suite/workspaces/DealFlowClient";
 import { readJsonPayload } from "@/lib/server/payload-storage";
+import { organizationIdForSession } from "@/lib/server/tenant";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -169,7 +171,14 @@ function statusForMeeting(row: CalendarRow): "neutral" | "active" | "warning" {
 
 export default async function DealDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const context = getRuntimeContext(new Request("http://localhost/"));
+  const headerList = await headers();
+  const cookieHeader = headerList.get("cookie");
+  const host = headerList.get("x-forwarded-host") || headerList.get("host") || "internal.local";
+  const proto = headerList.get("x-forwarded-proto") || "https";
+  const request = new Request(`${proto}://${host}/suite/dealflow/${encodeURIComponent(id)}`, {
+    headers: cookieHeader ? { cookie: cookieHeader } : {},
+  });
+  const context = getRuntimeContext(request);
   const db = context.env.DB;
   const isDev = process.env.NODE_ENV !== "production";
 
@@ -189,13 +198,14 @@ export default async function DealDetailPage({ params }: PageProps) {
     );
   }
 
-  const sessionUser = await validateSession(db, null);
+  const sessionUser = await validateSession(db, readSessionCookie(request));
   if (!sessionUser && !context.user.isLocalAdminBypass) {
     redirect(`/login?redirect=/suite/dealflow/${encodeURIComponent(id)}`);
   }
+  const organizationId = organizationIdForSession(sessionUser);
 
   // 1. Try the persisted canvas path first. Storage IDs may still use the legacy `map_*` prefix.
-  const mapRecord = await getDealFlow(db, id);
+  const mapRecord = await getDealFlow(db, id, organizationId);
   if (mapRecord) {
     const [mapPayload, nodeRows, edgeRows] = await Promise.all([
       readJsonPayload<Record<string, unknown>>(context.env, mapRecord.payload_r2_key),
@@ -249,8 +259,8 @@ export default async function DealDetailPage({ params }: PageProps) {
 
   // 2. Otherwise fall back to deal-based rendering.
   const dealRow = await db
-    .prepare("SELECT * FROM deals WHERE id = ? LIMIT 1")
-    .bind(id)
+    .prepare("SELECT * FROM deals WHERE id = ? AND organization_id = ? LIMIT 1")
+    .bind(id, organizationId)
     .first<DealRow>();
 
   if (!dealRow) {
@@ -263,24 +273,27 @@ export default async function DealDetailPage({ params }: PageProps) {
   const [contactRows, documentRows, taskRows, calendarRows] = await Promise.all([
     dealRow.contact_id
       ? db
-          .prepare("SELECT id, full_name, first_name, last_name, title, company FROM contacts WHERE id = ? LIMIT 1")
-          .bind(dealRow.contact_id)
+          .prepare("SELECT id, full_name, first_name, last_name, title, company FROM contacts WHERE id = ? AND organization_id = ? LIMIT 1")
+          .bind(dealRow.contact_id, organizationId)
           .all<ContactRow>()
       : Promise.resolve({ results: [] as ContactRow[] }),
-    db.prepare("SELECT id, title, status, type FROM documents ORDER BY created_at DESC LIMIT 6").all<DocumentRow>(),
     db
-      .prepare("SELECT id, title, status, priority, due_at FROM tasks WHERE deal_id = ? ORDER BY due_at ASC NULLS LAST LIMIT 6")
-      .bind(id)
+      .prepare("SELECT id, title, status, type FROM documents WHERE organization_id = ? AND deal_id = ? ORDER BY created_at DESC LIMIT 6")
+      .bind(organizationId, id)
+      .all<DocumentRow>(),
+    db
+      .prepare("SELECT id, title, status, priority, due_at FROM tasks WHERE organization_id = ? AND deal_id = ? ORDER BY due_at ASC NULLS LAST LIMIT 6")
+      .bind(organizationId, id)
       .all<TaskRow>()
       .catch(() =>
         db
-          .prepare("SELECT id, title, status, priority, due_at FROM tasks WHERE deal_id = ? ORDER BY due_at ASC LIMIT 6")
-          .bind(id)
+          .prepare("SELECT id, title, status, priority, due_at FROM tasks WHERE organization_id = ? AND deal_id = ? ORDER BY due_at ASC LIMIT 6")
+          .bind(organizationId, id)
           .all<TaskRow>(),
       ),
     db
-      .prepare("SELECT id, title, starts_at, status FROM calendar_events WHERE deal_id = ? ORDER BY starts_at ASC LIMIT 6")
-      .bind(id)
+      .prepare("SELECT id, title, starts_at, status FROM calendar_events WHERE organization_id = ? AND deal_id = ? ORDER BY starts_at ASC LIMIT 6")
+      .bind(organizationId, id)
       .all<CalendarRow>(),
   ]);
 

@@ -4,7 +4,7 @@ import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { nowIso } from "@/lib/server/id";
 import { createEvent } from "@/lib/server/repository";
-import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
+import { readStoredJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
 const ORG_ID = "org_adga_primary";
 
@@ -52,7 +52,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       .bind(id, ORG_ID)
       .first<Record<string, unknown>>();
     if (!contact) return errorJson("Not found", 404);
-    const payload = await readJsonPayload<Record<string, unknown>>(context.env, String(contact.payload_r2_key || ""));
+    const payload = await readStoredJsonPayload<Record<string, unknown>>(
+      context.env,
+      db,
+      String(contact.payload_r2_key || ""),
+      contact.storage_object_id ? String(contact.storage_object_id) : null,
+    );
     const mergedContact = payload ? { ...contact, ...payload, id: contact.id, organization_id: contact.organization_id } : contact;
 
     const events = await db
@@ -96,7 +101,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       .bind(id, ORG_ID)
       .first<Record<string, unknown>>();
     if (!existing) return errorJson("Not found", 404);
-    const existingPayload = await readJsonPayload<Record<string, unknown>>(context.env, String(existing.payload_r2_key || ""));
+    const existingPayload = await readStoredJsonPayload<Record<string, unknown>>(
+      context.env,
+      db,
+      String(existing.payload_r2_key || ""),
+      existing.storage_object_id ? String(existing.storage_object_id) : null,
+    );
     const nextPayload = {
       ...(existingPayload || existing),
       ...parsed.data,

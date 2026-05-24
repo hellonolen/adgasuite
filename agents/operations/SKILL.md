@@ -20,7 +20,7 @@ Owns onboarding, reminders, workspace hygiene, task automation, and admin-safe o
 
 ## Hard Rules
 
-- Do not delete customer data.
+- Do not delete customer data. Archive instead, and route destructive/archive requests through prepared approval.
 - Do not change billing state.
 - Do not override admin settings.
 - Do not auto-apply a template to a map that already has user-edited nodes. Templates seed; humans edit.

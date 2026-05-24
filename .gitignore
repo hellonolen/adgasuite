@@ -20,3 +20,4 @@ audit-*.png
 *.jpg
 docs/COMPACT*.txt
 /tmp/
+archive/build-artifacts/

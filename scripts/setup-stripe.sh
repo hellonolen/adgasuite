@@ -144,9 +144,12 @@ if [[ -z "$EXISTING_WEBHOOK" ]]; then
     -d "enabled_events[]=customer.subscription.updated" \
     -d "enabled_events[]=customer.subscription.deleted" \
     -d "enabled_events[]=customer.subscription.created" \
+    -d "enabled_events[]=customer.subscription.paused" \
     -d "enabled_events[]=invoice.paid" \
     -d "enabled_events[]=invoice.payment_failed" \
-    -d "api_version=2024-09-30.acacia")
+    -d "enabled_events[]=invoice.payment_succeeded" \
+    -d "enabled_events[]=invoice.marked_uncollectible" \
+    -d "api_version=2026-02-25.clover")
   WEBHOOK_ID=$(echo "$WEBHOOK_JSON" | jq -r '.id // empty')
   WEBHOOK_SECRET=$(echo "$WEBHOOK_JSON" | jq -r '.secret // empty')
 

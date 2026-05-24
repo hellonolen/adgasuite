@@ -3,6 +3,7 @@ import { createAgentJob, createCalendarEvent, createEvent, listCalendarEvents } 
 import { sendPostmarkEmail } from "@/lib/integrations/postmark";
 import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
+import { protectedTestRecipientError } from "@/lib/server/email-safety";
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);
@@ -124,9 +125,62 @@ async function sendCalendarInvites({
 }) {
   const timestamp = nowIso();
   const ics = buildIcs(event, requestedBy);
-  const deliveries = [];
+  const deliveries: Array<{
+    id: string;
+    organization_id: string;
+    calendar_event_id: string;
+    recipient_email: string;
+    recipient_name: string | null;
+    channel: string;
+    provider: string;
+    status: string;
+    provider_status: number | null;
+    provider_response: string | null;
+    sent_at: string | null;
+    created_at: string;
+    updated_at: string;
+  }> = [];
 
   for (const attendee of event.attendees.filter((item) => item.email)) {
+    const protectedRecipient = protectedTestRecipientError(attendee.email);
+    if (protectedRecipient) {
+      const delivery = {
+        id: newId("cal_invite"),
+        organization_id: event.organization_id,
+        calendar_event_id: event.id,
+        recipient_email: attendee.email,
+        recipient_name: attendee.name || null,
+        channel: "email",
+        provider: "postmark",
+        status: "blocked",
+        provider_status: 403,
+        provider_response: protectedRecipient,
+        sent_at: null,
+        created_at: timestamp,
+        updated_at: timestamp,
+      };
+      deliveries.push(delivery);
+      if (db) try {
+        await db.prepare(
+          `INSERT INTO calendar_invite_deliveries
+            (id, organization_id, calendar_event_id, recipient_email, recipient_name, channel, provider, status, provider_status, provider_response, sent_at, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+          .bind(delivery.id, delivery.organization_id, delivery.calendar_event_id, delivery.recipient_email, delivery.recipient_name, delivery.channel, delivery.provider, delivery.status, delivery.provider_status, delivery.provider_response, delivery.sent_at, delivery.created_at, delivery.updated_at)
+          .run();
+      } catch {}
+      await createEvent(db, {
+        organization_id: event.organization_id,
+        event_type: "calendar_invite.blocked",
+        actor_type: "system",
+        actor_id: "calendar",
+        resource_type: "calendar_event",
+        resource_id: event.id,
+        payload: { delivery },
+      });
+      continue;
+    }
+
     const result = await sendPostmarkEmail(
       {
         to: attendee.email,

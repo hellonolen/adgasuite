@@ -69,9 +69,8 @@ export function getRuntimeContext(request?: Request): RuntimeContext {
     hostname === "127.0.0.1" ||
     hostname === "::1";
   const localBypass =
-    isLocalhost ||
-    (process.env.NODE_ENV !== "production" &&
-      env.ADGA_LOCAL_ADMIN_BYPASS !== "false");
+    process.env.NODE_ENV !== "production" &&
+    (isLocalhost || env.ADGA_LOCAL_ADMIN_BYPASS !== "false");
 
   // SECURITY: the x-adga-admin-email header is only honored when local bypass
   // is active. In production every authenticated request must validate against

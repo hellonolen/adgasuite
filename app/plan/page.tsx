@@ -63,9 +63,9 @@ const FEATURES: ReadonlyArray<Feature> = [
     ],
   },
   {
-    label: "Documents + R2",
+    label: "Documents",
     head: "Secure files for every deal.",
-    body: "Proposals, contracts, due-diligence requests, signed terms, and exports stay tied to the deal. File bodies live in Cloudflare R2, metadata in D1 — encrypted in transit and at rest.",
+    body: "Proposals, contracts, due-diligence requests, signed terms, and exports stay tied to the deal, encrypted in transit and at rest.",
     bullets: [
       "Structured due-diligence request lists per deal",
       "Watermarked viewing and scoped redaction for outside parties",
@@ -76,7 +76,7 @@ const FEATURES: ReadonlyArray<Feature> = [
   {
     label: "Voice notes + transcripts",
     head: "Speak it. Find it. Act on it.",
-    body: "Drop a voice note on a lead, contact, deal, or meeting. Audio lands in R2, transcripts process automatically, and the text is searchable across the workspace within seconds.",
+    body: "Drop a voice note on a lead, contact, deal, or meeting. Audio saves to the workspace, transcripts process automatically, and the text is searchable within seconds.",
     bullets: [
       "Speech-to-text transcripts attached to the voice note",
       "Transcripts power summaries and follow-up tasks",
@@ -112,7 +112,7 @@ const FEATURES: ReadonlyArray<Feature> = [
     body: "Create, send, and track invoices against any deal. Line items, taxes, discounts, due dates, and payment links — with payouts routed through your payment processor, accounting system, PayPal, or a connected bank account.",
     bullets: [
       "Payment processor, PayPal, QuickBooks, and bank-account connectors",
-      "Invoice PDFs stored in R2, full metadata in D1",
+      "Invoice PDFs and billing records tied to the workspace",
       "Bank-account payout setup for companies and individuals",
       "Gross amount, platform fee, net to user, and payment status tracked",
     ],

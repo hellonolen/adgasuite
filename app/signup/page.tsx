@@ -2,6 +2,7 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
+import { getCopyright } from "@/lib/marketing-config";
 
 type PlanId = "pro" | "team" | "enterprise";
 type Cadence = "month" | "year";
@@ -350,15 +351,14 @@ function SignupInner() {
 
                 <p className="mt-8 text-xs text-[#6b6760]">
                   By continuing you agree to ADGA&apos;s{" "}
-                  <a className="underline underline-offset-2" href="/terms">Terms</a> and{" "}
-                  <a className="underline underline-offset-2" href="/privacy">Privacy Policy</a>.
+                  <a className="underline underline-offset-2" href="/policies">policies</a>.
                 </p>
               </>
             )}
           </div>
         </div>
 
-        <footer className="px-8 pb-8 text-xs text-[#9b9eb0]">© 2026 ADGA · Deal flow platform</footer>
+        <footer className="px-8 pb-8 text-xs text-[#9b9eb0]">{getCopyright()}</footer>
       </main>
     </div>
   );

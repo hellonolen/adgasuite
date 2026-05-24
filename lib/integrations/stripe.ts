@@ -134,6 +134,48 @@ export async function createStripeCheckout(input: StripeCheckoutInput) {
   };
 }
 
+export interface StripeCheckoutSession {
+  id?: string;
+  object?: string;
+  mode?: string;
+  status?: string;
+  payment_status?: string;
+  customer?: unknown;
+  customer_email?: string | null;
+  customer_details?: {
+    email?: string | null;
+    name?: string | null;
+  } | null;
+  subscription?: unknown;
+  metadata?: Record<string, string | undefined>;
+}
+
+export async function retrieveStripeCheckoutSession(input: {
+  secretKey?: string;
+  sessionId: string;
+}) {
+  if (!input.secretKey) {
+    return { configured: false, provider: "stripe" as const, reason: "STRIPE_SECRET_KEY is not configured." };
+  }
+
+  const response = await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(input.sessionId)}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${input.secretKey}`,
+      "Stripe-Version": STRIPE_API_VERSION,
+    },
+  });
+
+  const body = await response.json().catch(() => ({})) as StripeCheckoutSession & Record<string, unknown>;
+  return {
+    configured: true,
+    provider: "stripe" as const,
+    ok: response.ok,
+    status: response.status,
+    session: body,
+  };
+}
+
 export async function verifyStripeWebhook(input: {
   secret?: string;
   signature: string;

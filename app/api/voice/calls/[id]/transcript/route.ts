@@ -1,5 +1,6 @@
 import { errorJson, json, readJson } from "@/lib/server/http";
-import { createEvent, updateVoiceCall } from "@/lib/server/repository";
+import { createEvent, getVoiceCall, updateVoiceCall } from "@/lib/server/repository";
+import { readStoredJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
 import { DEFAULT_ORG_ID } from "@/lib/server/tenant";
 
@@ -13,11 +14,42 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return errorJson("transcript_text, transcript, or summary is required.");
   }
 
-  const call = await updateVoiceCall(context.env.DB, id, {
+  const existing = await getVoiceCall(context.env.DB, id, DEFAULT_ORG_ID);
+  if (!existing) return errorJson("Voice call not found.", 404);
+  const existingPayload = await readStoredJsonPayload<Record<string, unknown>>(
+    context.env,
+    context.env.DB,
+    existing.payload_r2_key,
+    existing.storage_object_id,
+  );
+  const nextPayload = {
+    ...(existingPayload || existing),
     transcript_text: body.transcript_text,
     summary: body.summary,
-    transcript: body.transcript || { enabled: true, status: "stored", r2Key: null },
+    transcript: body.transcript || { enabled: true, status: "stored" },
     agentic_outputs: body.agentic_outputs,
+    id,
+    organization_id: DEFAULT_ORG_ID,
+  };
+  const stored = context.env.DB
+    ? await storeJsonPayload({
+        env: context.env,
+        db: context.env.DB,
+        organization_id: DEFAULT_ORG_ID,
+        resource_type: "voice_call",
+        resource_id: id,
+        payload: nextPayload,
+        created_by: context.user.email,
+      })
+    : null;
+
+  const call = await updateVoiceCall(context.env.DB, id, {
+    transcript_text: null,
+    summary: null,
+    transcript: { enabled: true, status: "stored", r2Key: stored?.r2_key || existing.payload_r2_key },
+    agentic_outputs: body.agentic_outputs ? { stored: "r2_payload" } : undefined,
+    payload_r2_key: stored?.r2_key || existing.payload_r2_key,
+    storage_object_id: stored?.storage_object_id || existing.storage_object_id,
   }, DEFAULT_ORG_ID);
   if (!call) return errorJson("Voice call not found.", 404);
 
@@ -28,10 +60,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     actor_id: context.user.email,
     resource_type: "voice_call",
     resource_id: call.id,
-    payload: { voice_call_id: call.id, has_transcript_text: Boolean(call.transcript_text), has_summary: Boolean(call.summary) },
+    payload: { voice_call_id: call.id, has_transcript_text: Boolean(body.transcript_text), has_summary: Boolean(body.summary), payload_r2_key: stored?.r2_key || call.payload_r2_key, storage_object_id: stored?.storage_object_id || call.storage_object_id },
   });
 
-  return json({ ok: true, call });
+  return json({ ok: true, call: { ...call, ...nextPayload, payload_r2_key: stored?.r2_key || call.payload_r2_key, storage_object_id: stored?.storage_object_id || call.storage_object_id } });
 }
 
 export const PATCH = POST;

@@ -1,18 +1,9 @@
 import { headers } from "next/headers";
 import BillingSettingsClient from "./billing-settings-client";
-import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
+import { loadWorkspaceBillingState } from "@/lib/server/billing";
 import { getRuntimeContext } from "@/lib/server/runtime";
-import { organizationIdForSession } from "@/lib/server/tenant";
 
 export const dynamic = "force-dynamic";
-
-type SubscriptionRow = {
-  plan: string | null;
-  status: string | null;
-  provider_customer_id: string | null;
-  provider_subscription_id: string | null;
-  current_period_end: string | null;
-};
 
 type BillingSnapshot = {
   billingEmail: string | null;
@@ -35,36 +26,21 @@ export default async function SuiteSettingsBillingPage() {
     headers: cookieHeader ? { cookie: cookieHeader } : {},
   });
   const context = getRuntimeContext(request);
-  const sessionUser = await validateSession(context.env.DB, readSessionCookie(request));
-  const organizationId = organizationIdForSession(sessionUser);
+  const subscription = await loadWorkspaceBillingState(context, request);
 
-  const subscription = context.env.DB
-    ? await context.env.DB
-        .prepare(
-          `SELECT plan, status, provider_customer_id, provider_subscription_id, current_period_end
-           FROM subscriptions
-           WHERE organization_id = ? AND provider = 'stripe'
-           ORDER BY updated_at DESC
-           LIMIT 1`,
-        )
-        .bind(organizationId)
-        .first<SubscriptionRow>()
-        .catch(() => null)
-    : null;
-
-  const stripeSnapshot = subscription?.provider_customer_id
-    ? await loadStripeBillingSnapshot(context.env, subscription.provider_customer_id)
+  const stripeSnapshot = subscription.stripeCustomerId
+    ? await loadStripeBillingSnapshot(context.env, subscription.stripeCustomerId)
     : null;
 
   return (
     <BillingSettingsClient
       subscription={{
-        plan: subscription?.plan || "team",
-        status: subscription?.status || "trialing",
-        hasStripeCustomer: Boolean(subscription?.provider_customer_id),
-        stripeCustomerId: subscription?.provider_customer_id || null,
-        stripeSubscriptionId: subscription?.provider_subscription_id || null,
-        currentPeriodEnd: subscription?.current_period_end || null,
+        plan: subscription.plan,
+        status: subscription.status,
+        hasStripeCustomer: subscription.hasStripeCustomer,
+        stripeCustomerId: subscription.stripeCustomerId,
+        stripeSubscriptionId: subscription.stripeSubscriptionId,
+        currentPeriodEnd: subscription.currentPeriodEnd,
       }}
       billing={stripeSnapshot}
     />

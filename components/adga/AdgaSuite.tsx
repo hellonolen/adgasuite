@@ -2712,10 +2712,20 @@ function PipelinePage({ view, setView, deals, setDeals, openDeal, setQuickCreate
         </div>
       )}
       {section === 'controls' && <PipelineControls view={view} setView={setView}/>}
-      {section === 'pipeline' && <PipelineOpsPanel deals={deals} selectedDeal={selectedDeal} onSelect={setSelectedDeal} openDeal={openDeal}/>}
-      {view === 'kanban' && <Kanban deals={deals} onOpen={openDeal} onMove={move} onInspect={setSelectedDeal}/>}
-      {view === 'table' && <PipelineTable deals={deals} onOpen={openDeal}/>}
-      {view === 'timeline' && <PipelineTimeline deals={deals} onOpen={openDeal}/>}
+      {deals.length === 0 ? (
+        <div className="ac-empty" style={{ padding: '64px 24px' }}>
+          <div className="ttl">No pipeline yet</div>
+          <p>Start with a blank deal or choose a template. Your first deal will open on the DealFlow canvas.</p>
+          <button className="btn primary" type="button" onClick={() => setQuickCreate && setQuickCreate('deal')}>
+            <Icon name="plus" size={13}/> New deal
+          </button>
+        </div>
+      ) : (<>
+        {section === 'pipeline' && <PipelineOpsPanel deals={deals} selectedDeal={selectedDeal} onSelect={setSelectedDeal} openDeal={openDeal}/>}
+        {view === 'kanban' && <Kanban deals={deals} onOpen={openDeal} onMove={move} onInspect={setSelectedDeal}/>}
+        {view === 'table' && <PipelineTable deals={deals} onOpen={openDeal}/>}
+        {view === 'timeline' && <PipelineTimeline deals={deals} onOpen={openDeal}/>}
+      </>)}
       <PipelineDealInspector deal={selectedDeal} onClose={() => setSelectedDeal(null)} openDeal={openDeal}/>
     </div>
   );
@@ -8481,6 +8491,9 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
             updated: d.updated_at ? new Date(d.updated_at).toLocaleString() : 'Just now',
             tags: d.tags || [],
           })));
+        }
+        if (Array.isArray(data.leads)) {
+          setLeads(data.leads.map(normalizeStoredLead));
         }
         // First-time real user — wipe the demo chat seed so the persisted demo chat doesn't bleed
         // into their workspace. We use a one-time flag so we don't blow away their actual chats.

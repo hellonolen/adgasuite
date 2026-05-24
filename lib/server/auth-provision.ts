@@ -13,6 +13,7 @@ export async function provisionUserSession(
     email: string;
     name?: string | null;
     plan?: string | null;
+    subscriptionStatus?: string | null;
   },
 ): Promise<ProvisionedSession> {
   const email = normalizeEmail(input.email);
@@ -34,6 +35,19 @@ export async function provisionUserSession(
     )
     .bind(organizationId, organizationName, organizationSlug, input.plan || "team", "trialing", now, now)
     .run();
+
+  if (input.plan || input.subscriptionStatus) {
+    await db
+      .prepare(
+        `UPDATE organizations
+         SET plan = COALESCE(NULLIF(?, ''), plan),
+             subscription_status = COALESCE(NULLIF(?, ''), subscription_status),
+             updated_at = ?
+         WHERE id = ?`,
+      )
+      .bind(input.plan || "", input.subscriptionStatus || "", now, organizationId)
+      .run();
+  }
 
   await db
     .prepare(

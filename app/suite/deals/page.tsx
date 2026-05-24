@@ -69,7 +69,7 @@ function riskFromStage(stage: string) {
   return "active";
 }
 
-async function loadDeals(db: D1Database | undefined, env: CloudflareEnv): Promise<DealSquare[]> {
+async function loadDeals(db: D1Database | undefined, env: CloudflareEnv, organizationId: string): Promise<DealSquare[]> {
   if (!db) {
     return [
       { id: "DEAL-621810", name: "Meridian Cold Chain Acquisition", stage: "closing", updated: "2026-05-22T06:00:00.000Z", nodeCount: 14, storageState: "r2", source: "canvas", value: "$18.4M", company: "Meridian Cold Chain", primaryContact: "Ari Boone", nextAction: "Confirm seller counsel markups", risk: "closing" },
@@ -83,15 +83,27 @@ async function loadDeals(db: D1Database | undefined, env: CloudflareEnv): Promis
 
   const [canvasRows, dealRows, canvasCountRows, dealCountRows] = await Promise.all([
     db
-      .prepare("SELECT id, name, template, updated_at, payload_r2_key FROM maps WHERE organization_id = ? ORDER BY updated_at DESC LIMIT 200")
-      .bind(DEFAULT_ORG_ID)
+      .prepare("SELECT id, name, template, updated_at, payload_r2_key FROM maps WHERE organization_id = ? AND archived_at IS NULL ORDER BY updated_at DESC LIMIT 200")
+      .bind(organizationId)
       .all<CanvasRow>()
+      .catch(() =>
+        db
+          .prepare("SELECT id, name, template, updated_at, payload_r2_key FROM maps WHERE organization_id = ? ORDER BY updated_at DESC LIMIT 200")
+          .bind(organizationId)
+          .all<CanvasRow>(),
+      )
       .then((r) => r.results || [])
       .catch(() => [] as CanvasRow[]),
     db
-      .prepare("SELECT id, name, company, value_cents, stage, updated_at, payload_r2_key FROM deals WHERE organization_id = ? ORDER BY updated_at DESC LIMIT 200")
-      .bind(DEFAULT_ORG_ID)
+      .prepare("SELECT id, name, company, value_cents, stage, updated_at, payload_r2_key FROM deals WHERE organization_id = ? AND archived_at IS NULL ORDER BY updated_at DESC LIMIT 200")
+      .bind(organizationId)
       .all<DealRow>()
+      .catch(() =>
+        db
+          .prepare("SELECT id, name, company, value_cents, stage, updated_at, payload_r2_key FROM deals WHERE organization_id = ? ORDER BY updated_at DESC LIMIT 200")
+          .bind(organizationId)
+          .all<DealRow>(),
+      )
       .then((r) => r.results || [])
       .catch(() => [] as DealRow[]),
     db
@@ -177,7 +189,8 @@ export default async function DealsPage() {
   }
 
   const { context } = await getAdminRuntime();
-  const deals = await loadDeals(context.env.DB, context.env);
+  const organizationId = session.organizationId || DEFAULT_ORG_ID;
+  const deals = await loadDeals(context.env.DB, context.env, organizationId);
 
   return <DealsPageClient data={{ deals }} />;
 }

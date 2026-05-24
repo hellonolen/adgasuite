@@ -26,7 +26,7 @@ const USE_CASES: ReadonlyArray<UseCase> = [
       "Buyer, seller, agents, attorney, lender, title, and inspector linked as contacts on the deal",
       "Listing source, lead source, and represented-client field tracked on the record",
       "Offer, counter, contingency dates, and inspection windows on the timeline",
-      "Disclosures, addenda, inspection reports, appraisal, and closing docs in R2",
+      "Disclosures, addenda, inspection reports, appraisal, and closing docs attached to the deal",
       "Five-minute follow-up window on new buyer inquiries and showing requests",
       "Closing checklist, signatures, wire instructions, and decision record on one page",
     ],
@@ -34,7 +34,7 @@ const USE_CASES: ReadonlyArray<UseCase> = [
   {
     label: "Capital raise",
     who: "For founders, GPs, and IR leads running a round across dozens of investor conversations.",
-    body: "A raise is a parallel pipeline of investor relationships, each with their own diligence pace, ticket size, and decision timeline. ADGA tracks every investor as a contact, every meeting on the timeline, every diligence document in R2, and every commitment against the round target.",
+    body: "A raise is a parallel pipeline of investor relationships, each with their own diligence pace, ticket size, and decision timeline. ADGA tracks every investor as a contact, every meeting on the timeline, every diligence document, and every commitment against the round target.",
     bullets: [
       "Investor contacts with check-size, fund stage, and check-history per record",
       "Diligence data room with watermarked viewing and external-party access",
@@ -50,7 +50,7 @@ const USE_CASES: ReadonlyArray<UseCase> = [
     body: "An acquisition needs LOI, diligence, financial review, legal review, regulatory check, and close — across buyer, seller, advisors, lenders, and counsel. ADGA keeps the entire transaction on one record so the close date and the working group don't drift.",
     bullets: [
       "Buyer, seller, advisors, counsel, and lender attached as contacts",
-      "LOI, NDA, diligence checklist, and definitive agreement in R2",
+      "LOI, NDA, diligence checklist, and definitive agreement attached to the deal",
       "Working group calls, management presentations, and site visits on the timeline",
       "Closing conditions, regulatory approvals, and decision record on the deal",
       "Wire instructions, escrow setup, and payment routing through the invoice center",
@@ -77,7 +77,7 @@ const USE_CASES: ReadonlyArray<UseCase> = [
     bullets: [
       "Counterparty, agent, and counsel as contacts on the deal",
       "Rights scope, exclusivity, territory, and term length on the record",
-      "Term sheet revisions, redlines, and signed agreement in R2",
+      "Term sheet revisions, redlines, and signed agreement attached to the deal",
       "Royalty schedule and reporting cadence tracked on the timeline",
       "Renewal date and option-to-extend surfaced as next-action items",
       "Decision record and signed terms carried into delivery",
@@ -103,7 +103,7 @@ const USE_CASES: ReadonlyArray<UseCase> = [
     bullets: [
       "Qualified lead with urgency, deal value, and decision authority",
       "Discovery call notes, voice memos, and transcripts on the contact",
-      "Tailored proposal generated as a document, stored in R2, attached to the deal",
+      "Tailored proposal generated as a document and attached to the deal",
       "Follow-up cadence with five-minute window on hot leads",
       "Contract signed, invoice issued, payment routed through the invoice center",
       "Kickoff tasks, delivery owner, and expansion path opened post-close",

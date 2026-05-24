@@ -4,6 +4,7 @@ import { agentModules, businessEvents } from "@/lib/agents/rules";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { listCalendarEvents } from "@/lib/server/repository";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
+import { loadWorkspaceBillingState } from "@/lib/server/billing";
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);
@@ -11,6 +12,17 @@ export async function GET(request: Request) {
 
   if (!sessionUser && !context.user.isLocalAdminBypass) {
     return errorJson("Authentication required.", 401);
+  }
+
+  const billing = await loadWorkspaceBillingState(context, request);
+  if (!billing.accessAllowed) {
+    return errorJson("Billing action required.", 402, {
+      billing: {
+        status: billing.status,
+        plan: billing.plan,
+        recoveryUrl: "/suite/settings/billing",
+      },
+    });
   }
 
   const db = context.env.DB;

@@ -24,3 +24,9 @@ Current implementation coverage:
 - New and updated contacts write full payloads to R2 and keep D1 pointer metadata.
 - New maps, map nodes, and map edges write labels/data/style payloads to R2 and keep D1 graph/index metadata.
 - New voice-note transcripts, SMS messages, communication messages, invoices, deal representations, access requests, and ADP partner referrals write full payloads to R2 and keep D1 pointer metadata.
+- Voice call participants, transcripts, summaries, recordings, and agentic outputs write to R2; D1 keeps status/timing/provider metadata and the payload pointer.
+- DealFlow maps, nodes, edges, and share links follow an archive/revoke policy. Routes must not hard-delete production storage rows or R2 payload records.
+
+Production audit:
+
+- Run `npm run audit:storage` before launch or storage-route changes. The audit checks pointer columns, archive columns, direct payload reads, and hard-delete SQL in route/server code.

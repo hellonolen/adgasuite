@@ -1,15 +1,56 @@
-import { createCalendarEvent } from "@/lib/server/repository";
+import {
+  archiveCalendarEvent,
+  archiveDealFlow,
+  archiveDealFlowEdge,
+  archiveDealFlowNode,
+  createCalendarEvent,
+} from "@/lib/server/repository";
 import { newId, nowIso } from "@/lib/server/id";
 import { DEFAULT_ORG_ID } from "@/lib/server/tenant";
 import { publish } from "@/lib/events/bus";
 
 const DEAL_STAGES = new Set(["lead", "qualify", "discover", "scope", "design", "close", "sign", "deliver", "expand", "won", "lost"]);
-const EXTERNAL_ACTIONS = new Set([
+export const EXPLICIT_APPROVAL_ACTIONS = new Set([
+  "archive_calendar_event",
+  "archive_dealflow",
+  "archive_edge",
+  "archive_node",
+  "call_external",
+  "collect_payment",
+  "create_payment_link",
+  "delete_calendar_event",
+  "delete_dealflow",
+  "delete_edge",
+  "delete_node",
+  "delete_record",
+  "destroy_record",
+  "edit_legal_document",
+  "execute_legal_document",
+  "file_legal_document",
+  "mark_invoice_paid",
+  "process_payment",
+  "remove_edge",
+  "remove_node",
+  "send_email",
+  "send_invoice",
+  "send_sms",
+  "sign_contract",
+  "start_call",
+  "void_invoice",
+]);
+
+const RESTRICTED_ACTIONS = new Set([
   "send_email",
   "send_sms",
+  "call_external",
+  "start_call",
   "send_invoice",
   "collect_payment",
   "process_payment",
+  "create_payment_link",
+  "mark_invoice_paid",
+  "void_invoice",
+  "edit_legal_document",
   "sign_contract",
   "execute_legal_document",
   "file_legal_document",
@@ -49,6 +90,28 @@ export interface UpdateDealStagePreparedAction {
   stage: string;
 }
 
+export interface ArchiveDealFlowPreparedAction {
+  type: "archive_dealflow";
+  dealflow_id: string;
+}
+
+export interface ArchiveDealFlowNodePreparedAction {
+  type: "archive_dealflow_node";
+  dealflow_id: string;
+  node_id: string;
+}
+
+export interface ArchiveDealFlowEdgePreparedAction {
+  type: "archive_dealflow_edge";
+  dealflow_id: string;
+  edge_id: string;
+}
+
+export interface ArchiveCalendarEventPreparedAction {
+  type: "archive_calendar_event";
+  event_id: string;
+}
+
 export type UnsupportedPreparedAction = {
   type: string;
   [key: string]: unknown;
@@ -58,6 +121,10 @@ export type PreparedAction =
   | CreateTaskPreparedAction
   | ScheduleCalendarEventPreparedAction
   | UpdateDealStagePreparedAction
+  | ArchiveDealFlowPreparedAction
+  | ArchiveDealFlowNodePreparedAction
+  | ArchiveDealFlowEdgePreparedAction
+  | ArchiveCalendarEventPreparedAction
   | UnsupportedPreparedAction;
 
 export interface PreparedActionExecution {
@@ -126,6 +193,32 @@ export function normalizePreparedAction(input: unknown): PreparedAction | null {
     return { type, deal_id, stage };
   }
 
+  if (type === "archive_dealflow") {
+    const dealflow_id = stringValue(action.dealflow_id || action.dealFlowId || action.map_id);
+    if (!dealflow_id) return null;
+    return { type, dealflow_id };
+  }
+
+  if (type === "archive_dealflow_node") {
+    const dealflow_id = stringValue(action.dealflow_id || action.dealFlowId || action.map_id);
+    const node_id = stringValue(action.node_id || action.nodeId || action.id);
+    if (!dealflow_id || !node_id) return null;
+    return { type, dealflow_id, node_id };
+  }
+
+  if (type === "archive_dealflow_edge") {
+    const dealflow_id = stringValue(action.dealflow_id || action.dealFlowId || action.map_id);
+    const edge_id = stringValue(action.edge_id || action.edgeId || action.id);
+    if (!dealflow_id || !edge_id) return null;
+    return { type, dealflow_id, edge_id };
+  }
+
+  if (type === "archive_calendar_event") {
+    const event_id = stringValue(action.event_id || action.eventId || action.id);
+    if (!event_id) return null;
+    return { type, event_id };
+  }
+
   return { ...action, type } as PreparedAction;
 }
 
@@ -152,11 +245,11 @@ export async function executePreparedAction(input: {
     };
   }
 
-  if (EXTERNAL_ACTIONS.has(action.type)) {
+  if (RESTRICTED_ACTIONS.has(action.type)) {
     return {
       status: "blocked",
       action_type: action.type,
-      message: "External sends, payments, and legal actions require their dedicated explicit approval flow and were not executed here.",
+      message: "External email/SMS/calls, invoice/payment actions, and legal document edits require a dedicated connector approval flow and were not executed here.",
       executed_at,
     };
   }
@@ -169,6 +262,14 @@ export async function executePreparedAction(input: {
         return await executeScheduleCalendarEvent(input.db, action as ScheduleCalendarEventPreparedAction, input);
       case "update_deal_stage":
         return await executeUpdateDealStage(input.db, action as UpdateDealStagePreparedAction, input);
+      case "archive_dealflow":
+        return await executeArchiveDealFlow(input.db, action as ArchiveDealFlowPreparedAction, input);
+      case "archive_dealflow_node":
+        return await executeArchiveDealFlowNode(input.db, action as ArchiveDealFlowNodePreparedAction, input);
+      case "archive_dealflow_edge":
+        return await executeArchiveDealFlowEdge(input.db, action as ArchiveDealFlowEdgePreparedAction, input);
+      case "archive_calendar_event":
+        return await executeArchiveCalendarEvent(input.db, action as ArchiveCalendarEventPreparedAction, input);
       default:
         return {
           status: "blocked",
@@ -185,6 +286,86 @@ export async function executePreparedAction(input: {
       executed_at,
     };
   }
+}
+
+async function executeArchiveDealFlow(
+  db: D1Database | undefined,
+  action: ArchiveDealFlowPreparedAction,
+  context: { approval: { id: string; organization_id?: string | null }; actorEmail: string },
+): Promise<PreparedActionExecution> {
+  const organizationId = context.approval.organization_id || DEFAULT_ORG_ID;
+  const archived = await archiveDealFlow(db, action.dealflow_id, organizationId);
+  if (!archived) throw new Error("DealFlow not found for archive.");
+  await publish(db, {
+    organization_id: organizationId,
+    event_type: "dealflow.archived",
+    actor_type: "user",
+    actor_id: context.actorEmail,
+    resource_type: "dealflow",
+    resource_id: action.dealflow_id,
+    payload: { approval_id: context.approval.id, prepared_action_type: action.type },
+  });
+  return { status: "executed", action_type: action.type, resource_type: "dealflow", resource_id: action.dealflow_id, message: "DealFlow archived.", executed_at: nowIso() };
+}
+
+async function executeArchiveDealFlowNode(
+  db: D1Database | undefined,
+  action: ArchiveDealFlowNodePreparedAction,
+  context: { approval: { id: string; organization_id?: string | null }; actorEmail: string },
+): Promise<PreparedActionExecution> {
+  const organizationId = context.approval.organization_id || DEFAULT_ORG_ID;
+  const archived = await archiveDealFlowNode(db, action.dealflow_id, action.node_id);
+  if (!archived) throw new Error("DealFlow node not found for archive.");
+  await publish(db, {
+    organization_id: organizationId,
+    event_type: "dealflow.node_archived",
+    actor_type: "user",
+    actor_id: context.actorEmail,
+    resource_type: "dealflow_node",
+    resource_id: action.node_id,
+    payload: { approval_id: context.approval.id, prepared_action_type: action.type, dealflow_id: action.dealflow_id },
+  });
+  return { status: "executed", action_type: action.type, resource_type: "dealflow_node", resource_id: action.node_id, message: "DealFlow node archived.", executed_at: nowIso() };
+}
+
+async function executeArchiveDealFlowEdge(
+  db: D1Database | undefined,
+  action: ArchiveDealFlowEdgePreparedAction,
+  context: { approval: { id: string; organization_id?: string | null }; actorEmail: string },
+): Promise<PreparedActionExecution> {
+  const organizationId = context.approval.organization_id || DEFAULT_ORG_ID;
+  const archived = await archiveDealFlowEdge(db, action.dealflow_id, action.edge_id);
+  if (!archived) throw new Error("DealFlow edge not found for archive.");
+  await publish(db, {
+    organization_id: organizationId,
+    event_type: "dealflow.edge_archived",
+    actor_type: "user",
+    actor_id: context.actorEmail,
+    resource_type: "dealflow_edge",
+    resource_id: action.edge_id,
+    payload: { approval_id: context.approval.id, prepared_action_type: action.type, dealflow_id: action.dealflow_id },
+  });
+  return { status: "executed", action_type: action.type, resource_type: "dealflow_edge", resource_id: action.edge_id, message: "DealFlow edge archived.", executed_at: nowIso() };
+}
+
+async function executeArchiveCalendarEvent(
+  db: D1Database | undefined,
+  action: ArchiveCalendarEventPreparedAction,
+  context: { approval: { id: string; organization_id?: string | null }; actorEmail: string },
+): Promise<PreparedActionExecution> {
+  const organizationId = context.approval.organization_id || DEFAULT_ORG_ID;
+  const archived = await archiveCalendarEvent(db, action.event_id, organizationId);
+  if (!archived) throw new Error("Calendar event not found for archive.");
+  await publish(db, {
+    organization_id: organizationId,
+    event_type: "calendar_event.archived",
+    actor_type: "user",
+    actor_id: context.actorEmail,
+    resource_type: "calendar_event",
+    resource_id: action.event_id,
+    payload: { approval_id: context.approval.id, prepared_action_type: action.type },
+  });
+  return { status: "executed", action_type: action.type, resource_type: "calendar_event", resource_id: action.event_id, message: "Calendar event archived.", executed_at: nowIso() };
 }
 
 async function executeCreateTask(

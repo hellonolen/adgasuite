@@ -2,13 +2,14 @@ import { z } from "zod";
 
 import { publish } from "@/lib/events/bus";
 import { runChatTurn, type ChatMessage } from "@/lib/agents/engine";
+import { EXPLICIT_APPROVAL_ACTIONS } from "@/lib/agents/prepared-actions";
 import { errorJson, json, readJson } from "@/lib/server/http";
 import {
+  createAgentApproval,
   createDeal,
   createDealFlow,
   createDealFlowEdge,
   createDealFlowNode,
-  deleteDealFlowNode,
   getDealFlow,
   updateDeal,
   updateDealFlow,
@@ -84,14 +85,35 @@ const NODE_KINDS = [
 const NODE_STATUSES = ["neutral", "active", "warning", "overdue", "done"] as const;
 const DEAL_STAGES = new Set(["lead", "qualify", "discover", "scope", "design", "close", "sign", "deliver", "expand", "won", "lost"]);
 const EXTERNAL_ACTIONS = new Set([
-  "send_email",
-  "send_sms",
-  "send_invoice",
+  "call_external",
   "collect_payment",
+  "create_payment_link",
+  "edit_legal_document",
+  "mark_invoice_paid",
   "process_payment",
-  "sign_contract",
+  "send_email",
+  "send_invoice",
+  "send_sms",
   "execute_legal_document",
   "file_legal_document",
+  "sign_contract",
+  "start_call",
+  "void_invoice",
+]);
+const DESTRUCTIVE_ACTIONS = new Set([
+  "archive_calendar_event",
+  "archive_dealflow",
+  "archive_edge",
+  "archive_node",
+  "delete_calendar_event",
+  "delete_dealflow",
+  "delete_edge",
+  "delete_map",
+  "delete_node",
+  "delete_record",
+  "destroy_record",
+  "remove_edge",
+  "remove_node",
 ]);
 
 // Per-session sliding-window rate limit (10 messages / minute).
@@ -274,8 +296,8 @@ function buildSystemPrompt(contextBlock: string): string {
     onMap
       ? "The user is currently looking at dealflow, a canvas of people, files, calls, tasks, and meetings. Reference what is on the canvas. Suggest the next node to add when the next move is obvious."
       : "The user is in the suite workspace (lists, pipeline, inbox). Reference live data, not the canvas.",
-    "When the user implies a structured internal mutation, append a fenced ```json``` code block at the end with an actions array. Supported actions: create_deal, update_deal, create_dealflow, update_dealflow, add_node, update_node, delete_node, add_edge. Use add_node kinds: contact, company, bank, document, email, website, audio, video, task, call, call_step, meeting, journey_step, invoice, financial, action, or group. Use group for large collections, for example {\"actions\":[{\"type\":\"add_node\",\"kind\":\"group\",\"label\":\"Banks & lenders\",\"sublabel\":\"Capital sources tied to this deal\",\"data\":{\"child_kind\":\"bank\",\"children_count\":12}}]}. Use group nodes for the 9-step customer journey and 9-step call framework instead of dumping every child onto the canvas.",
-    "Never execute or imply execution of external communication, payment, or legal actions from chat. For send_email, send_sms, send_invoice, collect_payment, process_payment, sign_contract, execute_legal_document, and file_legal_document, only prepare them for explicit approval.",
+    "When the user implies a structured internal mutation, append a fenced ```json``` code block at the end with an actions array. Supported actions: create_deal, update_deal, create_dealflow, update_dealflow, add_node, update_node, archive_node, add_edge, search_workspace. Later actions may reference earlier resources with ref/temp_id values such as \"deal\", \"dealflow\", \"contact_node\", or \"next_step_node\". Use add_node kinds: contact, company, bank, document, email, website, audio, video, task, call, call_step, meeting, journey_step, invoice, financial, action, or group. Use group for large collections, for example {\"actions\":[{\"type\":\"add_node\",\"kind\":\"group\",\"label\":\"Banks & lenders\",\"sublabel\":\"Capital sources tied to this deal\",\"data\":{\"child_kind\":\"bank\",\"children_count\":12}}]}. Use group nodes for the 9-step customer journey and 9-step call framework instead of dumping every child onto the canvas.",
+    "Never execute or imply execution of external email/SMS/calls, invoice/payment actions, legal document edits, or destructive actions from chat. For send_email, send_sms, call_external, start_call, send_invoice, collect_payment, process_payment, create_payment_link, mark_invoice_paid, edit_legal_document, sign_contract, execute_legal_document, file_legal_document, delete_node, remove_node, delete_edge, remove_edge, delete_dealflow, and delete_record, only prepare them for explicit approval. Destructive requests must be converted to archive actions.",
     "Keep the visible reply free of JSON. Use plain text with optional **bold** or *italic* for emphasis. Do not use headings or bullet lists unless explicitly asked.",
     "",
     contextBlock,
@@ -294,6 +316,13 @@ interface ChatActionExecution {
   resource_type?: string;
   resource_id?: string;
   message: string;
+  data?: Record<string, unknown>;
+}
+
+interface ChatActionState {
+  lastDealId?: string;
+  lastDealFlowId?: string;
+  refs: Map<string, string>;
 }
 
 function stringValue(value: unknown): string {
@@ -324,15 +353,126 @@ function objectValue(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
-function actionDealFlowId(action: ChatActionRecord, ctx: z.infer<typeof ContextSchema>): string {
+function registerRef(state: ChatActionState, ref: unknown, id: string) {
+  const key = stringValue(ref).toLowerCase();
+  if (key) state.refs.set(key, id);
+}
+
+function resolveRef(value: unknown, state: ChatActionState): string {
+  const text = stringValue(value);
+  if (!text) return "";
+  return state.refs.get(text.toLowerCase()) || text;
+}
+
+function registerActionRefs(state: ChatActionState, action: ChatActionRecord, id: string, fallbackRefs: string[] = []) {
+  for (const ref of [
+    action.ref,
+    action.temp_id,
+    action.tempId,
+    action.key,
+    action.alias,
+    action.id,
+    action.label,
+    action.name,
+    action.title,
+    ...fallbackRefs,
+  ]) {
+    registerRef(state, ref, id);
+  }
+}
+
+function actionDealFlowId(action: ChatActionRecord, ctx: z.infer<typeof ContextSchema>, state: ChatActionState): string {
   return (
+    resolveRef(action.dealFlowId, state) ||
+    resolveRef(action.dealflow_id, state) ||
+    resolveRef(action.deal_flow_id, state) ||
+    resolveRef(action.map_id, state) ||
     stringValue(action.dealFlowId) ||
     stringValue(action.dealflow_id) ||
     stringValue(action.deal_flow_id) ||
     stringValue(action.map_id) ||
+    state.lastDealFlowId ||
     ctx?.dealFlowId ||
     (ctx?.kind === "dealflow" || ctx?.kind === "map" ? ctx.id || "" : "")
   );
+}
+
+function archivePreparedActionFor(action: ChatActionRecord, context: z.infer<typeof ContextSchema>, state: ChatActionState): Record<string, unknown> | null {
+  const type = action.type.trim();
+  if (type === "delete_node" || type === "remove_node" || type === "archive_node") {
+    const dealflowId = actionDealFlowId(action, context, state);
+    const nodeId = resolveRef(action.node_id || action.nodeId || action.id, state) || context?.selectedNode?.id || "";
+    return dealflowId && nodeId ? { type: "archive_dealflow_node", dealflow_id: dealflowId, node_id: nodeId } : null;
+  }
+  if (type === "delete_edge" || type === "remove_edge" || type === "archive_edge") {
+    const dealflowId = actionDealFlowId(action, context, state);
+    const edgeId = resolveRef(action.edge_id || action.edgeId || action.id, state);
+    return dealflowId && edgeId ? { type: "archive_dealflow_edge", dealflow_id: dealflowId, edge_id: edgeId } : null;
+  }
+  if (type === "delete_dealflow" || type === "delete_map" || type === "archive_dealflow") {
+    const dealflowId = actionDealFlowId(action, context, state);
+    return dealflowId ? { type: "archive_dealflow", dealflow_id: dealflowId } : null;
+  }
+  if (type === "delete_calendar_event" || type === "archive_calendar_event") {
+    const eventId = resolveRef(action.event_id || action.eventId || action.id, state);
+    return eventId ? { type: "archive_calendar_event", event_id: eventId } : null;
+  }
+  return null;
+}
+
+async function queuePreparedApproval(input: {
+  db: D1Database | undefined;
+  action: ChatActionRecord;
+  context: z.infer<typeof ContextSchema>;
+  actorEmail: string | null;
+  state: ChatActionState;
+}): Promise<ChatActionExecution> {
+  const type = input.action.type.trim();
+  const archiveAction = archivePreparedActionFor(input.action, input.context, input.state);
+  const preparedAction = archiveAction || input.action;
+  const resourceId =
+    stringValue(input.action.resource_id) ||
+    stringValue(input.action.node_id || input.action.edge_id || input.action.event_id || input.action.id) ||
+    input.context?.selectedNode?.id ||
+    input.context?.id ||
+    null;
+  const approval = await createAgentApproval(input.db, {
+    agent: "conductor",
+    title: `Approval required: ${type}`,
+    proposed_action: archiveAction
+      ? "Archive requested records after approval. Destructive deletes are not allowed."
+      : "Approve the prepared risky action before any external, financial, legal, or destructive effect occurs.",
+    risk: "high",
+    resource_type: stringValue(input.action.resource_type) || (archiveAction ? "dealflow" : "workspace"),
+    resource_id: resourceId,
+    payload: {
+      source: "agent_chat",
+      original_action: input.action,
+      prepared_action: preparedAction,
+      requested_by: input.actorEmail,
+      approval_policy: "explicit_approval_required",
+    },
+  });
+
+  await publish(input.db, {
+    organization_id: DEFAULT_ORG_ID,
+    event_type: "agent_approval.requested",
+    actor_type: "user",
+    actor_id: input.actorEmail,
+    resource_type: "agent_approval",
+    resource_id: approval.id,
+    payload: { approval_id: approval.id, action_type: type, prepared_action: preparedAction },
+  });
+
+  return {
+    status: "blocked",
+    action_type: type,
+    resource_type: "agent_approval",
+    resource_id: approval.id,
+    message: archiveAction
+      ? "Destructive action queued as an archive approval; no delete ran from chat."
+      : "Risky action queued for explicit approval; nothing was executed from chat.",
+  };
 }
 
 function normalizeNodeKind(value: unknown): DealFlowNodeKind | null {
@@ -374,22 +514,102 @@ function normalizeDealPatch(action: ChatActionRecord) {
   return patch;
 }
 
+function parseActionJson(content: string): ChatActionRecord[] {
+  const candidates: string[] = [];
+  const fenceMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenceMatch) candidates.push(fenceMatch[1]);
+  const jsonLineMatch = content.match(/\{\s*"actions"\s*:\s*\[[\s\S]*?\]\s*\}\s*$/);
+  if (jsonLineMatch) candidates.push(jsonLineMatch[0]);
+
+  for (const raw of candidates) {
+    try {
+      const parsed = JSON.parse(raw.trim()) as { actions?: unknown };
+      if (Array.isArray(parsed.actions)) {
+        return parsed.actions.filter(
+          (action: unknown): action is ChatActionRecord =>
+            Boolean(action) && typeof action === "object" && typeof (action as { type?: unknown }).type === "string",
+        );
+      }
+    } catch {
+      // Keep looking for another valid candidate.
+    }
+  }
+  return [];
+}
+
+function extractNamedValue(text: string, noun: string): string {
+  const pattern = new RegExp(`${noun}[^\\n.;:]*?(?:called|named|for)\\s+["“]?([^"”\\n.;]+)`, "i");
+  return stringValue(text.match(pattern)?.[1]).replace(/\s+(with|and|plus|then)\s*$/i, "");
+}
+
+function parseNodeRequests(text: string): ChatActionRecord[] {
+  const match = text.match(/nodes?\s*(?::|for|with)\s*([^.\n]+)/i);
+  if (!match) return [];
+
+  const parts = match[1]
+    .split(/[,;]|\band\b/i)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+
+  return parts
+    .map((part, index): ChatActionRecord | null => {
+      const nodeMatch = part.match(/^(contact|company|bank|document|email|website|audio|video|task|call|call_step|meeting|journey_step|invoice|financial|action|group)\s+(?:node\s+)?(?:called|named|for\s+)?(.+)$/i);
+      if (!nodeMatch) return null;
+      const kind = nodeMatch[1].toLowerCase() as DealFlowNodeKind;
+      const label = stringValue(nodeMatch[2]).replace(/^["“]|["”]$/g, "");
+      if (!label) return null;
+      return {
+        type: "add_node",
+        kind,
+        label,
+        ref: index === 0 ? `${kind}_node` : `${kind}_node_${index + 1}`,
+        status: kind === "task" || kind === "action" ? "active" : "neutral",
+      };
+    })
+    .filter((action): action is ChatActionRecord => Boolean(action));
+}
+
+function inferredServerActions(messages: ChatMessage[], context: z.infer<typeof ContextSchema>, modelActions: Array<{ type: string }>): ChatActionRecord[] {
+  const latest = latestUserMessage(messages);
+  const explicitActions = parseActionJson(latest);
+  if (explicitActions.length) return explicitActions;
+
+  const actions = modelActions.map((action) => action as ChatActionRecord);
+  const lower = latest.toLowerCase();
+  if (actions.length === 0 && lower.includes("create") && lower.includes("deal")) {
+    const dealName = extractNamedValue(latest, "deal") || extractNamedValue(latest, "opportunity") || stringValue(context?.deal?.name) || "ADGA chat deal";
+    actions.push({ type: "create_deal", name: dealName, ref: "deal" });
+
+    if (lower.includes("dealflow") || lower.includes("deal flow") || lower.includes("canvas")) {
+      const dealFlowName = extractNamedValue(latest, "dealflow") || extractNamedValue(latest, "deal flow") || `${dealName} DealFlow`;
+      actions.push({ type: "create_dealflow", name: dealFlowName, deal_id: "deal", ref: "dealflow" });
+    }
+
+    actions.push(...parseNodeRequests(latest));
+  }
+
+  if ((lower.includes("search") || lower.includes("find")) && lower.includes("next step")) {
+    actions.push({ type: "search_workspace", query: extractNamedValue(latest, "next step") || context?.deal?.nextAction || "next step" });
+  }
+
+  return actions;
+}
+
 async function executeChatAction(input: {
-  db: D1Database | undefined;
+  env: CloudflareEnv;
   action: ChatActionRecord;
   context: z.infer<typeof ContextSchema>;
   actorEmail: string | null;
   index: number;
+  state: ChatActionState;
 }): Promise<ChatActionExecution> {
-  const { action, db, context, actorEmail, index } = input;
+  const { action, env, context, actorEmail, index, state } = input;
+  const db = env.DB;
   const type = action.type.trim();
 
-  if (EXTERNAL_ACTIONS.has(type)) {
-    return {
-      status: "blocked",
-      action_type: type,
-      message: "External communication, payment, and legal actions require explicit approval and were not executed from chat.",
-    };
+  if (EXTERNAL_ACTIONS.has(type) || EXPLICIT_APPROVAL_ACTIONS.has(type) || DESTRUCTIVE_ACTIONS.has(type)) {
+    return queuePreparedApproval({ db, action, context, actorEmail, state });
   }
 
   if (type === "create_deal") {
@@ -410,11 +630,13 @@ async function executeChatAction(input: {
       resource_id: deal.id,
       payload: { source: "agent_chat", deal_id: deal.id },
     });
+    state.lastDealId = deal.id;
+    registerActionRefs(state, action, deal.id, ["deal", "last_deal"]);
     return { status: "executed", action_type: type, resource_type: "deal", resource_id: deal.id, message: "Deal created." };
   }
 
   if (type === "update_deal" || type === "update_deal_stage") {
-    const dealId = stringValue(action.deal_id || action.dealId || action.id) || context?.deal?.id || (context?.kind === "deal" ? context.id || "" : "");
+    const dealId = resolveRef(action.deal_id || action.dealId || action.id, state) || state.lastDealId || context?.deal?.id || (context?.kind === "deal" ? context.id || "" : "");
     if (!dealId) return { status: "skipped", action_type: type, message: "update_deal requires a deal id." };
     const patch = normalizeDealPatch(action);
     if (type === "update_deal_stage" && !patch.stage) {
@@ -433,6 +655,8 @@ async function executeChatAction(input: {
       resource_id: deal.id,
       payload: { source: "agent_chat", deal_id: deal.id, changed_fields: Object.keys(patch) },
     });
+    state.lastDealId = deal.id;
+    registerActionRefs(state, action, deal.id, ["deal", "last_deal"]);
     return { status: "executed", action_type: type, resource_type: "deal", resource_id: deal.id, message: "Deal updated." };
   }
 
@@ -442,7 +666,7 @@ async function executeChatAction(input: {
     const dealFlow = await createDealFlow(db, {
       organization_id: DEFAULT_ORG_ID,
       name,
-      deal_id: nullableString(action.deal_id ?? action.dealId) || context?.deal?.id || null,
+      deal_id: resolveRef(action.deal_id ?? action.dealId, state) || state.lastDealId || context?.deal?.id || null,
       template: nullableString(action.template),
       created_by_user_id: actorEmail,
     });
@@ -455,15 +679,17 @@ async function executeChatAction(input: {
       resource_id: dealFlow.id,
       payload: { source: "agent_chat", dealflow_id: dealFlow.id },
     });
+    state.lastDealFlowId = dealFlow.id;
+    registerActionRefs(state, action, dealFlow.id, ["dealflow", "map", "last_dealflow"]);
     return { status: "executed", action_type: type, resource_type: "dealflow", resource_id: dealFlow.id, message: "DealFlow created." };
   }
 
   if (type === "update_dealflow" || type === "update_map") {
-    const dealFlowId = actionDealFlowId(action, context);
+    const dealFlowId = actionDealFlowId(action, context, state);
     if (!dealFlowId) return { status: "skipped", action_type: type, message: "update_dealflow requires a DealFlow id." };
     const patch = {
       ...(action.name !== undefined ? { name: stringValue(action.name) } : {}),
-      ...(action.deal_id !== undefined || action.dealId !== undefined ? { deal_id: nullableString(action.deal_id ?? action.dealId) } : {}),
+      ...(action.deal_id !== undefined || action.dealId !== undefined ? { deal_id: resolveRef(action.deal_id ?? action.dealId, state) || null } : {}),
       ...(action.template !== undefined ? { template: nullableString(action.template) } : {}),
     };
     const dealFlow = await updateDealFlow(db, dealFlowId, DEFAULT_ORG_ID, patch);
@@ -477,11 +703,13 @@ async function executeChatAction(input: {
       resource_id: dealFlow.id,
       payload: { source: "agent_chat", dealflow_id: dealFlow.id, changed_fields: Object.keys(patch) },
     });
+    state.lastDealFlowId = dealFlow.id;
+    registerActionRefs(state, action, dealFlow.id, ["dealflow", "map", "last_dealflow"]);
     return { status: "executed", action_type: type, resource_type: "dealflow", resource_id: dealFlow.id, message: "DealFlow updated." };
   }
 
   if (type === "add_node" || type === "create_node") {
-    const dealFlowId = actionDealFlowId(action, context);
+    const dealFlowId = actionDealFlowId(action, context, state);
     if (!dealFlowId) return { status: "skipped", action_type: type, message: "add_node requires a DealFlow id." };
     const existing = await getDealFlow(db, dealFlowId, DEFAULT_ORG_ID);
     if (!existing) return { status: "failed", action_type: type, resource_type: "dealflow", resource_id: dealFlowId, message: "DealFlow not found." };
@@ -509,12 +737,13 @@ async function executeChatAction(input: {
       resource_id: node.id,
       payload: { source: "agent_chat", dealflow_id: dealFlowId, node_id: node.id, kind },
     });
+    registerActionRefs(state, action, node.id, [`${kind}_node`, "last_node"]);
     return { status: "executed", action_type: type, resource_type: "dealflow_node", resource_id: node.id, message: "DealFlow node added." };
   }
 
   if (type === "update_node") {
-    const dealFlowId = actionDealFlowId(action, context);
-    const nodeId = stringValue(action.node_id || action.nodeId || action.id) || context?.selectedNode?.id || "";
+    const dealFlowId = actionDealFlowId(action, context, state);
+    const nodeId = resolveRef(action.node_id || action.nodeId || action.id, state) || context?.selectedNode?.id || "";
     if (!dealFlowId || !nodeId) return { status: "skipped", action_type: type, message: "update_node requires a DealFlow id and node id." };
     const kind = action.kind === undefined ? undefined : normalizeNodeKind(action.kind);
     const status = normalizeNodeStatus(action.status);
@@ -539,31 +768,14 @@ async function executeChatAction(input: {
       resource_id: node.id,
       payload: { source: "agent_chat", dealflow_id: dealFlowId, node_id: node.id, changed_fields: Object.keys(patch) },
     });
+    registerActionRefs(state, action, node.id, [`${node.kind}_node`, "last_node"]);
     return { status: "executed", action_type: type, resource_type: "dealflow_node", resource_id: node.id, message: "DealFlow node updated." };
   }
 
-  if (type === "delete_node" || type === "remove_node") {
-    const dealFlowId = actionDealFlowId(action, context);
-    const nodeId = stringValue(action.node_id || action.nodeId || action.id) || context?.selectedNode?.id || "";
-    if (!dealFlowId || !nodeId) return { status: "skipped", action_type: type, message: "delete_node requires a DealFlow id and node id." };
-    const removed = await deleteDealFlowNode(db, dealFlowId, nodeId);
-    if (!removed) return { status: "failed", action_type: type, resource_type: "dealflow_node", resource_id: nodeId, message: "Node not found." };
-    await publish(db, {
-      organization_id: DEFAULT_ORG_ID,
-      event_type: "dealflow.node_removed",
-      actor_type: "user",
-      actor_id: actorEmail,
-      resource_type: "dealflow_node",
-      resource_id: nodeId,
-      payload: { source: "agent_chat", dealflow_id: dealFlowId, node_id: nodeId },
-    });
-    return { status: "executed", action_type: type, resource_type: "dealflow_node", resource_id: nodeId, message: "DealFlow node deleted." };
-  }
-
   if (type === "add_edge" || type === "create_edge") {
-    const dealFlowId = actionDealFlowId(action, context);
-    const sourceNodeId = stringValue(action.source_node_id || action.sourceNodeId || action.source);
-    const targetNodeId = stringValue(action.target_node_id || action.targetNodeId || action.target);
+    const dealFlowId = actionDealFlowId(action, context, state);
+    const sourceNodeId = resolveRef(action.source_node_id || action.sourceNodeId || action.source, state);
+    const targetNodeId = resolveRef(action.target_node_id || action.targetNodeId || action.target, state);
     if (!dealFlowId || !sourceNodeId || !targetNodeId) return { status: "skipped", action_type: type, message: "add_edge requires a DealFlow id, source node id, and target node id." };
     if (sourceNodeId === targetNodeId) return { status: "skipped", action_type: type, message: "add_edge source and target must differ." };
     const existing = await getDealFlow(db, dealFlowId, DEFAULT_ORG_ID);
@@ -584,22 +796,63 @@ async function executeChatAction(input: {
       resource_id: edge.id,
       payload: { source: "agent_chat", dealflow_id: dealFlowId, edge_id: edge.id, source_node_id: sourceNodeId, target_node_id: targetNodeId },
     });
+    registerActionRefs(state, action, edge.id, ["edge", "last_edge"]);
     return { status: "executed", action_type: type, resource_type: "dealflow_edge", resource_id: edge.id, message: "DealFlow edge added." };
+  }
+
+  if (type === "search_workspace" || type === "search_next_step") {
+    const query =
+      stringValue(action.query) ||
+      stringValue(action.next_step) ||
+      stringValue(action.nextStep) ||
+      context?.deal?.nextAction ||
+      stringValue(action.label) ||
+      "next step";
+    if (!env.DB) {
+      return {
+        status: "executed",
+        action_type: type,
+        message: "Workspace search prepared; live DB is not bound in this environment.",
+        data: {
+          query,
+          refs: Object.fromEntries(state.refs),
+          last_deal_id: state.lastDealId,
+          last_dealflow_id: state.lastDealFlowId,
+        },
+      };
+    }
+    const search = await searchWorkspace(env, { query, organizationId: DEFAULT_ORG_ID, limit: 5 });
+    return {
+      status: "executed",
+      action_type: type,
+      message: search.results.length ? `Found ${search.results.length} workspace result(s).` : "No workspace results found.",
+      data: {
+        query: search.query,
+        results: search.results.map((result) => ({
+          type: result.type,
+          id: result.id,
+          title: result.title,
+          url: result.url,
+          score: result.score,
+        })),
+      },
+    };
   }
 
   return { status: "blocked", action_type: type, message: `Unsupported chat action type: ${type}.` };
 }
 
 async function executeChatActions(input: {
-  db: D1Database | undefined;
+  env: CloudflareEnv;
   actions: Array<{ type: string }>;
   context: z.infer<typeof ContextSchema>;
   actorEmail: string | null;
 }): Promise<ChatActionExecution[]> {
   const results: ChatActionExecution[] = [];
+  const state: ChatActionState = { refs: new Map() };
   for (const [index, action] of input.actions.entries()) {
     try {
-      results.push(await executeChatAction({ ...input, action: action as ChatActionRecord, index }));
+      results.push(await executeChatAction({ ...input, action: action as ChatActionRecord, index, state }));
     } catch (error) {
       results.push({
         status: "failed",
@@ -651,9 +904,10 @@ export async function POST(request: Request) {
     { AI: context.env.AI, ADGA_AI_MODEL: context.env.ADGA_AI_MODEL },
     { systemPrompt, messages },
   );
+  const actions = inferredServerActions(messages, parsed.data.context, result.actions);
   const actionResults = await executeChatActions({
-    db: context.env.DB,
-    actions: result.actions,
+    env: context.env,
+    actions,
     context: parsed.data.context,
     actorEmail: context.user.email || null,
   });
@@ -661,7 +915,7 @@ export async function POST(request: Request) {
   return json({
     ok: true,
     message: result.message,
-    actions: result.actions,
+    actions,
     action_results: actionResults,
     meta: {
       model: result.model,

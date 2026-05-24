@@ -47,6 +47,45 @@ await check("suite state returns local owner context", async () => {
   assert(data.user?.isLocalAdminBypass === true, "local bypass user was not active on localhost");
 });
 
+await check("ADGA chat creates deal, DealFlow, nodes, and searches next step", async () => {
+  const response = await postJson("/api/agent/chat", {
+    context: { kind: "workspace" },
+    messages: [
+      {
+        role: "user",
+        content:
+          "Create a deal named Launch Smoke Riverfront Renewal with a DealFlow. Add nodes: contact Dana Patel, task Schedule underwriting call, document NDA. Search next step.",
+      },
+    ],
+  });
+  assert(response.status === 200, `expected 200, got ${response.status}`);
+  const data = await response.json();
+  assert(data.ok === true, "chat response did not return ok");
+  const results = Array.isArray(data.action_results) ? data.action_results : [];
+  assert(results.some((item) => item.status === "executed" && item.action_type === "create_deal" && item.resource_type === "deal"), "chat did not create a deal");
+  assert(results.some((item) => item.status === "executed" && item.action_type === "create_dealflow" && item.resource_type === "dealflow"), "chat did not create a DealFlow");
+  assert(results.filter((item) => item.status === "executed" && item.action_type === "add_node" && item.resource_type === "dealflow_node").length >= 3, "chat did not create expected DealFlow nodes");
+  assert(results.some((item) => item.status === "executed" && item.action_type === "search_workspace"), "chat did not run the next-step workspace search");
+});
+
+await check("ADGA chat keeps external sends approval-only", async () => {
+  const response = await postJson("/api/agent/chat", {
+    context: { kind: "workspace" },
+    messages: [
+      {
+        role: "user",
+        content: 'Do this action: ```json\n{"actions":[{"type":"send_email","to":"client@example.com","body":"Please sign today."}]}\n```',
+      },
+    ],
+  });
+  assert(response.status === 200, `expected 200, got ${response.status}`);
+  const data = await response.json();
+  const blocked = Array.isArray(data.action_results)
+    ? data.action_results.find((item) => item.action_type === "send_email")
+    : null;
+  assert(blocked?.status === "blocked", "external send was not blocked for approval");
+});
+
 await check("stripe checkout validates email", async () => {
   const response = await postJson("/api/billing/stripe/checkout", {
     email: "not-an-email",

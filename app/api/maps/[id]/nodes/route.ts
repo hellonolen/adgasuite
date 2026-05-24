@@ -5,8 +5,7 @@ import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { bulkUpdateDealFlowNodePositions, createDealFlowNode, getDealFlow } from "@/lib/server/repository";
 import { storeJsonPayload } from "@/lib/server/payload-storage";
 import { publish } from "@/lib/events/bus";
-
-const DEFAULT_ORG_ID = "org_adga_primary";
+import { organizationIdForSession } from "@/lib/server/tenant";
 
 const NODE_KINDS = ["deal", "group", "contact", "company", "bank", "document", "email", "website", "audio", "video", "task", "call", "call_step", "meeting", "journey_step", "invoice", "financial", "action"] as const;
 const NODE_STATUSES = ["neutral", "active", "warning", "overdue", "done"] as const;
@@ -17,9 +16,10 @@ async function requireSessionAndDealFlow(request: Request, dealFlowId: string) {
   if (!sessionUser && !context.user.isLocalAdminBypass) {
     return { unauthorized: true as const };
   }
-  const map = await getDealFlow(context.env.DB, dealFlowId, DEFAULT_ORG_ID);
+  const organizationId = organizationIdForSession(sessionUser);
+  const map = await getDealFlow(context.env.DB, dealFlowId, organizationId);
   if (!map) return { notFound: true as const, context };
-  return { context, sessionUser, map };
+  return { context, sessionUser, map, organizationId };
 }
 
 const createNodeSchema = z.object({
@@ -58,7 +58,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     ? await storeJsonPayload({
         env: auth.context.env,
         db: auth.context.env.DB,
-        organization_id: DEFAULT_ORG_ID,
+        organization_id: auth.organizationId,
         resource_type: "dealflow_node",
         resource_id: node.id,
         payload,
@@ -71,7 +71,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       .run();
   }
   await publish(auth.context.env.DB, {
-    organization_id: DEFAULT_ORG_ID,
+    organization_id: auth.organizationId,
     event_type: "dealflow.node_added",
     actor_type: "user",
     actor_id: auth.sessionUser?.email || auth.context.user.email || null,
@@ -109,7 +109,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const updated = await bulkUpdateDealFlowNodePositions(auth.context.env.DB, id, parsed.data.positions);
   if (updated > 0) {
     await publish(auth.context.env.DB, {
-      organization_id: DEFAULT_ORG_ID,
+      organization_id: auth.organizationId,
       event_type: "dealflow.nodes_moved",
       actor_type: "user",
       actor_id: auth.sessionUser?.email || auth.context.user.email || null,

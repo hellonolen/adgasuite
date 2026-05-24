@@ -38,7 +38,7 @@ Communication actions should never stand alone. SMS, voice notes, calls, emails,
 - Do not send an outbound message without a resource trace unless the user explicitly creates a general message.
 - Internal deal-team communication stays private unless a user explicitly marks it client-visible.
 - Client-visible deal communication must attach to both the represented client and the deal.
-- Customer-facing outbound email, SMS, calendar invite copy, and post-call follow-up must route through `cloudflare/state/prepared-action.schema.json` unless policy explicitly marks it safe.
+- Customer-facing outbound email, SMS, external calls, calendar invite copy, and post-call follow-up must route through `cloudflare/state/prepared-action.schema.json` unless policy explicitly marks it safe.
 - Communication touchpoints that change deal context should update or reference `cloudflare/state/deal-memory.schema.json`.
 - Do not store audio file bodies in D1.
 - Do not treat Postmark as SMS.

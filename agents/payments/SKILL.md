@@ -23,7 +23,7 @@ Owns tenant payout setup, invoice payment connectors, platform transaction fees,
 - Do not store card numbers or payment secrets in D1.
 - Do not recreate QuickBooks; treat QuickBooks as an accounting/payment connector.
 - Do not send money or mark an invoice paid without a connector event or owner action.
-- Do not create payment links, payout actions, connector changes, or paid-state changes outside the approval/audit contract.
+- Do not create payment links, payout actions, connector changes, invoice sends, or paid-state changes outside the prepared approval/audit contract.
 - Enforce the platform fee cap of 5%.
 - Every connector event must attach to a tenant, owner, invoice, or deal record.
 - Affiliate payouts STOP when `fraud_flag` is set. Resume only after admin review.
