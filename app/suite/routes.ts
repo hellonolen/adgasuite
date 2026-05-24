@@ -42,7 +42,7 @@ export interface SuiteRoute {
 
 export const SUITE_ROUTES: SuiteRoute[] = [
   // Top — the platform's primitives. A deal opens onto its canvas.
-  { id: "home",         path: "/suite",             label: "Home",         section: "",          capabilities: ["deal.read", "task.read"] },
+  { id: "home",         path: "/suite",             label: "Home",         section: "HIDDEN",    capabilities: ["deal.read", "task.read"] },
   { id: "maps",         path: "/suite/deals",       label: "Deals",        section: "",          capabilities: ["map.read", "map.create", "deal.read"] },
 
   // Lens views — every entry below is a projection of the same deal data.
