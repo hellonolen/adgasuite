@@ -150,9 +150,9 @@ export default function ProductPage() {
           <div className="hero-pill">
             <span className="hero-pill-dot" /> Platform
           </div>
-          <h1 className="hero-display">The deal flow platform, end to end.</h1>
+          <h1 className="hero-display">Stop losing deals to slipped follow-ups. Close 40% more &mdash; without changing how you sell.</h1>
           <p className="hero-lede-center">
-            Every contact, file, call, and next action attached to one deal record — across every stage from first signal to repeat purchase.
+            For closers, dealmakers, and operators who carry the number. Every contact, file, call, commitment, and next move locked to the deal — surfaced when it&rsquo;s time to act, traceable across every stage from first signal to repeat purchase.
           </p>
           <div className="hero-ctas" style={{ gap: 12, display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
             <a href="/pricing" className="btn primary lg">See pricing</a>

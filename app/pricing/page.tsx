@@ -32,7 +32,7 @@ const EVERY_PLAN = [
   { label: "Unlimited contacts", body: "Every person on every deal, no per-record fees." },
   { label: "Magic-link sign in", body: "No password resets, no SSO setup tax." },
   { label: "Voice notes + transcription", body: "Talk through a deal, get text instantly." },
-  { label: "Eight-stage deal process", body: "Signal → Capture → Qualify → Shape → Advance → Close → Deliver → Expand." },
+  { label: "Nine-stage deal process", body: "Lead → Qualify → Discover → Scope → Design → Close → Sign → Deliver → Expand." },
   { label: "Live deal map per deal", body: "Every contact, file, call, task on one canvas." },
   { label: "Auto-saved every keystroke", body: "Nothing lost when a tab closes." },
 ];
@@ -44,7 +44,7 @@ const COMPARISON_GROUPS: Array<{ section: string; rows: Array<[string, string | 
       ["Active deals", "Unlimited", "Unlimited", "Unlimited"],
       ["Contacts and companies", "Unlimited", "Unlimited", "Unlimited"],
       ["Files in storage (R2)", "20 GB", "200 GB", "Custom"],
-      ["Eight-stage deal process", true, true, true],
+      ["Nine-stage deal process", true, true, true],
       ["Live deal map per deal", true, true, true],
       ["Voice notes with transcription", true, true, true],
       ["Deal templates", "13", "13", "13 + custom"],
@@ -181,11 +181,11 @@ export default function PricingPage() {
           <div className="hero-pill" style={{ marginBottom: 18 }}>
             <span className="hero-pill-dot" /> Pricing
           </div>
-          <h1 style={{ fontSize: "clamp(40px, 6vw, 64px)", lineHeight: 1.05, letterSpacing: "-0.02em", margin: "0 auto 16px", maxWidth: "16ch" }}>
-            Pricing that scales with the deal.
+          <h1 style={{ fontSize: "clamp(40px, 6vw, 64px)", lineHeight: 1.05, letterSpacing: "-0.02em", margin: "0 auto 16px", maxWidth: "18ch" }}>
+            Where closers close more. Pick your configuration.
           </h1>
           <p style={{ fontSize: 17, lineHeight: 1.55, color: "var(--adga-text-2, #6b6760)", maxWidth: "60ch", margin: "0 auto 0" }}>
-            One operator, a closing team, or a whole firm. Same deal flow platform. No record caps, no per-contact fees, no AI add-ons. Move money, keep the wheel.
+            Run your own book as a Pro. Bring on your team. Scale to Enterprise. Same deal flow, same outcome — more closed deals every quarter, fewer dropped along the way. No record caps, no per-contact fees, no AI add-ons.
           </p>
         </section>
 

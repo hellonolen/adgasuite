@@ -3926,12 +3926,14 @@ function IntelligencePage({ deals }) {
           <div className="card-b">
             <div style={{display:'flex',flexDirection:'column',gap:10,fontSize:13}}>
               {[
-                ['Lead → Qualifying', 62, '38'],
-                ['Qualifying → Discovery', 78, '24'],
-                ['Discovery → Proposal', 71, '21'],
-                ['Proposal → Negotiation', 65, '14'],
-                ['Negotiation → Closing', 84, '8'],
-                ['Closing → Won', 92, '5'],
+                ['Lead → Qualify', 62, '4'],
+                ['Qualify → Discover', 78, '6'],
+                ['Discover → Scope', 71, '9'],
+                ['Scope → Design', 65, '11'],
+                ['Design → Close', 70, '8'],
+                ['Close → Sign', 84, '5'],
+                ['Sign → Deliver', 96, '2'],
+                ['Deliver → Expand', 38, '90'],
               ].map(([l, p, d]) => (
                 <div key={l}>
                   <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>

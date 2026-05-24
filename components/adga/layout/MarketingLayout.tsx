@@ -80,7 +80,7 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
             ADGA
           </a>
           <p style={{marginTop: 10, fontSize: '12.5px', color: 'var(--adga-text-2)', maxWidth: '36ch'}}>
-            ADGA is the AI deal flow suite for lead capture, client work, follow-up, documents, meetings, invoices, and deal execution.
+            More closed deals every quarter. Fewer dropped along the way. For the closers, dealmakers, and operators who carry the number.
           </p>
         </div>
         <div className="foot-cols">

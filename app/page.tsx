@@ -106,11 +106,11 @@ export default function HomePage() {
       <div className="wrap">
         <section className="hero hero-center">
           <div className="hero-pill">
-            <span className="hero-pill-dot" /> Built for closing teams
+            <span className="hero-pill-dot" /> For closers, dealmakers, and operators
           </div>
-          <h1 className="hero-display">Built to close deals.</h1>
+          <h1 className="hero-display">Add 6 closed deals to your quarter &mdash; without hiring another rep.</h1>
           <p className="hero-lede-center">
-            ADGA is the deal flow platform that keeps every contact, call, document, and next action tied to the deal — so closes happen on schedule, not by accident.
+            For the closers, dealmakers, and operators who carry the number. Every contact, every call, every document, every next move — locked to the deal, surfaced when it&rsquo;s time to act, never lost in a follow-up that slipped.
           </p>
           <div className="hero-ctas">
             <a href="/pricing" className="btn primary lg">Start closing deals</a>

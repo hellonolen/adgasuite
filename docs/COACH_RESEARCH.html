@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Coach Research</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f9f7f4;
+    --sidebar-bg: #f1ede8;
+    --surface: #ffffff;
+    --rule: #e8e4de;
+    --rule-strong: #ccc8c2;
+    --ink: #0d0c0a;
+    --ink-2: #3a3833;
+    --ink-3: #6b6760;
+    --accent: #5d2cd6;
+    --accent-soft: rgba(93, 44, 214, 0.08);
+    --accent-deep: #3d1d92;
+    --serif: 'Cormorant Garamond', 'Times New Roman', serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    --sidebar-w: 280px;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { color-scheme: light; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--ink-2);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    min-height: 100vh;
+  }
+
+  aside.sidebar {
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--rule);
+    padding: 32px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  aside.sidebar::-webkit-scrollbar { width: 6px; }
+  aside.sidebar::-webkit-scrollbar-track { background: transparent; }
+  aside.sidebar::-webkit-scrollbar-thumb { background: var(--rule-strong); border-radius: 3px; }
+
+  .sidebar-header {
+    padding: 0 28px 28px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 24px;
+  }
+  .sidebar-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sidebar-eyebrow::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .sidebar-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 28px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .sidebar-section {
+    padding: 0 16px;
+    margin-bottom: 28px;
+  }
+  .sidebar-section-label {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 0 12px 10px;
+    display: block;
+  }
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 4px;
+    font-size: 13.5px;
+    color: var(--ink-2);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+    text-decoration: none;
+    line-height: 1.3;
+    user-select: none;
+  }
+  .nav-item:hover {
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .nav-item.active {
+    background: var(--surface);
+    color: var(--ink);
+    border-color: var(--rule);
+    font-weight: 500;
+  }
+  .nav-item.active .nav-num {
+    color: var(--accent);
+  }
+  .nav-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    min-width: 18px;
+  }
+  .nav-label { flex: 1; }
+
+  main.content {
+    padding: 64px 64px 96px;
+    max-width: 920px;
+    overflow-x: hidden;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fade 0.22s ease; }
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 14px;
+  }
+  .panel-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(40px, 5.5vw, 64px);
+    line-height: 1.02;
+    letter-spacing: -0.022em;
+    color: var(--ink);
+    margin: 0 0 14px;
+  }
+  .panel-lede {
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 60ch;
+    margin: 0 0 40px;
+  }
+
+  h3 {
+    font-family: var(--sans);
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--ink);
+    margin: 40px 0 16px;
+    letter-spacing: -0.005em;
+  }
+  h3.section-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 32px 0 12px;
+  }
+  p { margin: 0 0 16px; }
+  strong { color: var(--ink); font-weight: 500; }
+  em { font-style: italic; }
+  ul, ol { margin: 0 0 20px; padding-left: 24px; }
+  li { margin-bottom: 6px; line-height: 1.6; }
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: 24px 0;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--surface);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  th, td {
+    text-align: left;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th {
+    background: var(--sidebar-bg);
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  td strong { color: var(--ink); font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--accent-soft); }
+
+  blockquote {
+    margin: 28px 0;
+    padding: 22px 26px;
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--ink);
+    font-weight: 400;
+  }
+  blockquote p { margin: 0; }
+  blockquote + p.attribution {
+    margin-top: -14px;
+    margin-bottom: 28px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .insight {
+    margin: 28px 0;
+    padding: 26px 30px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+  }
+  .insight h3 {
+    margin-top: 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 1.15;
+    color: var(--ink);
+    letter-spacing: -0.015em;
+  }
+  .insight-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .who-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-right: 4px;
+  }
+
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(93, 44, 214, 0.3); }
+  a:hover { border-bottom-color: var(--accent); }
+
+  .sources-group { margin-bottom: 28px; }
+  .sources-group h3 {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 10px;
+  }
+  .sources-group ul { list-style: none; padding: 0; margin: 0; }
+  .sources-group li { margin-bottom: 5px; font-size: 13.5px; line-height: 1.55; }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 40px 0 48px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 24px;
+  }
+  .stat-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 56px;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .mobile-toggle {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    aside.sidebar {
+      position: fixed;
+      width: var(--sidebar-w);
+      transform: translateX(-100%);
+      transition: transform 0.25s;
+      z-index: 9;
+      box-shadow: 0 0 40px rgba(0,0,0,0.1);
+    }
+    aside.sidebar.open { transform: translateX(0); }
+    main.content { padding: 72px 24px 80px; max-width: 100%; }
+    .mobile-toggle { display: block; }
+    .panel-title { font-size: 36px; }
+    .stat-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">Menu</button>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-eyebrow">Research Archive</div>
+    <h1 class="sidebar-title">Coach Research</h1>
+  </div>
+
+  <div class="sidebar-section">
+    <span class="sidebar-section-label">Overview</span>
+    <div class="sidebar-nav">
+      <a class="nav-item active" data-panel="overview"><span class="nav-num">00</span><span class="nav-label">Introduction</span></a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <span class="sidebar-section-label">Coaches</span>
+    <div class="sidebar-nav">
+      <a class="nav-item" data-panel="fletcher"><span class="nav-num">01</span><span class="nav-label">Aaron Fletcher</span></a>
+      <a class="nav-item" data-panel="deiss"><span class="nav-num">02</span><span class="nav-label">Ryan Deiss</span></a>
+      <a class="nav-item" data-panel="brunson"><span class="nav-num">03</span><span class="nav-label">Russell Brunson</span></a>
+      <a class="nav-item" data-panel="hormozi"><span class="nav-num">04</span><span class="nav-label">Alex Hormozi</span></a>
+      <a class="nav-item" data-panel="miller"><span class="nav-num">05</span><span class="nav-label">Donald Miller</span></a>
+      <a class="nav-item" data-panel="holmes"><span class="nav-num">06</span><span class="nav-label">Chet Holmes</span></a>
+      <a class="nav-item" data-panel="abraham"><span class="nav-num">07</span><span class="nav-label">Jay Abraham</span></a>
+      <a class="nav-item" data-panel="kern"><span class="nav-num">08</span><span class="nav-label">Frank Kern</span></a>
+      <a class="nav-item" data-panel="ovens"><span class="nav-num">09</span><span class="nav-label">Sam Ovens</span></a>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <span class="sidebar-section-label">Reference</span>
+    <div class="sidebar-nav">
+      <a class="nav-item" data-panel="industry"><span class="nav-num">10</span><span class="nav-label">Industry Frameworks</span></a>
+      <a class="nav-item" data-panel="comparison"><span class="nav-num">11</span><span class="nav-label">Comparison Table</span></a>
+      <a class="nav-item" data-panel="insights"><span class="nav-num">12</span><span class="nav-label">Field Observations</span></a>
+      <a class="nav-item" data-panel="sources"><span class="nav-num">13</span><span class="nav-label">All Sources</span></a>
+    </div>
+  </div>
+</aside>
+
+<main class="content">
+
+<section class="panel active" id="overview">
+  <span class="panel-tag">Research Archive</span>
+  <h1 class="panel-title">Nine coaches. Their frameworks. Their sources.</h1>
+  <p class="panel-lede">A study of nine sales, marketing, and business coaches and their published frameworks. Each entry captures who they are, what they built, their core concepts, and where their work can be verified.</p>
+
+  <div class="stat-row">
+    <div class="stat"><span class="stat-num">9</span><span class="stat-label">Coaches profiled</span></div>
+    <div class="stat"><span class="stat-num">6</span><span class="stat-label">Industry frameworks</span></div>
+    <div class="stat"><span class="stat-num">8</span><span class="stat-label">Field observations</span></div>
+  </div>
+
+  <h3>How to use this archive</h3>
+  <p>Click any coach in the left sidebar to read their framework, core concepts, and key quotes. Use the Reference section for cross-coach comparisons, field observations, and source links.</p>
+</section>
+
+<section class="panel" id="fletcher">
+  <span class="panel-tag">01 · Coach</span>
+  <h1 class="panel-title">Aaron Fletcher</h1>
+  <p class="panel-lede">Founder of Fletcher Method, Inc. Built a 9-step online marketing system organized in three phases. Over 6,000 entrepreneurs have used it.</p>
+
+  <p><span class="who-label">Background</span> Spent ~15 years working with large Silicon Valley brands (Nolo, Caring) and small business marketing before launching Fletcher Method in 2012.</p>
+
+  <h3 class="section-eyebrow">The 9 Steps in 3 Phases</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Phase</th><th>Theme</th><th>#</th><th>Step</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="3"><strong>Foundation</strong></td><td rowspan="3">Anonymous → Intimate</td><td>1</td><td>Avatar</td><td>Find the ideal customer</td></tr>
+      <tr><td>2</td><td>Message</td><td>Million Dollar Message — one powerful sentence</td></tr>
+      <tr><td>3</td><td>Offer</td><td>Product Ladder — map pricing across products</td></tr>
+      <tr><td rowspan="3"><strong>Sales Funnel</strong></td><td rowspan="3">Leaky Bucket → Airtight</td><td>4</td><td>Signature Solution</td><td>Visual representation of your unique process</td></tr>
+      <tr><td>5</td><td>Swim Lanes Funnel</td><td>5-Minute Funnel Finder</td></tr>
+      <tr><td>6</td><td>Ultimate Lead Magnet</td><td>Educational piece that converts strangers</td></tr>
+      <tr><td rowspan="3"><strong>Traffic</strong></td><td rowspan="3">Slot Machine → ATM</td><td>7</td><td>Facebook Ads Floodgates</td><td>One paid traffic source with positive ROI</td></tr>
+      <tr><td>8</td><td>Publishing Powerhouse</td><td>6-step content marketing</td></tr>
+      <tr><td>9</td><td>Ranking Rulebook</td><td>SEO — invisible to unmissable</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Key Concepts</h3>
+  <ul>
+    <li><strong>Frameworks as currency</strong> — "An ever-growing repository of one-page cheat sheets that cut out 95% of the time and frustration."</li>
+    <li><strong>Sequence matters</strong> — "The power of frameworks lies in completing them accurately and in order."</li>
+    <li><strong>Nested sub-frameworks</strong> — Each of the 9 steps contains its own internal framework.</li>
+    <li><strong>Authority Amplifier</strong> — Bridge framework between Lead Magnet and conversion event.</li>
+  </ul>
+</section>
+
+<section class="panel" id="deiss">
+  <span class="panel-tag">02 · Coach</span>
+  <h1 class="panel-title">Ryan Deiss</h1>
+  <p class="panel-lede">Founder of DigitalMarketer. Creator of "Customer Value Optimization." Built an 8-stage customer journey for moving customers from a less desirable BEFORE state to a more desirable AFTER state.</p>
+
+  <p><span class="who-label">Background</span> Inspired in part by Desmond Morris (12 stages of human courtship); Deiss condensed it to 8 for marketing.</p>
+
+  <h3 class="section-eyebrow">The 8 Stages</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Stage</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Aware</strong></td><td>First discovery — ads, blogs, social, word-of-mouth</td></tr>
+      <tr><td>2</td><td><strong>Engage</strong></td><td>Build connection through helpful content</td></tr>
+      <tr><td>3</td><td><strong>Subscribe</strong></td><td>Trade something valuable for their email</td></tr>
+      <tr><td>4</td><td><strong>Convert</strong></td><td>Small first action — trial, sample, entry offer ($8–$20)</td></tr>
+      <tr><td>5</td><td><strong>Excite</strong></td><td>Dopamine hit — memorable experience, quick wins</td></tr>
+      <tr><td>6</td><td><strong>Ascend</strong></td><td>Move up the value ladder — where real profit happens</td></tr>
+      <tr><td>7</td><td><strong>Advocate</strong></td><td>Ask for reviews, testimonials — passive promotion</td></tr>
+      <tr><td>8</td><td><strong>Promote</strong></td><td>Active promotion — affiliate, referral, true belief</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Phase Grouping</h3>
+  <ul>
+    <li><strong>Acquire</strong> — Aware, Engage, Subscribe</li>
+    <li><strong>Monetize</strong> — Convert, Excite</li>
+    <li><strong>Maximize</strong> — Ascend, Advocate, Promote</li>
+  </ul>
+
+  <blockquote>"No matter what you're selling, your product or service is a vehicle that transports people from a less desirable before state to a more desirable after state."</blockquote>
+  <p class="attribution">— Ryan Deiss</p>
+</section>
+
+<section class="panel" id="brunson">
+  <span class="panel-tag">03 · Coach</span>
+  <h1 class="panel-title">Russell Brunson</h1>
+  <p class="panel-lede">Founder of ClickFunnels. Author of <em>DotCom Secrets</em> (2015). Built a pricing and offer architecture where customers ascend a sequence of offers from low-risk entry points to high-ticket continuity.</p>
+
+  <h3 class="section-eyebrow">The 5 Rungs of the Value Ladder</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Rung</th><th>Name</th><th>Price Range</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Bait</strong></td><td>Free–$7</td><td>Lead magnets, tripwires — acquisition and trust-building</td></tr>
+      <tr><td>2</td><td><strong>Frontend</strong></td><td>$100–$2,000</td><td>Core product — main transformation</td></tr>
+      <tr><td>3</td><td><strong>Backend</strong></td><td>$2,000–$25,000</td><td>Coaching programs, live events</td></tr>
+      <tr><td>4</td><td><strong>Summit</strong></td><td>$25,000+</td><td>Inner Circle, mastermind, top-tier</td></tr>
+      <tr><td>5</td><td><strong>Continuity</strong></td><td>Recurring</td><td>Subscription, membership — long-term LTV</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>ClickFunnels' Own Value Ladder</h3>
+  <ul>
+    <li>Bait: Free book (DotCom Secrets) — $7.95 shipping</li>
+    <li>Frontend: ClickFunnels software ($97–$297/month)</li>
+    <li>Backend: Funnel Hacking Live ($997), Two Comma Club Coaching ($10K–$25K)</li>
+    <li>Summit: Inner Circle Mastermind ($50K/year)</li>
+  </ul>
+
+  <blockquote>"If someone doesn't have an actual Value Ladder, they don't have a business; they are just selling a product."</blockquote>
+  <p class="attribution">— Russell Brunson</p>
+</section>
+
+<section class="panel" id="hormozi">
+  <span class="panel-tag">04 · Coach</span>
+  <h1 class="panel-title">Alex Hormozi</h1>
+  <p class="panel-lede">Founder of Acquisition.com. Author of <em>$100M Offers</em>, <em>$100M Leads</em>, and <em>$100M Money Models</em>. Built and scaled multiple businesses to nine figures.</p>
+
+  <h3 class="section-eyebrow">$100M Leads — The Core Four</h3>
+  <ul>
+    <li>Warm outreach</li>
+    <li>Cold outreach</li>
+    <li>Free content (posting)</li>
+    <li>Paid ads</li>
+  </ul>
+
+  <h3 class="section-eyebrow">Customer Journey (3 stages)</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Stage</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Attract</strong></td><td>Lead Magnet that solves a small but significant problem</td></tr>
+      <tr><td>2</td><td><strong>Engage</strong></td><td>Hook-Retain-Reward system to keep them moving</td></tr>
+      <tr><td>3</td><td><strong>Scale</strong></td><td>Leverage (customers, employees, agencies, affiliates do it)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="section-eyebrow">$100M Money Models</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Stage</th><th>Goal</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Get Cash</strong></td><td>Attraction Offer — get new customers for less</td></tr>
+      <tr><td><strong>Get More Cash</strong></td><td>Upsells and downsells — make more money faster</td></tr>
+      <tr><td><strong>Get the Most Cash</strong></td><td>Continuity offers — maximum LTV</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Key Concepts</h3>
+  <ul>
+    <li><strong>Rule of 100</strong> — 100 marketing actions every day for 100 consecutive days</li>
+    <li><strong>Constraint analysis</strong> — find where leads drop off; small improvements at the constraint = big impact</li>
+    <li><strong>Lead Magnet quality</strong> — solve a small but significant problem completely</li>
+  </ul>
+
+  <blockquote>"Going from 100 leads a day to 20,000 leads a day comes from leverage."</blockquote>
+  <p class="attribution">— Alex Hormozi (paraphrased)</p>
+</section>
+
+<section class="panel" id="miller">
+  <span class="panel-tag">05 · Coach</span>
+  <h1 class="panel-title">Donald Miller</h1>
+  <p class="panel-lede">Author of <em>Building a StoryBrand</em>. Founder of StoryBrand and Business Made Simple. Built the framework on the hero's journey — a messaging structure that makes the customer the hero and the brand the guide.</p>
+
+  <h3 class="section-eyebrow">The 7 Parts</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Part</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Character</strong></td><td>The hero is your customer, not your brand</td></tr>
+      <tr><td>2</td><td><strong>Problem</strong></td><td>External (surface) + Internal (feeling) + Philosophical ("this shouldn't be this hard")</td></tr>
+      <tr><td>3</td><td><strong>Guide</strong></td><td>You are the guide — empathy + authority</td></tr>
+      <tr><td>4</td><td><strong>Plan</strong></td><td>Simple 3-step plan that makes saying yes easy</td></tr>
+      <tr><td>5</td><td><strong>Call to Action</strong></td><td>Primary ("Schedule a Call") + Secondary ("Download the Guide")</td></tr>
+      <tr><td>6</td><td><strong>Avoid Failure</strong></td><td>Stakes — what they lose if they don't act</td></tr>
+      <tr><td>7</td><td><strong>Success</strong></td><td>Paint the after-picture — what life looks like solved</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Paradigm Shift</h3>
+  <p>The customer is the hero. Your brand is the guide. Most brands position themselves as the hero, which is a major mistake.</p>
+
+  <blockquote>"Never assume people understand how your brand can change their lives. Tell them."</blockquote>
+  <p class="attribution">— Donald Miller</p>
+</section>
+
+<section class="panel" id="holmes">
+  <span class="panel-tag">06 · Coach</span>
+  <h1 class="panel-title">Chet Holmes</h1>
+  <p class="panel-lede">Author of <em>The Ultimate Sales Machine</em>. Trained Fortune 500 sales teams. Built the Buyer's Pyramid and Stadium Pitch frameworks.</p>
+
+  <p><span class="who-label">Updated by</span> Amanda Holmes (CEO of Chet Holmes International) introduced the Inverted Buyer's Pyramid in the updated edition.</p>
+
+  <h3 class="section-eyebrow">The Buyer's Pyramid</h3>
+  <p>At any given moment, in any market:</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>%</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td><strong>3%</strong></td><td>Buying now</td></tr>
+      <tr><td><strong>7%</strong></td><td>Open to buying</td></tr>
+      <tr><td><strong>30%</strong></td><td>Not thinking about it</td></tr>
+      <tr><td><strong>30%</strong></td><td>Don't think they're interested</td></tr>
+      <tr><td><strong>30%</strong></td><td>Definitely not interested</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Data was empirically derived: Chet polled audiences of thousands at live events.</p>
+
+  <h3>The Stadium Pitch</h3>
+  <p>Imagine all your leads in a stadium. If you talk about your product, <strong>90% would leave</strong>. The Stadium Pitch gets the entire pyramid to stay by leading with <strong>education-based marketing</strong>, not sales pitches.</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>❌ Bad</th><th>✅ Good</th></tr></thead>
+    <tbody>
+      <tr><td>"The 5 ways our office equipment can benefit you" — appeals to 10%</td><td>"The 5 ways you're wasting money in operations" — keeps the whole stadium</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>The Inverted Buyer's Pyramid</h3>
+  <ol>
+    <li><strong>Global Pain</strong> — Universal pain that catches the entire pyramid</li>
+    <li><strong>Targeted Pain</strong> — Then narrow to your specific problem domain</li>
+  </ol>
+
+  <h3>Red Ocean / Blue Ocean</h3>
+  <ul>
+    <li><strong>Red Ocean</strong> — the 3% buying now (everyone fighting for them)</li>
+    <li><strong>Blue Ocean</strong> — the 97% who are latent (open to education)</li>
+  </ul>
+</section>
+
+<section class="panel" id="abraham">
+  <span class="panel-tag">07 · Coach</span>
+  <h1 class="panel-title">Jay Abraham</h1>
+  <p class="panel-lede">One of the world's most renowned business strategists. Framework first articulated in the 1980s. Underpins many modern coaching/consultancy frameworks.</p>
+
+  <h3 class="section-eyebrow">The 3 Pillars</h3>
+  <p>Every business grows in exactly three ways. Pull all three levers and growth becomes <strong>geometric</strong>, not linear.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Lever</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Increase the number of clients</strong></td><td>New customer acquisition</td></tr>
+      <tr><td>2</td><td><strong>Increase the average transaction value</strong></td><td>Each customer buys more per checkout</td></tr>
+      <tr><td>3</td><td><strong>Increase the frequency of purchases</strong></td><td>Existing customers buy more often</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <blockquote>"Do any one and you can grow in a linear manner... But when you leverage all 3 at the same time, the business growth will be explosive."</blockquote>
+  <p class="attribution">— Jay Abraham</p>
+
+  <p>If you improve each pillar by 10%, the combined effect is multiplicative, not additive. Most businesses obsess over Pillar 1 — the most expensive and least leveraged path. The breakthrough is dedicating equal attention to Pillars 2 and 3.</p>
+</section>
+
+<section class="panel" id="kern">
+  <span class="panel-tag">08 · Coach</span>
+  <h1 class="panel-title">Frank Kern</h1>
+  <p class="panel-lede">Direct-response marketer. Creator of Behavioral Dynamic Response (BDR) and Intent Based Branding (IBB).</p>
+
+  <h3 class="section-eyebrow">Behavioral Dynamic Response</h3>
+  <p>An automated marketing method that <strong>customizes messaging based on the prospect's behavior</strong>, instead of putting everyone on the same conveyor belt.</p>
+  <ul>
+    <li><strong>Profit from the No</strong> — many prospects won't buy first time; use trust-building over time</li>
+    <li><strong>Response Indicators</strong> — specific actions (started video, finished video, clicked link) that tell you where they are</li>
+    <li><strong>Customized Messaging</strong> — each behavior triggers a different, targeted follow-up</li>
+  </ul>
+
+  <h3>Intent Based Branding</h3>
+  <p>A method to make prospects <strong>know, like, and trust</strong> your business before you ever try to sell. Trust is the bridge between product and customer.</p>
+
+  <h3>The 4-Stage Trust Cycle</h3>
+  <p style="font-family: var(--mono); font-size: 14px; letter-spacing: 0.06em; color: var(--ink);">Know → Like → Trust → Buy</p>
+</section>
+
+<section class="panel" id="ovens">
+  <span class="panel-tag">09 · Coach</span>
+  <h1 class="panel-title">Sam Ovens</h1>
+  <p class="panel-lede">Founder of Consulting.com. Built one of the largest consulting training programs in the world.</p>
+
+  <h3 class="section-eyebrow">Two Main Programs</h3>
+  <ul>
+    <li><strong>Consulting Accelerator</strong> (foundational) — 6-week program to build a six-figure consulting business. Promises first client within 42 days.</li>
+    <li><strong>UpLevel Consulting</strong> (scaling) — for consultants going from six to seven figures.</li>
+  </ul>
+
+  <h3 class="section-eyebrow">Three Pillars</h3>
+  <ol>
+    <li>Rewire your brain — be a new person</li>
+    <li>Find a niche and offer that provides real value</li>
+    <li>Build a proven, repeatable process to attract/convert clients</li>
+  </ol>
+
+  <h3 class="section-eyebrow">Client Acquisition Framework</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Module</th><th>Stage Type</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Lead Generation</strong></td><td>Automated</td></tr>
+      <tr><td>2</td><td><strong>Webinar Funnel</strong></td><td>Nurture</td></tr>
+      <tr><td>3</td><td><strong>Sales Process</strong></td><td>Conversion</td></tr>
+      <tr><td>4</td><td><strong>Optimization</strong></td><td>Measurement</td></tr>
+      <tr><td>5</td><td><strong>Strategic High-Ticket Acquisition</strong></td><td>Scaling</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <blockquote>"Predictable and controllable system for getting more clients."</blockquote>
+  <p class="attribution">— Sam Ovens</p>
+</section>
+
+<section class="panel" id="industry">
+  <span class="panel-tag">10 · Reference</span>
+  <h1 class="panel-title">Industry Frameworks</h1>
+  <p class="panel-lede">Non-coach frameworks that informed the research — established sales methodologies and CRM standards.</p>
+
+  <h3>Sandler Selling System (7 Phases)</h3>
+  <ol>
+    <li>Bonding and rapport</li>
+    <li>Up-front contract</li>
+    <li>Pain</li>
+    <li>Budget</li>
+    <li>Decision</li>
+    <li>Solution</li>
+    <li>Post-Sale</li>
+  </ol>
+  <p><strong>Key concept:</strong> Sandler flips the traditional model — the buyer pursues the deal. Strong focus on qualifying out quickly via the "pain funnel."</p>
+
+  <h3>MEDDIC / MEDDPICC</h3>
+  <p>A qualification checklist for enterprise deals:</p>
+  <ul>
+    <li><strong>M</strong>etrics · <strong>E</strong>conomic Buyer · <strong>D</strong>ecision Criteria · <strong>D</strong>ecision Process</li>
+    <li><strong>I</strong>dentify Pain · <strong>C</strong>hampion · <strong>P</strong>aper Process · <strong>C</strong>ompetition</li>
+  </ul>
+
+  <h3>Challenger Sale (5 Phases)</h3>
+  <ol>
+    <li>Warm-up</li>
+    <li>Reframe</li>
+    <li>Rational drowning</li>
+    <li>Emotional impact</li>
+    <li>Solution</li>
+  </ol>
+
+  <h3>HubSpot Flywheel</h3>
+  <p><strong>Attract → Engage → Delight.</strong> Replaces the funnel metaphor with a compounding wheel.</p>
+
+  <h3>Universal CRM Lifecycle</h3>
+  <p>The standard record-type sequence across Salesforce, HubSpot, Pipedrive, Attio:</p>
+  <p style="font-family: var(--mono); font-size: 16px; letter-spacing: 0.06em; color: var(--ink);">Lead → Opportunity → Customer</p>
+
+  <h3>Standard B2B Sales Pipeline (9 stages)</h3>
+  <p>Prospecting → Qualification → Discovery → Demo → Proposal → Negotiation → Closing → Implementation → Retention</p>
+</section>
+
+<section class="panel" id="comparison">
+  <span class="panel-tag">11 · Reference</span>
+  <h1 class="panel-title">Comparison Table</h1>
+  <p class="panel-lede">How the seven coaches stack against each other at the phase level.</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Coach</th><th>Phase 1 (Discovery)</th><th>Phase 2 (Conversion)</th><th>Phase 3 (Retention)</th><th>Transformation</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Ryan Deiss</strong></td><td>Acquire — Aware, Engage, Subscribe</td><td>Monetize — Convert, Excite</td><td>Maximize — Ascend, Advocate, Promote</td><td>"Strangers → Loyal Advocates"</td></tr>
+      <tr><td><strong>Russell Brunson</strong></td><td>Bait</td><td>Frontend</td><td>Backend → Summit → Continuity</td><td>"Low-commit → Ascension → Lifetime"</td></tr>
+      <tr><td><strong>Alex Hormozi</strong></td><td>Attract / Get Cash</td><td>Engage / Get More Cash</td><td>Scale / Get the Most Cash</td><td>"Unaware → Buyer → Lifetime Revenue"</td></tr>
+      <tr><td><strong>Donald Miller</strong></td><td>Character + Problem + Guide</td><td>Plan + Call to Action</td><td>Avoid Failure + Success</td><td>"Flawed Hero → Transformed Hero"</td></tr>
+      <tr><td><strong>Chet Holmes</strong></td><td>3% Now + 7% Open</td><td>30% Not Thinking</td><td>60% Not Interested</td><td>"Latent Pain → Buying Now → Repeat"</td></tr>
+      <tr><td><strong>Jay Abraham</strong></td><td>More Clients</td><td>Bigger Transactions</td><td>More Frequency</td><td>"Linear → Geometric Growth"</td></tr>
+      <tr><td><strong>Frank Kern</strong></td><td>Awareness</td><td>Conversion</td><td>Trust-Based Retention</td><td>"No → Trust → Buy"</td></tr>
+      <tr><td><strong>Sam Ovens</strong></td><td>Lead Gen</td><td>Webinar + Sales</td><td>Optimization + High-Ticket</td><td>"Cold → Predictable Acquisition"</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="panel" id="insights">
+  <span class="panel-tag">12 · Reference</span>
+  <h1 class="panel-title">Field Observations</h1>
+  <p class="panel-lede">Patterns and observations across the field, drawn from the research.</p>
+
+  <div class="insight">
+    <span class="insight-num">Observation 01</span>
+    <h3>Only Deiss built a literal stage sequence</h3>
+    <p>Of all 7 coaches, only <strong>Ryan Deiss</strong> published a stage-by-stage customer journey with named customer states. The others built different shapes — pricing architectures, lead acquisition models, messaging frameworks, market awareness models, growth levers, behavioral methodologies, and coaching curricula.</p>
+  </div>
+
+  <div class="insight">
+    <span class="insight-num">Observation 02</span>
+    <h3>Consumer info-product orientation</h3>
+    <p>Most of these frameworks were built for <strong>consumer info-products</strong> — courses, books, coaching programs, software. They assume short sales cycles, single decision-makers, fixed-price offers, and a "click and buy" conversion event.</p>
+  </div>
+
+  <div class="insight">
+    <span class="insight-num">Observation 03</span>
+    <h3>No coach in this group built a contract-signing stage</h3>
+    <p>Consumer info-product journeys assume <em>Convert = transaction = done</em>. There is no separation between verbal commitment and a signed contract because consumers don't sign contracts to buy a $97 product. None of these coaches designed for that gap.</p>
+  </div>
+
+  <div class="insight">
+    <span class="insight-num">Observation 04</span>
+    <h3>No coach in this group built a scoping stage</h3>
+    <p>Consumer products are pre-built. There is no negotiated scope. Brunson's Frontend is the closest, but it's a fixed price-point offer, not custom-scoped work.</p>
+  </div>
+
+  <div class="insight">
+    <span class="insight-num">Observation 05</span>
+    <h3>Post-sale is where most coaches expand</h3>
+    <p>Deiss splits post-sale into 3 stages. Brunson splits it into 3 rungs. Hormozi has 2 money phases. They all see post-sale as where the real money is, and they all break it into multiple stages.</p>
+  </div>
+
+  <div class="insight">
+    <span class="insight-num">Observation 06</span>
+    <h3>The 3-phase shape is universal</h3>
+    <p>Almost every coach uses some version of this 3-phase grouping: <strong>Phase 1</strong> get them in · <strong>Phase 2</strong> get them to buy · <strong>Phase 3</strong> keep them buying. The names differ; the shape is the same.</p>
+  </div>
+
+  <div class="insight">
+    <span class="insight-num">Observation 07</span>
+    <h3>The Fletcher pattern is the deepest structural innovation</h3>
+    <p>Fletcher's 9 steps in 3 phases, with <strong>each step containing its own sub-framework</strong>, is structurally deeper than any other coach in this group. Most coaches stop at the top-level stage. Fletcher nests inner frameworks inside each step.</p>
+  </div>
+
+  <div class="insight">
+    <span class="insight-num">Observation 08</span>
+    <h3>Buyer-centric vs seller-centric stage design</h3>
+    <blockquote>"The foundation of a high-performing pipeline is stage design that reflects what the buyer has decided, not what the seller has done."</blockquote>
+    <p>Buyer-centric stages like <em>Problem Confirmed</em> or <em>Evaluation Criteria Agreed</em> beat seller-centric stages like <em>Proposal Sent</em> or <em>Demo Scheduled</em>. Most of these coaches lean buyer-centric in their philosophy, even if their stage labels don't always reflect it.</p>
+  </div>
+</section>
+
+<section class="panel" id="sources">
+  <span class="panel-tag">13 · Reference</span>
+  <h1 class="panel-title">All Sources</h1>
+  <p class="panel-lede">Every claim in this research is traceable to a primary or secondary source. Click any link to verify.</p>
+
+  <div class="sources-group">
+    <h3>Aaron Fletcher</h3>
+    <ul>
+      <li><a href="https://www.scribd.com/document/683506644/Fletcher-Method-Secret-Frameworks-Manual">Fletcher Method – Secret Frameworks Manual</a></li>
+      <li><a href="https://go.fletchermethod.com/home">Fletcher Method Membership</a></li>
+      <li><a href="https://fletchermethod.com/the-7-ingredients-of-virtually-every-successful-sales-funnel/">The 6 Ingredients of Every Successful Sales Funnel</a></li>
+    </ul>
+  </div>
+
+  <div class="sources-group">
+    <h3>Ryan Deiss</h3>
+    <ul>
+      <li><a href="https://www.digitalmarketer.com/blog/customer-value-journey/">Customer Value Journey Explained (DigitalMarketer)</a></li>
+      <li><a href="https://www.digitalmarketer.com/lp/cvj-masterclass/">CVJ Masterclass</a></li>
+      <li><a href="https://thesnowmedia.com/mastering-the-customer-value-journey/">Mastering the Customer Value Journey</a></li>
+    </ul>
+  </div>
+
+  <div class="sources-group">
+    <h3>Russell Brunson</h3>
+    <ul>
+      <li><a href="https://www.clickfunnels.com/blog/value-ladder/">Value Ladder (ClickFunnels)</a></li>
+      <li><a href="https://www.unicorngrowth.io/p/value-ladder">Russell Brunson's Value Ladder (Unicorn Growth)</a></li>
+      <li><a href="https://fuelyourdigital.com/post/russell-brunson-value-ladder-explained-sales-funnel-framework/">Value Ladder Explained</a></li>
+    </ul>
+  </div>
+
+  <div class="sources-group">
+    <h3>Alex Hormozi</h3>
+    <ul>
+      <li><a href="https://www.shortform.com/blog/100m-leads-alex-hormozi/">$100M Leads — Shortform Summary</a></li>
+      <li><a href="https://www.breckenbusinesssolutions.com/blog/new-book-we-love-100m-money-models-by-alex-hormozi">$100M Money Models</a></li>
+      <li><a href="https://shop.acquisition.com/">Acquisition.com</a></li>
+    </ul>
+  </div>
+
+  <div class="sources-group">
+    <h3>Donald Miller (StoryBrand)</h3>
+    <ul>
+      <li><a href="https://www.gravityglobal.com/blog/complete-guide-storybrand-framework">Complete Guide to StoryBrand Framework</a></li>
+      <li><a href="https://welldressedwalrus.com/7-parts-of-a-storybrand-framework/">The 7 Parts of the StoryBrand Framework</a></li>
+      <li><a href="https://www.impactplus.com/learn/what-is-the-storybrand-framework">What is the StoryBrand Framework (IMPACT)</a></li>
+    </ul>
+  </div>
+
+  <div class="sources-group">
+    <h3>Chet Holmes</h3>
+    <ul>
+      <li><a href="https://www.chetholmes.com/stadium-pitch-generated-millions/">The Stadium Pitch</a></li>
+      <li><a href="https://www.chetholmes.com/inverted-buyers-pyramid/">Inverted Buyer's Pyramid</a></li>
+      <li><a href="https://en.beatz.com.br/blog/piramide-de-chet-holmes/">Chet Holmes' Pyramid</a></li>
+    </ul>
+  </div>
+
+  <div class="sources-group">
+    <h3>Jay Abraham</h3>
+    <ul>
+      <li><a href="https://www.abraham.com/topic/three-ways-to-grow-your-business/">Three Ways to Grow Your Business (Abraham.com)</a></li>
+      <li><a href="https://www.unicorngrowth.io/p/abrahams-growth-triangle">Abraham's Growth Triangle</a></li>
+    </ul>
+  </div>
+
+  <div class="sources-group">
+    <h3>Frank Kern</h3>
+    <ul>
+      <li><a href="https://segmetrics.io/articles/key_metrics_how-to-track-frank-kerns-hardcore-scaling-method-with-segmetrics/">Frank Kern's HARDCORE Scaling (SegMetrics)</a></li>
+      <li><a href="https://frankkern.com/about/">About Frank Kern</a></li>
+      <li><a href="https://www.warriorforum.com/main-internet-marketing-discussion-forum/1051101-behavioral-dynamic-response-key-big.html">Behavioral Dynamic Response (Warrior Forum)</a></li>
+    </ul>
+  </div>
+
+  <div class="sources-group">
+    <h3>Sam Ovens</h3>
+    <ul>
+      <li><a href="https://devonhennig.com/blog/webinar-marketing-the-sam-ovens-framework/">Sam Ovens Framework (Devon Hennig)</a></li>
+      <li><a href="https://influencersradio.com/sam-ovens/">Predictable Client Acquisition (Influencers Radio)</a></li>
+    </ul>
+  </div>
+
+  <div class="sources-group">
+    <h3>Industry / Methodology</h3>
+    <ul>
+      <li><a href="https://www.pandadoc.com/blog/9-top-sales-methodologies-explained-how-to-choose-the-right-one-for-your-team/">9 Top Sales Methodologies (PandaDoc)</a></li>
+      <li><a href="https://prospeo.io/s/b2b-sales-methodologies">B2B Sales Methodologies Compared (Prospeo)</a></li>
+      <li><a href="https://www.gong.io/blog/sales-methodologies">Sales Methodologies — Sandler, MEDDIC, Challenger (Gong)</a></li>
+      <li><a href="https://challengerinc.com/what-is-challenger-sales-methodology/">Challenger Sales Methodology</a></li>
+      <li><a href="https://blog.hubspot.com/sales/essential-stages-b2b-sales-pipeline">9 Essential B2B Pipeline Stages (HubSpot)</a></li>
+      <li><a href="https://prospeo.io/s/crm-pipeline-stages">CRM Pipeline Stages Benchmarks (Prospeo)</a></li>
+    </ul>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const target = item.dataset.panel;
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      item.classList.add('active');
+      document.getElementById(target).classList.add('active');
+      document.querySelector('main.content').scrollTo({top: 0, behavior: 'instant'});
+      window.scrollTo({top: 0, behavior: 'instant'});
+      document.querySelector('.sidebar').classList.remove('open');
+    });
+  });
+</script>
+
+</body>
+</html>
