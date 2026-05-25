@@ -2,6 +2,7 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
+import { BackToTopButton } from "@/components/adga/layout/BackToTopButton";
 import { getCopyright } from "@/lib/marketing-config";
 
 type PlanId = "pro" | "team" | "enterprise";
@@ -220,7 +221,7 @@ function CheckoutInner() {
               padding: 16,
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 18, alignItems: "flex-start" }}>
+            <div className="checkout-plan-head" style={{ display: "flex", justifyContent: "space-between", gap: 18, alignItems: "flex-start" }}>
               <div>
                 <div style={{ color: "#777067", fontSize: 11, fontWeight: 750, letterSpacing: "0.13em", textTransform: "uppercase" }}>Selected plan</div>
                 <div style={{ marginTop: 6, color: "#0d0c0a", fontSize: 22, fontWeight: 800 }}>{meta.name}</div>
@@ -231,7 +232,7 @@ function CheckoutInner() {
               </a>
             </div>
 
-            <div style={{ marginTop: 14, borderTop: "1px solid #d3cabd", paddingTop: 13, display: "flex", justifyContent: "space-between", gap: 18, alignItems: "flex-end" }}>
+            <div className="checkout-plan-price" style={{ marginTop: 14, borderTop: "1px solid #d3cabd", paddingTop: 13, display: "flex", justifyContent: "space-between", gap: 18, alignItems: "flex-end" }}>
               <div style={{ color: "#322d27", fontSize: 14 }}>{meta.seatsLabel}</div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ color: "#0d0c0a", fontSize: 31, lineHeight: 1, fontWeight: 850 }}>{formatCurrency(total)}</div>
@@ -363,11 +364,24 @@ function CheckoutInner() {
       <footer style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 24px", color: "#322d27", fontSize: 13 }}>
         {getCopyright()}
       </footer>
+      <BackToTopButton />
 
       <style jsx>{`
         @media (max-width: 920px) {
           .checkout-fields {
             grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 420px) {
+          .checkout-plan-head,
+          .checkout-plan-price {
+            align-items: flex-start !important;
+            flex-direction: column !important;
+          }
+
+          .checkout-plan-price > div:last-child {
+            text-align: left !important;
           }
         }
       `}</style>

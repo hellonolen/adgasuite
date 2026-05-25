@@ -188,7 +188,7 @@ function LeadMagnetForm({ source }: { source: string }) {
             required
             autoComplete="email"
             placeholder="you@company.com"
-            style={{ height: 44, border: "1px solid var(--rule)", borderRadius: 10, padding: "0 12px", background: "var(--surface)" }}
+            style={{ width: "100%", minWidth: 0, height: 44, border: "1px solid var(--rule)", borderRadius: 10, padding: "0 12px", background: "var(--surface)" }}
           />
         </label>
       </div>
@@ -286,6 +286,7 @@ export default function HomePage() {
 
         <section className="section" id="guide">
           <div
+            className="home-guide-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "minmax(0, 0.9fr) minmax(280px, 1.1fr)",
@@ -302,7 +303,7 @@ export default function HomePage() {
                 ADGA is built for the operator carrying the number, the advisor coordinating the room, and the team that needs every person, file, note, invoice, and decision visible before the next call.
               </p>
             </div>
-            <div style={{ background: "var(--surface)", border: "1px solid var(--rule)", borderRadius: 14, padding: 28 }}>
+            <div className="home-guide-proof" style={{ background: "var(--surface)", border: "1px solid var(--rule)", borderRadius: 14, padding: 28 }}>
               <span className="ed-label">Proof points</span>
               <ul style={{ margin: "18px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 14 }}>
                 {GUIDE_PROOF.map((item) => (

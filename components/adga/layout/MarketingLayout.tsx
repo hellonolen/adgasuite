@@ -10,6 +10,7 @@ import {
   FOOTER_END_LINKS,
   getCopyright,
 } from "@/lib/marketing-config";
+import { BackToTopButton } from "./BackToTopButton";
 
 interface MarketingLayoutProps {
   children: React.ReactNode;
@@ -128,6 +129,7 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
           ))}
         </div>
       </div>
+      <BackToTopButton />
     </div>
   );
 }

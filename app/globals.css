@@ -2518,6 +2518,51 @@ body:has(.suite-shell)::before {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.back-to-top {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 90;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 999px;
+  background: #5d2cd6;
+  color: #fff;
+  box-shadow: 0 18px 42px rgba(93, 44, 214, 0.28), 0 2px 8px rgba(15, 23, 42, 0.12);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px) scale(0.96);
+  transition: opacity 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.back-to-top-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.back-to-top:hover {
+  background: #4b22bb;
+}
+
+.back-to-top:focus-visible {
+  outline: 3px solid rgba(93, 44, 214, 0.24);
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .back-to-top {
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
+    width: 42px;
+    height: 42px;
+  }
+}
+
 .marketing-root .balanced-card-grid-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -3366,8 +3411,45 @@ body:has(.suite-shell)::before {
 }
 
 @media (max-width: 700px) {
+  .marketing-root .nav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 0;
+  }
+
+  .marketing-root .brand {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .marketing-root .nav-cta {
+    margin-left: 0;
+    min-width: 0;
+  }
+
+  .marketing-root .nav-cta .btn:not(.primary) {
+    min-height: 38px;
+    padding: 9px 14px;
+    white-space: nowrap;
+  }
+
   .marketing-root .nav-toggle {
     display: grid !important;
+    margin-left: 0;
+  }
+
+  .marketing-root.nav-open,
+  .marketing-root .nav-open {
+    align-items: start;
+  }
+
+  .marketing-root .nav-open .nav-links,
+  .marketing-root .nav-open .nav-cta {
+    grid-column: 1 / -1;
   }
 
   .marketing-root .spread,
@@ -3399,6 +3481,52 @@ body:has(.suite-shell)::before {
     justify-self: stretch;
     aspect-ratio: 16 / 11 !important;
     max-height: 360px !important;
+  }
+
+  .marketing-root .home-guide-grid {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+
+  .marketing-root .home-guide-grid > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .marketing-root .home-guide-proof {
+    padding: 20px !important;
+  }
+
+  .marketing-root .audit-hero-copy h1,
+  .marketing-root .checklist-sheet-header h1 {
+    max-width: 12ch !important;
+    font-size: clamp(38px, 11vw, 52px) !important;
+    line-height: 0.98 !important;
+  }
+
+  .marketing-root .audit-hero {
+    padding-top: 38px !important;
+  }
+
+  .marketing-root .foot-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .marketing-root .wrap {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .marketing-root .nav-cta .btn:not(.primary) {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .marketing-root .audit-hero-copy h1,
+  .marketing-root .checklist-sheet-header h1 {
+    font-size: 36px !important;
   }
 }
 
