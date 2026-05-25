@@ -8,6 +8,7 @@ type CtaConfig = {
 
 type MarketingHeroProps = {
   headline: string;
+  headlineNode?: ReactNode;
   deck?: string;
   primaryCta?: CtaConfig;
   secondaryCta?: CtaConfig;
@@ -46,6 +47,7 @@ const COMPACT_DECK_STYLE: CSSProperties = {
 
 export function MarketingHero({
   headline,
+  headlineNode,
   deck,
   primaryCta,
   secondaryCta,
@@ -65,11 +67,15 @@ export function MarketingHero({
 
   return (
     <section className="hero hero-center" style={sectionStyle}>
-      {isCompact ? (
-        <h1 style={COMPACT_HEADLINE_STYLE}>{headline}</h1>
-      ) : (
-        <h1 className="hero-display">{headline}</h1>
-      )}
+      {headlineNode ? (
+        headlineNode
+      ) : headline ? (
+        isCompact ? (
+          <h1 style={COMPACT_HEADLINE_STYLE}>{headline}</h1>
+        ) : (
+          <h1 className="hero-display">{headline}</h1>
+        )
+      ) : null}
 
       {deck ? (
         isCompact ? (

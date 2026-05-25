@@ -4,6 +4,7 @@ import { type CSSProperties, type FormEvent, useState } from "react";
 import Link from "next/link";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 import { MarketingHero } from "@/components/adga/layout/MarketingHero";
+import { DealFlow, type DealFlowDeal, type DealFlowEntity, type DealFlowInitialEdge, type DealFlowInitialNode } from "@/components/suite/DealFlow";
 
 const STAGES: ReadonlyArray<readonly [string, string, string]> = [
   ["01", "Lead", "Ad, referral, inbound form, QR, call, email, event, partner, or import — captured with source, owner, and intent."],
@@ -74,6 +75,60 @@ const USE_CASES = [
 
 const HERO_DEAL_TYPES = [
   "Real estate",
+  "Licensing",
+  "Procurement",
+  "Partnership",
+  "High-ticket",
+  "Franchise",
+  "M&A",
+  "Capital raise",
+];
+
+const HERO_DEAL: DealFlowDeal = {
+  id: "DEAL-621810",
+  name: "Meridian Cold Chain Acquisition",
+  stage: "Closing",
+  value: "$18.4M",
+  nextAction: "Confirm seller counsel markups",
+};
+
+const HERO_DEAL_ENTITIES: DealFlowEntity[] = [
+  { id: "company:meridian", kind: "company", label: "Meridian Cold Chain", sublabel: "Seller · logistics platform", status: "active" },
+  { id: "contact:ari", kind: "contact", label: "Ari Boone", sublabel: "Primary contact", status: "active" },
+  { id: "bank:lender", kind: "bank", label: "Senior lender group", sublabel: "Debt package", status: "warning" },
+  { id: "doc:counsel", kind: "document", label: "Seller counsel markups", sublabel: "Needs response", status: "overdue" },
+  { id: "call:closing", kind: "call", label: "Closing call", sublabel: "Nine-step call prep", status: "active" },
+  { id: "task:markups", kind: "task", label: "Confirm markups", sublabel: "Owner: legal", status: "warning" },
+  { id: "invoice:success", kind: "invoice", label: "Success fee path", sublabel: "Ready after signature", status: "neutral" },
+  { id: "group:people", kind: "group", label: "People", sublabel: "14 associated records", status: "neutral", childKind: "contact", childrenCount: 14 },
+  { id: "group:diligence", kind: "group", label: "Files & diligence", sublabel: "Contracts, CIM, models", status: "active", childKind: "document", childrenCount: 9 },
+  { id: "email:counsel", kind: "email", label: "Counsel thread", sublabel: "Open items attached", status: "active" },
+  { id: "meeting:funding", kind: "meeting", label: "Funding call", sublabel: "Thursday · 2:00 PM", status: "neutral" },
+];
+
+const HERO_DEAL_NODES: DealFlowInitialNode[] = [
+  { id: "company:meridian", kind: "company", label: "Meridian Cold Chain", sublabel: "Seller · logistics platform", status: "active", position: { x: 28, y: 94 } },
+  { id: "contact:ari", kind: "contact", label: "Ari Boone", sublabel: "Primary contact", status: "active", position: { x: 54, y: 278 } },
+  { id: "bank:lender", kind: "bank", label: "Senior lender group", sublabel: "Debt package", status: "warning", position: { x: 436, y: 64 } },
+  { id: "doc:counsel", kind: "document", label: "Seller counsel markups", sublabel: "Needs response", status: "overdue", position: { x: 628, y: 202 } },
+  { id: "call:closing", kind: "call", label: "Closing call", sublabel: "Nine-step call prep", status: "active", position: { x: 482, y: 332 } },
+  { id: "task:markups", kind: "task", label: "Confirm markups", sublabel: "Owner: legal", status: "warning", position: { x: 286, y: 336 } },
+  { id: "invoice:success", kind: "invoice", label: "Success fee path", sublabel: "Ready after signature", status: "neutral", position: { x: 812, y: 332 } },
+  { id: "group:people", kind: "group", label: "People", sublabel: "14 associated records", status: "neutral", position: { x: -206, y: 198 } },
+  { id: "group:diligence", kind: "group", label: "Files & diligence", sublabel: "Contracts, CIM, models", status: "active", position: { x: 844, y: 76 } },
+  { id: "email:counsel", kind: "email", label: "Counsel thread", sublabel: "Open items attached", status: "active", position: { x: 888, y: 484 } },
+  { id: "meeting:funding", kind: "meeting", label: "Funding call", sublabel: "Thursday · 2:00 PM", status: "neutral", position: { x: -168, y: 26 } },
+];
+
+const HERO_DEAL_EDGES: DealFlowInitialEdge[] = HERO_DEAL_NODES.map((node) => ({
+  id: `${HERO_DEAL.id}-${node.id}`,
+  source: HERO_DEAL.id,
+  target: node.id,
+  animated: true,
+}));
+
+const INDUSTRY_LABELS = [
+  "real estate",
   "M&A",
   "Capital raise",
   "Licensing",
@@ -83,17 +138,23 @@ const HERO_DEAL_TYPES = [
   "Franchise",
 ];
 
+function HeroHeadline() {
+  return (
+    <h1 className="hero-display hero-dynamic-headline">
+      <span>Close more</span>
+      <span className="hero-industry-rotator" aria-label="real estate, licensing, procurement, partnership, high-ticket, franchise, M&A, and capital raise">
+        {INDUSTRY_LABELS.map((label, index) => (
+          <span key={label} style={{ "--word-index": index } as CSSProperties}>{label}</span>
+        ))}
+      </span>
+      <span>deals.</span>
+    </h1>
+  );
+}
+
 function HeroDealFlow() {
   return (
-    <div className="hero-workspace hero-workspace-live" aria-label="Live ADGA DealFlow preview across multiple deal types">
-      <div className="hero-workspace-head">
-        <div>
-          <span className="hero-workspace-kicker">ADGA DealFlow</span>
-          <strong>One workspace for complex deals</strong>
-        </div>
-        <span className="hero-workspace-status">Live deal activity</span>
-      </div>
-
+    <div className="hero-actual-dealflow" aria-label="Interactive ADGA DealFlow preview across multiple deal types">
       <div className="hero-industry-strip" aria-label="Deal categories ADGA supports">
         {HERO_DEAL_TYPES.map((type, index) => (
           <span key={type} style={{ "--chip-index": index } as CSSProperties}>
@@ -101,78 +162,17 @@ function HeroDealFlow() {
           </span>
         ))}
       </div>
-
-      <div className="hero-workspace-grid">
-        <div className="hero-suite-nav" aria-hidden="true">
-          <span className="hero-suite-brand">ADGA</span>
-          <span className="active">Deals</span>
-          <span>Contacts</span>
-          <span>Files</span>
-          <span>Calendar</span>
-          <span>Invoices</span>
-        </div>
-
-        <div className="hero-dealflow-preview" aria-hidden="true">
-          <div className="hero-canvas-toolbar">
-            <span>Working deal</span>
-            <b>Expansion financing with eight parties attached</b>
-          </div>
-          <div className="hero-link hero-link-a" />
-          <div className="hero-link hero-link-b" />
-          <div className="hero-link hero-link-c" />
-          <div className="hero-link hero-link-d" />
-
-          <div className="hero-node hero-node-core hero-node-pulse">
-            <span>Deal</span>
-            <b>Close path</b>
-            <small>Terms, owner, next action, risk, and payment status stay connected.</small>
-          </div>
-          <div className="hero-node hero-node-contact hero-node-float-a">
-            <span>People</span>
-            <b>Contacts & stakeholders</b>
-            <small>Buyer, seller, investor, broker, attorney, lender, operator.</small>
-          </div>
-          <div className="hero-node hero-node-doc hero-node-float-b">
-            <span>Proof</span>
-            <b>Files & diligence</b>
-            <small>Contracts, terms, statements, memos, approvals, invoices.</small>
-          </div>
-          <div className="hero-node hero-node-call hero-node-float-c">
-            <span>Calls</span>
-            <b>Notes & transcripts</b>
-            <small>Meeting context and decisions stay tied to the right deal.</small>
-          </div>
-          <div className="hero-node hero-node-invoice hero-node-float-d">
-            <span>Money</span>
-            <b>Invoice & payment</b>
-            <small>Checkout, billing status, handoff, and follow-up in one view.</small>
-          </div>
-        </div>
-
-        <div className="hero-context-panel">
-          <div className="hero-panel-title">ADGA is watching the work</div>
-          <div className="hero-context-row">
-            <span>Next move</span>
-            <b>Send lender brief</b>
-          </div>
-          <div className="hero-context-row">
-            <span>Missing</span>
-            <b>Signed terms</b>
-          </div>
-          <div className="hero-context-row">
-            <span>Risk</span>
-            <b>Attorney review</b>
-          </div>
-          <div className="hero-agent-note">
-            Ask ADGA which deals need attention, where a contact fits, what file is missing, or what should happen next.
-          </div>
-        </div>
-      </div>
-
-      <div className="hero-workspace-foot" aria-hidden="true">
-        <div><b>8</b><span>deal categories shown</span></div>
-        <div><b>1</b><span>DealFlow per opportunity</span></div>
-        <div><b>All</b><span>contacts, files, calls, and payments connected</span></div>
+      <div className="hero-actual-dealflow-canvas">
+        <DealFlow
+          deal={HERO_DEAL}
+          entities={HERO_DEAL_ENTITIES}
+          initialNodes={HERO_DEAL_NODES}
+          initialEdges={HERO_DEAL_EDGES}
+          readOnly
+          initialCanvasMode="pan"
+          fitViewOnInit
+          dealNodePosition={{ x: 216, y: 190 }}
+        />
       </div>
     </div>
   );
@@ -324,6 +324,7 @@ export default function HomePage() {
       <div className="wrap">
         <MarketingHero
           headline="Close more deals."
+          headlineNode={<HeroHeadline />}
           deck="Leverage this agentic deal system so you can open, position, and close more deals without missing a beat."
           primaryCta={{ label: "Start closing deals", href: "/pricing" }}
         >

@@ -78,6 +78,7 @@ export interface DealFlowInitialEdge {
   source: string;
   target: string;
   label?: string;
+  animated?: boolean;
 }
 
 export interface DealFlowPersistenceCallbacks {
@@ -119,6 +120,12 @@ interface DealFlowProps extends DealFlowPersistenceCallbacks {
   initialEdges?: DealFlowInitialEdge[];
   /** Base URL for built-in persistence (e.g. `/api/dealflows/<id>`). When set, the component auto-persists changes. */
   persistApiBase?: string;
+  /** Initial canvas interaction mode. Marketing previews can open in pan mode while the suite keeps select mode. */
+  initialCanvasMode?: CanvasInteractionMode;
+  /** Homepage previews can choose a fixed initial viewport; suite views keep fitView. */
+  initialViewport?: { x: number; y: number; zoom: number };
+  fitViewOnInit?: boolean;
+  dealNodePosition?: { x: number; y: number };
 }
 
 interface ShareInfo {
@@ -430,6 +437,10 @@ export function DealFlow({
   initialNodes,
   initialEdges,
   persistApiBase,
+  initialCanvasMode = "select",
+  initialViewport,
+  fitViewOnInit = true,
+  dealNodePosition,
   onPositionChange,
   onAddNode,
   onDeleteNode,
@@ -449,7 +460,7 @@ export function DealFlow({
         {
           id: deal.id,
           type: "deal",
-          position: { x: CENTER_X - 130, y: CENTER_Y - 60 },
+          position: dealNodePosition || { x: CENTER_X - 130, y: CENTER_Y - 60 },
           data: deal as unknown as Record<string, unknown>,
         },
         ...initialNodes.map<Node>((n) => ({
@@ -470,19 +481,20 @@ export function DealFlow({
         source: e.source,
         target: e.target,
         label: e.label,
+        animated: e.animated || false,
         style: { stroke: "rgba(86, 36, 199, 0.35)", strokeWidth: 1.5 },
       }));
       return { nodes, edges };
     }
     return buildInitial(deal, entities);
-  }, [deal, entities, initialNodes, initialEdges]);
+  }, [deal, entities, initialNodes, initialEdges, dealNodePosition]);
   const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initial.edges);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [editingLabel, setEditingLabel] = React.useState(false);
   const [viewMode, setViewMode] = React.useState<ViewMode>("relationship");
   const [activeToolPanel, setActiveToolPanel] = React.useState<DealFlowToolPanel | null>(null);
-  const [canvasMode, setCanvasMode] = React.useState<CanvasInteractionMode>("select");
+  const [canvasMode, setCanvasMode] = React.useState<CanvasInteractionMode>(initialCanvasMode);
   const [linkMode, setLinkMode] = React.useState(false);
   const [linkSourceId, setLinkSourceId] = React.useState<string | null>(null);
   const [activityOpen, setActivityOpen] = React.useState(false);
@@ -2263,7 +2275,8 @@ export function DealFlow({
           nodesDraggable={!readOnly && canvasMode === "select"}
           nodesConnectable={!readOnly && canvasMode === "select"}
           elementsSelectable
-          fitView
+          fitView={fitViewOnInit}
+          defaultViewport={initialViewport}
           fitViewOptions={{ padding: 0.22 }}
           proOptions={{ hideAttribution: true }}
           minZoom={0.3}
