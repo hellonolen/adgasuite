@@ -477,72 +477,46 @@ body::before {
   height: auto;
 }
 
-.marketing-root .hero-dynamic-headline {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.18em;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-}
-
-.marketing-root .hero-industry-rotator {
+.marketing-root .hero-phrase-headline {
   position: relative;
   display: inline-grid;
   place-items: center;
-  min-width: 9.2ch;
-  color: var(--accent, #5d2cd6);
-  font-size: 0.32em;
-  letter-spacing: -0.02em;
-  vertical-align: baseline;
+  width: min(100%, 14ch);
+  min-height: 2em;
 }
 
-.marketing-root .hero-industry-rotator span {
+.marketing-root .hero-phrase-headline span {
   grid-area: 1 / 1;
   opacity: 0;
-  transform: translateY(0.22em);
-  animation: hero-industry-word 16s ease-in-out infinite;
-  animation-delay: calc(var(--word-index, 0) * 2s);
-  white-space: nowrap;
+  filter: blur(10px);
+  transform: scale(0.992);
+  animation: hero-headline-phrase 40s ease-in-out infinite;
+  animation-delay: calc(var(--phrase-index, 0) * 5s);
+  text-align: center;
+  will-change: opacity, filter, transform;
 }
 
-@keyframes hero-industry-word {
-  0%, 10% {
+.marketing-root .hero-phrase-headline em {
+  color: var(--accent, #5d2cd6);
+  font-style: normal;
+}
+
+@keyframes hero-headline-phrase {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+    transform: scale(0.992);
+  }
+  2.5%, 10% {
     opacity: 1;
-    transform: translateY(0);
+    filter: blur(0);
+    transform: scale(1);
   }
   12.5%, 100% {
     opacity: 0;
-    transform: translateY(-0.22em);
+    filter: blur(10px);
+    transform: scale(0.992);
   }
-}
-
-.marketing-root .hero-actual-dealflow {
-  width: min(1180px, 100%);
-  margin: 36px auto 0;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
-  overflow: hidden;
-  background: #fbfaf8;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 28px 80px rgba(32, 24, 54, 0.14),
-    0 8px 18px rgba(32, 24, 54, 0.06);
-  text-align: left;
-}
-
-.marketing-root .hero-actual-dealflow-canvas {
-  height: clamp(560px, 48vw, 680px);
-  min-height: 560px;
-  background: #f9f7f4;
-}
-
-.marketing-root .hero-actual-dealflow-canvas .react-flow__node {
-  visibility: visible !important;
-}
-
-.marketing-root .hero-actual-dealflow-canvas .react-flow__minimap {
-  display: none !important;
 }
 
 .marketing-root .hero-workspace {
@@ -924,20 +898,8 @@ body::before {
   .marketing-root .hero-display {
     max-width: 100%;
   }
-  .marketing-root .hero-dynamic-headline {
-    gap: 0.13em;
-    font-size: clamp(38px, 8vw, 64px) !important;
-  }
-  .marketing-root .hero-industry-rotator {
-    min-width: 7.5ch;
-    font-size: 0.42em;
-  }
-  .marketing-root .hero-actual-dealflow-canvas {
-    height: 620px;
-    min-height: 620px;
-  }
-  .marketing-root .hero-actual-dealflow-canvas .react-flow__minimap {
-    display: none;
+  .marketing-root .hero-phrase-headline {
+    min-height: 2.2em;
   }
   .marketing-root .hero-workspace-grid {
     grid-template-columns: 1fr;
@@ -985,28 +947,10 @@ body::before {
 }
 
 @media (max-width: 520px) {
-  .marketing-root .hero-industry-rotator {
-    min-width: 7.2ch;
-    font-size: 0.44em;
-    line-height: 1;
-  }
-  .marketing-root .hero-dynamic-headline {
-    font-size: clamp(31px, 8.2vw, 36px) !important;
-  }
-  .marketing-root .hero-actual-dealflow {
-    margin-top: 28px;
-    border-radius: 16px;
-  }
-  .marketing-root .hero-actual-dealflow-canvas {
-    height: 540px;
-    min-height: 540px;
-  }
-  .marketing-root .hero-actual-dealflow-canvas > div {
-    min-height: 540px !important;
-  }
-  .marketing-root .hero-actual-dealflow-canvas .react-flow__controls {
-    transform: scale(0.86);
-    transform-origin: bottom right;
+  .marketing-root .hero-phrase-headline {
+    font-size: clamp(30px, 7.9vw, 34px) !important;
+    width: min(100%, 15ch);
+    min-height: 2.75em;
   }
   .marketing-root .hero-workspace-live {
     margin-top: 28px;
@@ -1045,10 +989,11 @@ body::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .marketing-root .hero-industry-rotator span {
+  .marketing-root .hero-phrase-headline span {
     animation: none;
+    filter: none;
   }
-  .marketing-root .hero-industry-rotator span:first-child {
+  .marketing-root .hero-phrase-headline span:first-child {
     opacity: 1;
     transform: none;
   }
