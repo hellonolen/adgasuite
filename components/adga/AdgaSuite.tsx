@@ -1093,20 +1093,19 @@ function Sidebar({ route, setRoute, collapsed, setCollapsed }) {
           <React.Fragment key={sec.section || ('group-' + secIdx)}>
             {sec.section && <div className="sb-section">{sec.section}</div>}
             {sec.items.map(it => (
-              <Link
+              <button
                 key={it.id}
-                href={it.path || ROUTE_PATHS[it.id] || ('/suite/' + it.id)}
+                type="button"
                 className={'sb-item ' + (route === it.id || route === (SUITE_ROUTE_ALIASES && SUITE_ROUTE_ALIASES[it.id]) ? 'active' : '')}
                 onClick={() => {
-                  // Next.js Link drives the URL change. Persist the last route so reloads land here.
-                  try { window.localStorage.setItem('adga-suite-route', it.id); } catch (e) {}
+                  setRoute(it.id);
                   if (window.matchMedia('(max-width: 820px)').matches) setCollapsed(true);
                 }}
               >
                 <span className="sb-label">{it.label}</span>
                 {it.indicator && <span style={{width:6,height:6,borderRadius:'50%',background:'var(--accent)',marginRight:6}}/>}
                 {it.badge != null && <span className="sb-badge">{it.badge}</span>}
-              </Link>
+              </button>
             ))}
           </React.Fragment>
         ))}

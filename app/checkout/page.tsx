@@ -153,123 +153,225 @@ function CheckoutInner() {
   }
 
   return (
-    <>
-    <style>{`
-      body::before { display: none !important; }
-      body { background: #ffffff !important; }
-    `}</style>
     <main style={{ minHeight: "100vh", background: "#fff", color: "#0d0c0a" }}>
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "32px 24px" }}>
-        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, marginBottom: 34 }}>
-          <a href="/" style={{ color: "#0d0c0a", fontSize: 23, fontWeight: 800, letterSpacing: "-0.03em", textDecoration: "none" }}>ADGA</a>
-          <a href="/login" style={{ color: "#0d0c0a", fontSize: 14, fontWeight: 650, textDecoration: "none" }}>Sign in</a>
-        </header>
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 24,
+          maxWidth: 1180,
+          margin: "0 auto",
+          padding: "22px 24px 0",
+        }}
+      >
+        <a href="/" style={{ color: "#0d0c0a", fontSize: 24, fontWeight: 800, letterSpacing: "-0.03em", textDecoration: "none" }}>
+          ADGA
+        </a>
+        <a
+          href="/login"
+          style={{
+            border: "1px solid #cfc7b9",
+            borderRadius: 999,
+            background: "#fff",
+            color: "#0d0c0a",
+            fontSize: 14,
+            fontWeight: 650,
+            padding: "10px 16px",
+            textDecoration: "none",
+          }}
+        >
+          Sign in
+        </a>
+      </header>
 
-        <h1 style={{ margin: 0, fontSize: 30, lineHeight: 1.1, letterSpacing: "-0.025em", fontWeight: 800 }}>Checkout</h1>
+      <section
+        style={{
+          maxWidth: 760,
+          margin: "0 auto",
+          padding: "18px 24px 32px",
+        }}
+      >
+        <div
+          style={{
+            border: "1px solid #cfc7b9",
+            borderRadius: 24,
+            background: "#fff",
+            boxShadow: "0 18px 44px rgba(18, 16, 13, 0.08)",
+            padding: "clamp(20px, 2.5vw, 28px)",
+          }}
+        >
+          <p style={{ margin: 0, color: "#5d2cd6", fontSize: 12, fontWeight: 750, letterSpacing: "0.16em", textTransform: "uppercase" }}>
+            Checkout
+          </p>
+          <h1 style={{ margin: "8px 0 0", maxWidth: 660, color: "#0d0c0a", fontSize: "clamp(32px, 4vw, 42px)", lineHeight: 1, letterSpacing: "-0.035em", fontWeight: 850 }}>
+            Complete checkout.
+          </h1>
+          <p style={{ margin: "10px 0 0", maxWidth: 650, color: "#322d27", fontSize: 15, lineHeight: 1.4 }}>
+            Enter the billing owner details. Stripe opens next to collect payment details and activate the subscription.
+          </p>
 
-        <div className="checkout-layout" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 320px", gap: 48, alignItems: "start", marginTop: 26 }}>
-          <section>
-            {status.kind === "pending" ? (
+          <div
+            style={{
+              marginTop: 16,
+              border: "1px solid #d3cabd",
+              borderRadius: 18,
+              background: "#fff",
+              padding: 16,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 18, alignItems: "flex-start" }}>
               <div>
-                <h2 style={{ margin: 0, fontSize: 22, lineHeight: 1.15, fontWeight: 800 }}>Checkout request received.</h2>
-                <p style={{ margin: "10px 0 0", color: "#4b4741", fontSize: 15, lineHeight: 1.5 }}>{status.message}</p>
+                <div style={{ color: "#777067", fontSize: 11, fontWeight: 750, letterSpacing: "0.13em", textTransform: "uppercase" }}>Selected plan</div>
+                <div style={{ marginTop: 6, color: "#0d0c0a", fontSize: 22, fontWeight: 800 }}>{meta.name}</div>
+                <p style={{ margin: "4px 0 0", color: "#322d27", fontSize: 13, lineHeight: 1.3 }}>{meta.tagline}</p>
               </div>
-            ) : (
-              <>
-                <h2 style={{ margin: 0, fontSize: 18, lineHeight: 1.2, fontWeight: 800 }}>Billing owner</h2>
-                <p style={{ margin: "8px 0 0", color: "#4b4741", fontSize: 14, lineHeight: 1.45 }}>
-                  Stripe collects payment details on the next step.
-                </p>
+              <a href="/pricing" style={{ color: "#5d2cd6", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+                Change plan
+              </a>
+            </div>
 
-                <form onSubmit={submit} noValidate style={{ marginTop: 22, display: "grid", gap: 16, maxWidth: 520 }}>
-                  <div style={{ display: "grid", gap: 7 }}>
-                    <label htmlFor="checkout-first-name" style={{ color: "#3a352f", fontSize: 12, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase" }}>First name</label>
-                    <input
-                      id="checkout-first-name"
-                      name="first_name"
-                      value={firstName}
-                      onChange={(event) => setFirstName(event.target.value)}
-                      type="text"
-                      autoComplete="given-name"
-                      placeholder="Maren"
-                      required
-                      disabled={isSubmitting}
-                      style={{ border: "1px solid #cfc7b9", borderRadius: 8, background: "#fff", color: "#0d0c0a", fontSize: 16, padding: "12px 13px", outlineColor: "#5d2cd6" }}
-                    />
-                  </div>
+            <div style={{ marginTop: 14, borderTop: "1px solid #d3cabd", paddingTop: 13, display: "flex", justifyContent: "space-between", gap: 18, alignItems: "flex-end" }}>
+              <div style={{ color: "#322d27", fontSize: 14 }}>{meta.seatsLabel}</div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ color: "#0d0c0a", fontSize: 31, lineHeight: 1, fontWeight: 850 }}>{formatCurrency(total)}</div>
+                <div style={{ marginTop: 5, color: "#4d4740", fontSize: 13 }}>{cadenceLabel}</div>
+              </div>
+            </div>
 
-                  <div style={{ display: "grid", gap: 7 }}>
-                    <label htmlFor="checkout-email" style={{ color: "#3a352f", fontSize: 12, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase" }}>Work email</label>
-                    <input
-                      id="checkout-email"
-                      name="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      type="email"
-                      autoComplete="email"
-                      placeholder="you@company.com"
-                      required
-                      disabled={isSubmitting}
-                      style={{ border: "1px solid #cfc7b9", borderRadius: 8, background: "#fff", color: "#0d0c0a", fontSize: 16, padding: "12px 13px", outlineColor: "#5d2cd6" }}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    style={{ justifySelf: "start", border: 0, borderRadius: 8, background: "#5d2cd6", color: "#fff", cursor: isSubmitting ? "wait" : "pointer", fontSize: 15, fontWeight: 800, padding: "12px 18px", opacity: isSubmitting ? 0.72 : 1 }}
-                  >
-                    {status.kind === "submitting" && "Starting checkout..."}
-                    {status.kind === "redirecting" && "Opening Stripe..."}
-                    {(status.kind === "idle" || status.kind === "error") && "Continue to Stripe"}
-                  </button>
-
-                  {status.kind === "error" && (
-                    <p role="alert" style={{ margin: 0, color: "#b42318", fontSize: 14, lineHeight: 1.45 }}>{status.message}</p>
-                  )}
-                </form>
-
-                <p style={{ margin: "18px 0 0", color: "#4b4741", fontSize: 13, lineHeight: 1.4 }}>
-                  By continuing you agree to ADGA&apos;s <a href="/policies" style={{ color: "#0d0c0a", fontWeight: 750 }}>policies</a>.
-                </p>
-              </>
+            {cadence === "year" && (
+              <p style={{ margin: "16px 0 0", color: "#322d27", fontSize: 13 }}>Annual billing includes one month free.</p>
             )}
-          </section>
+          </div>
 
-          <aside style={{ border: "1px solid #d8d1c5", borderRadius: 8, padding: 18 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "start" }}>
-              <div>
-                <div style={{ color: "#6d665e", fontSize: 11, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase" }}>Plan</div>
-                <div style={{ marginTop: 7, fontSize: 20, fontWeight: 800 }}>{meta.name}</div>
-              </div>
-              <a href="/pricing" style={{ color: "#5d2cd6", fontSize: 13, fontWeight: 750, textDecoration: "none" }}>Change</a>
+          {status.kind === "pending" ? (
+            <div style={{ marginTop: 22, borderTop: "1px solid #d3cabd", paddingTop: 20 }}>
+              <p style={{ margin: 0, color: "#5d2cd6", fontSize: 12, fontWeight: 750, letterSpacing: "0.16em", textTransform: "uppercase" }}>
+                Check your email
+              </p>
+              <h2 style={{ margin: "14px 0 0", color: "#0d0c0a", fontSize: 34, lineHeight: 1.06, letterSpacing: "-0.035em", fontWeight: 850 }}>
+                We received your checkout request.
+              </h2>
+              <p style={{ margin: "14px 0 0", color: "#322d27", fontSize: 16, lineHeight: 1.55 }}>{status.message}</p>
             </div>
-            <p style={{ margin: "8px 0 0", color: "#4b4741", fontSize: 13, lineHeight: 1.4 }}>{meta.tagline}</p>
-            <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid #d8d1c5", display: "flex", justifyContent: "space-between", gap: 16, color: "#3a352f", fontSize: 14 }}>
-              <span>{meta.seatsLabel}</span>
-              <span>{cadence === "year" ? "Annual" : "Monthly"}</span>
+          ) : (
+            <div style={{ marginTop: 18, borderTop: "1px solid #d3cabd", paddingTop: 16 }}>
+              <p style={{ margin: 0, color: "#5d2cd6", fontSize: 12, fontWeight: 750, letterSpacing: "0.16em", textTransform: "uppercase" }}>
+                Billing owner
+              </p>
+              <h2 style={{ margin: "7px 0 0", color: "#0d0c0a", fontSize: 24, lineHeight: 1.04, letterSpacing: "-0.02em", fontWeight: 850 }}>
+                Continue to payment.
+              </h2>
+              <p style={{ margin: "7px 0 0", color: "#322d27", fontSize: 14, lineHeight: 1.35 }}>
+                Stripe securely handles payment details. ADGA uses this email for onboarding and account access.
+              </p>
+
+              <form onSubmit={submit} noValidate style={{ marginTop: 14, display: "grid", gap: 13 }}>
+                <div className="checkout-fields" style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 16 }}>
+                  <div style={{ display: "grid", gap: 8 }}>
+                  <label htmlFor="checkout-first-name" style={{ color: "#322d27", fontSize: 12, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                    First name
+                  </label>
+                  <input
+                    id="checkout-first-name"
+                    name="first_name"
+                    value={firstName}
+                    onChange={(event) => setFirstName(event.target.value)}
+                    type="text"
+                    autoComplete="given-name"
+                    placeholder="Maren"
+                    required
+                    disabled={isSubmitting}
+                    style={{
+                      width: "100%",
+                      border: "1px solid #cfc7b9",
+                      borderRadius: 12,
+                      background: "#fff",
+                      color: "#0d0c0a",
+                      fontSize: 16,
+                      padding: "11px 13px",
+                      outlineColor: "#5d2cd6",
+                    }}
+                  />
+                  </div>
+
+                  <div style={{ display: "grid", gap: 8 }}>
+                  <label htmlFor="checkout-email" style={{ color: "#322d27", fontSize: 12, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                    Work email
+                  </label>
+                  <input
+                    id="checkout-email"
+                    name="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@company.com"
+                    required
+                    disabled={isSubmitting}
+                    style={{
+                      width: "100%",
+                      border: "1px solid #cfc7b9",
+                      borderRadius: 12,
+                      background: "#fff",
+                      color: "#0d0c0a",
+                      fontSize: 16,
+                      padding: "11px 13px",
+                      outlineColor: "#5d2cd6",
+                    }}
+                  />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{
+                    justifySelf: "start",
+                    border: 0,
+                    borderRadius: 999,
+                    background: "#5d2cd6",
+                    color: "#fff",
+                    cursor: isSubmitting ? "wait" : "pointer",
+                    fontSize: 15,
+                    fontWeight: 750,
+                    padding: "12px 19px",
+                    boxShadow: "0 18px 38px rgba(93, 44, 214, 0.24)",
+                    opacity: isSubmitting ? 0.72 : 1,
+                  }}
+                >
+                  {status.kind === "submitting" && "Starting checkout..."}
+                  {status.kind === "redirecting" && "Redirecting to Stripe..."}
+                  {(status.kind === "idle" || status.kind === "error") && "Continue to secure checkout"}
+                </button>
+
+                {status.kind === "error" && (
+                  <p role="alert" style={{ margin: 0, color: "#b42318", fontSize: 14, lineHeight: 1.45 }}>
+                    {status.message}
+                  </p>
+                )}
+              </form>
+
+              <p style={{ margin: "12px 0 0", color: "#322d27", fontSize: 13, lineHeight: 1.4 }}>
+                By continuing you agree to ADGA&apos;s <a href="/policies" style={{ color: "#0d0c0a", fontWeight: 750 }}>policies</a>.
+              </p>
             </div>
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #d8d1c5", display: "flex", justifyContent: "space-between", gap: 16, alignItems: "baseline" }}>
-              <span style={{ fontSize: 15, fontWeight: 800 }}>Due today</span>
-              <span style={{ fontSize: 28, fontWeight: 850 }}>{formatCurrency(total)}</span>
-            </div>
-            <div style={{ marginTop: 4, color: "#4b4741", fontSize: 13, textAlign: "right" }}>{cadenceLabel}</div>
-          </aside>
+          )}
         </div>
+      </section>
 
-        <footer style={{ marginTop: 56, color: "#4b4741", fontSize: 13 }}>{getCopyright()}</footer>
-      </div>
+      <footer style={{ maxWidth: 780, margin: "0 auto", padding: "0 24px 24px", color: "#322d27", fontSize: 13 }}>
+        {getCopyright()}
+      </footer>
 
       <style jsx>{`
-        @media (max-width: 820px) {
-          .checkout-layout {
+        @media (max-width: 920px) {
+          .checkout-fields {
             grid-template-columns: 1fr !important;
-            gap: 28px !important;
           }
         }
       `}</style>
     </main>
-    </>
   );
 }
 
