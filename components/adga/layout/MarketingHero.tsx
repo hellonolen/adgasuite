@@ -1,4 +1,5 @@
 import type { ReactNode, CSSProperties } from "react";
+import Link from "next/link";
 
 type CtaConfig = {
   label: string;
@@ -88,18 +89,19 @@ export function MarketingHero({
           }
         >
           {primaryCta && (
-            <a href={primaryCta.href} className="btn primary lg">
+            <Link href={primaryCta.href} className="btn primary lg" prefetch>
               {primaryCta.label}
-            </a>
+            </Link>
           )}
           {secondaryCta && (
-            <a
+            <Link
               href={secondaryCta.href}
               className="btn lg"
               style={{ background: "transparent", border: "1px solid var(--rule, #e8e4de)" }}
+              prefetch
             >
               {secondaryCta.label}
-            </a>
+            </Link>
           )}
         </div>
       )}

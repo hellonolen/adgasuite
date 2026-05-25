@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   BRAND,
   PRIMARY_CTA,
@@ -58,9 +59,9 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
   return (
     <div className="marketing-root adga-presence-crisp">
       <nav className={"nav wrap " + (menuOpen ? "nav-open" : "")}>
-        <a href="/" className="brand">
+        <Link href="/" className="brand" prefetch>
           {BRAND.name}
-        </a>
+        </Link>
         <button
           className="nav-toggle"
           type="button"
@@ -74,19 +75,19 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
         </button>
         <div className="nav-links">
           {NAV_LINKS.map((link) => (
-            <a key={link.href} href={link.href} onClick={closeMenu}>
+            <Link key={link.href} href={link.href} onClick={closeMenu} prefetch>
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
         <div className="nav-cta">
           <span className="nav-mono">{BRAND.tagline}</span>
-          <a href={SECONDARY_NAV_CTA.href} className="btn" onClick={closeMenu}>
+          <Link href={SECONDARY_NAV_CTA.href} className="btn" onClick={closeMenu} prefetch>
             {SECONDARY_NAV_CTA.label}
-          </a>
-          <a href={PRIMARY_CTA.href} className="btn primary" onClick={closeMenu}>
+          </Link>
+          <Link href={PRIMARY_CTA.href} className="btn primary" onClick={closeMenu} prefetch>
             {PRIMARY_CTA.label}
-          </a>
+          </Link>
         </div>
       </nav>
 
@@ -94,9 +95,9 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
 
       <footer className="foot wrap">
         <div className="foot-brand-area">
-          <a href="/" className="brand" style={{ fontSize: 22 }}>
+          <Link href="/" className="brand" style={{ fontSize: 22 }} prefetch>
             {BRAND.name}
-          </a>
+          </Link>
           <p style={{ marginTop: 10, fontSize: "12.5px", color: "var(--adga-text-2)", maxWidth: "36ch" }}>
             {BRAND.footerDescription}
           </p>
@@ -108,7 +109,7 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
               <ul>
                 {column.links.map((link) => (
                   <li key={`${column.heading}-${link.label}`}>
-                    <a href={link.href}>{link.label}</a>
+                    <Link href={link.href} prefetch>{link.label}</Link>
                   </li>
                 ))}
               </ul>
@@ -123,9 +124,9 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
         <span>{getCopyright()}</span>
         <div style={{ display: "inline-flex", gap: 20, flexWrap: "wrap" }}>
           {FOOTER_END_LINKS.map((link) => (
-            <a key={link.href} href={link.href}>
+            <Link key={link.href} href={link.href} prefetch>
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
       </div>

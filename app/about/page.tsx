@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 import { MarketingHero } from "@/components/adga/layout/MarketingHero";
 import { PAGE_SEO } from "@/lib/marketing-config";
@@ -88,8 +89,8 @@ export default function AboutPage() {
           <div className="right">
             <p>Choose a plan, verify email, and open the workspace built for deal flow management, pipeline follow-up, invoices, and close execution.</p>
             <div className="ctas">
-              <a href="/pricing" className="btn primary lg">Start closing deals</a>
-              <a href="/5-secrets" className="btn lg">Get the 5 Secrets</a>
+              <Link href="/pricing" className="btn primary lg" prefetch>Start closing deals</Link>
+              <Link href="/5-secrets" className="btn lg" prefetch>Get the 5 Secrets</Link>
             </div>
           </div>
         </section>

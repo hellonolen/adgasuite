@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 import { MarketingHero } from "@/components/adga/layout/MarketingHero";
 import { PAGE_SEO } from "@/lib/marketing-config";
@@ -288,7 +289,7 @@ export default function ProcessPage() {
               Pick a plan, open the workspace, and run the process on real deals — from the first lead through repeat purchase.
             </p>
             <div className="ctas">
-              <a href="/pricing" className="btn primary lg">Start closing deals</a>
+              <Link href="/pricing" className="btn primary lg" prefetch>Start closing deals</Link>
             </div>
           </div>
         </section>

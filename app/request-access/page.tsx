@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 
 type Plan = "individual" | "teams" | "enterprise";
@@ -56,8 +57,8 @@ export default function RequestAccessPage() {
               Existing users should sign in. New workspaces choose a plan, verify email, and start the activation checklist that gets real deals moving.
             </p>
             <div className="access-actions">
-              <a className="btn primary lg" href="/pricing">Choose a plan</a>
-              <a className="btn lg" href="/login">Sign in</a>
+              <Link className="btn primary lg" href="/pricing" prefetch>Choose a plan</Link>
+              <Link className="btn lg" href="/login" prefetch>Sign in</Link>
             </div>
             <div className="access-steps" aria-label="Start flow">
               <div><b>1</b><span>Choose a plan on pricing</span></div>
@@ -72,7 +73,7 @@ export default function RequestAccessPage() {
                 <span className="ed-label">Selected plan</span>
                 <h2>{PLANS.find((plan) => plan.id === form.plan)?.name || "Teams"} plan</h2>
               </div>
-              <a href="/pricing" className="accent-link">Change plan</a>
+              <Link href="/pricing" className="accent-link" prefetch>Change plan</Link>
             </div>
 
             <div className="access-plan-grid">
@@ -96,8 +97,8 @@ export default function RequestAccessPage() {
                   <h2>Workspace setup started.</h2>
                   <p className="muted">Next step: verify the email address you submitted. After checkout and email verification, sign in to enter the suite.</p>
                   <div className="access-actions compact">
-                    <a className="btn primary lg" href="/login">Go to sign in</a>
-                    <a className="btn lg" href="/pricing">Return to pricing</a>
+                    <Link className="btn primary lg" href="/login" prefetch>Go to sign in</Link>
+                    <Link className="btn lg" href="/pricing" prefetch>Return to pricing</Link>
                   </div>
                 </div>
               ) : (
@@ -121,7 +122,7 @@ export default function RequestAccessPage() {
                   </div>
                   <div className="access-submit-row">
                     <button className="btn primary lg" type="submit">Verify email</button>
-                    <span>Ready to move deals forward? Choose a <a href="/pricing">plan</a>.</span>
+                    <span>Ready to move deals forward? Choose a <Link href="/pricing" prefetch>plan</Link>.</span>
                   </div>
                 </form>
               )}

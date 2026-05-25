@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 import { MarketingHero } from "@/components/adga/layout/MarketingHero";
 
@@ -222,7 +223,7 @@ export default function PricingPage() {
                 <li>In-workspace deal copilot</li>
                 <li>Live DealFlow per deal</li>
               </ul>
-              <a href={proHref} className="btn">Start closing deals</a>
+              <Link href={proHref} className="btn" prefetch>Start closing deals</Link>
             </div>
 
             <div className="tier featured">
@@ -272,7 +273,7 @@ export default function PricingPage() {
                 <li>Approval queue with audit trail</li>
                 <li>Shareable DealFlows for clients</li>
               </ul>
-              <a href={teamHref} className="btn primary">Start closing deals</a>
+              <Link href={teamHref} className="btn primary" prefetch>Start closing deals</Link>
             </div>
 
             <div className="tier">
@@ -321,7 +322,7 @@ export default function PricingPage() {
                 <li>Watermarked client shares with revocable access</li>
                 <li>Dedicated onboarding and priority support</li>
               </ul>
-              <a href={enterpriseHref} className="btn">Start closing deals</a>
+              <Link href={enterpriseHref} className="btn" prefetch>Start closing deals</Link>
             </div>
           </div>
         </section>
@@ -475,7 +476,7 @@ export default function PricingPage() {
           <p style={{ fontSize: 16, color: "var(--adga-text-2)", maxWidth: "50ch", margin: "0 auto 24px" }}>
             Start with the plan that fits today. Move up when the team grows. Move down if you change your mind. No record loss.
           </p>
-          <a href={proHref} className="btn primary lg">Start closing deals</a>
+          <Link href={proHref} className="btn primary lg" prefetch>Start closing deals</Link>
         </section>
       </div>
     </MarketingLayout>

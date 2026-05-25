@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 import { MarketingHero } from "@/components/adga/layout/MarketingHero";
 
@@ -31,8 +32,8 @@ export default function StoriesPage() {
               Four homes, four floors, four different rooms — every one running deals on ADGA.
             </p>
             <div className="actions">
-              <a href="/pricing" className="btn primary lg">Start closing deals</a>
-              <a href="/plan" className="btn lg">Review the workspace</a>
+              <Link href="/pricing" className="btn primary lg" prefetch>Start closing deals</Link>
+              <Link href="/plan" className="btn lg" prefetch>Review the workspace</Link>
             </div>
           </div>
         </section>

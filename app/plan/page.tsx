@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 import { MarketingHero } from "@/components/adga/layout/MarketingHero";
 import { PAGE_SEO } from "@/lib/marketing-config";
@@ -268,7 +269,7 @@ export default function PlanPage() {
               Pick a plan, verify your email, and open the workspace built to keep leads, contacts, documents, meetings, and decisions moving toward close.
             </p>
             <div className="ctas">
-              <a href="/pricing" className="btn primary lg">Start closing deals</a>
+              <Link href="/pricing" className="btn primary lg" prefetch>Start closing deals</Link>
             </div>
           </div>
         </section>

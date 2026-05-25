@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
+import Link from "next/link";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 import { MarketingHero } from "@/components/adga/layout/MarketingHero";
 
@@ -509,8 +510,8 @@ export default function HomePage() {
             Closers, dealmakers, advisors, and operators want the same thing: more qualified opportunities moving cleanly toward close. The problem is that real deals do not live in one clean place. A lead starts in an inbox, the first call creates notes, the diligence folder sits somewhere else, the decision maker changes, the invoice gets handled after the fact, and the next follow-up depends on somebody remembering what happened. ADGA brings the external work, the internal confidence, and the financial close path into one deal management platform. Start by choosing a plan, bring in your existing pipeline or capture new leads, then work every next move from the same workspace. The result is a cleaner pipeline, faster follow-up, clearer handoffs, and fewer deals lost to silence. The alternative is the same scattered process: missed commitments, stale opportunities, delayed payments, and a team that cannot trust what the pipeline says.
           </p>
           <div className="ctas" style={{ marginTop: 24 }}>
-            <a href="/pricing" className="btn primary lg">Start closing deals</a>
-            <a href="/5-secrets" className="btn lg">Get the 5 Secrets</a>
+            <Link href="/pricing" className="btn primary lg" prefetch>Start closing deals</Link>
+            <Link href="/5-secrets" className="btn lg" prefetch>Get the 5 Secrets</Link>
           </div>
         </section>
 
@@ -612,7 +613,7 @@ export default function HomePage() {
               Pick a plan, verify your email, and open the workspace built to keep leads, contacts, documents, meetings, and decisions moving toward close.
             </p>
             <div className="ctas">
-              <a href="/pricing" className="btn primary lg">Start closing deals</a>
+              <Link href="/pricing" className="btn primary lg" prefetch>Start closing deals</Link>
             </div>
           </div>
         </section>
