@@ -479,44 +479,38 @@ body::before {
 
 .marketing-root .hero-phrase-headline {
   position: relative;
-  display: inline-grid;
-  place-items: center;
-  width: min(100%, 14ch);
-  min-height: 2em;
+  display: block;
+  width: 100%;
+  max-width: min(100%, 1440px);
+  min-height: 1.15em;
+  letter-spacing: 0;
 }
 
 .marketing-root .hero-phrase-headline span {
-  grid-area: 1 / 1;
+  display: block;
+  font-size: clamp(52px, 5.75vw, 96px);
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1);
+  transition:
+    opacity 1100ms ease,
+    filter 1100ms ease,
+    transform 1100ms ease;
+  text-align: center;
+  will-change: opacity, filter, transform;
+}
+
+.marketing-root .hero-phrase-headline span.is-fading {
   opacity: 0;
   filter: blur(10px);
   transform: scale(0.992);
-  animation: hero-headline-phrase 40s ease-in-out infinite;
-  animation-delay: calc(var(--phrase-index, 0) * 5s);
-  text-align: center;
-  will-change: opacity, filter, transform;
 }
 
 .marketing-root .hero-phrase-headline em {
   color: var(--accent, #5d2cd6);
   font-style: normal;
-}
-
-@keyframes hero-headline-phrase {
-  0% {
-    opacity: 0;
-    filter: blur(10px);
-    transform: scale(0.992);
-  }
-  2.5%, 10% {
-    opacity: 1;
-    filter: blur(0);
-    transform: scale(1);
-  }
-  12.5%, 100% {
-    opacity: 0;
-    filter: blur(10px);
-    transform: scale(0.992);
-  }
 }
 
 .marketing-root .hero-workspace {
@@ -899,7 +893,7 @@ body::before {
     max-width: 100%;
   }
   .marketing-root .hero-phrase-headline {
-    min-height: 2.2em;
+    min-height: 1.2em;
   }
   .marketing-root .hero-workspace-grid {
     grid-template-columns: 1fr;
@@ -949,8 +943,12 @@ body::before {
 @media (max-width: 520px) {
   .marketing-root .hero-phrase-headline {
     font-size: clamp(30px, 7.9vw, 34px) !important;
-    width: min(100%, 15ch);
-    min-height: 2.75em;
+    min-height: 2.2em;
+  }
+  .marketing-root .hero-phrase-headline span {
+    font-size: clamp(31px, 8.15vw, 39px);
+    line-height: 1.02;
+    white-space: normal;
   }
   .marketing-root .hero-workspace-live {
     margin-top: 28px;
@@ -990,10 +988,11 @@ body::before {
 
 @media (prefers-reduced-motion: reduce) {
   .marketing-root .hero-phrase-headline span {
-    animation: none;
     filter: none;
+    transition: none;
   }
-  .marketing-root .hero-phrase-headline span:first-child {
+  .marketing-root .hero-phrase-headline span,
+  .marketing-root .hero-phrase-headline span.is-fading {
     opacity: 1;
     transform: none;
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 import { MarketingHero } from "@/components/adga/layout/MarketingHero";
@@ -73,11 +73,11 @@ const USE_CASES = [
 ];
 
 const HERO_HEADLINES = [
-  "real estate",
-  "procurement",
   "acquisition",
+  "procurement",
   "licensing",
   "partnership",
+  "real estate",
   "premium sales",
   "franchise",
   "M&A",
@@ -85,13 +85,37 @@ const HERO_HEADLINES = [
 ];
 
 function HeroHeadline() {
+  const [headlineIndex, setHeadlineIndex] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
+  const industry = HERO_HEADLINES[headlineIndex] ?? HERO_HEADLINES[0];
+
+  useEffect(() => {
+    let swapTimeout: number | undefined;
+    let revealTimeout: number | undefined;
+    const interval = window.setInterval(() => {
+      setIsVisible(false);
+      swapTimeout = window.setTimeout(() => {
+        setHeadlineIndex((current) => (current + 1) % HERO_HEADLINES.length);
+        revealTimeout = window.setTimeout(() => setIsVisible(true), 80);
+      }, 1100);
+    }, 4300);
+
+    return () => {
+      window.clearInterval(interval);
+      if (swapTimeout !== undefined) {
+        window.clearTimeout(swapTimeout);
+      }
+      if (revealTimeout !== undefined) {
+        window.clearTimeout(revealTimeout);
+      }
+    };
+  }, []);
+
   return (
     <h1 className="hero-display hero-phrase-headline" aria-label="Close more deals.">
-      {HERO_HEADLINES.map((industry, index) => (
-        <span key={industry} style={{ "--phrase-index": index } as CSSProperties}>
-          Close more <em>{industry}</em> deals.
-        </span>
-      ))}
+      <span className={isVisible ? undefined : "is-fading"}>
+        Close more <em>{industry}</em> deals.
+      </span>
     </h1>
   );
 }
