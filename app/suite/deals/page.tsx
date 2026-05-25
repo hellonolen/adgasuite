@@ -185,7 +185,7 @@ async function loadDeals(db: D1Database | undefined, env: CloudflareEnv, organiz
 export default async function DealsPage() {
   const session = await resolveAdminSession();
   if (!session) {
-    redirect("/login?redirect=/suite/deals");
+    redirect("/login?next=/suite/deals");
   }
 
   const { context } = await getAdminRuntime();

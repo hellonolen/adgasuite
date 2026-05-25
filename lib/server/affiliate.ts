@@ -58,12 +58,12 @@ export async function loadAffiliateContext(returnTo: string): Promise<AffiliateC
     } else if (context.user.isLocalAdminBypass && context.user.email) {
       email = context.user.email;
     } else {
-      redirect(`/login?redirect=${encodeURIComponent(returnTo)}`);
+      redirect(`/login?next=${encodeURIComponent(returnTo)}`);
     }
   } else {
     // No D1 binding (pure-Next local dev). Fall back to bypass email so the UI is testable.
     if (!context.user.email) {
-      redirect(`/login?redirect=${encodeURIComponent(returnTo)}`);
+      redirect(`/login?next=${encodeURIComponent(returnTo)}`);
     }
     email = context.user.email;
   }

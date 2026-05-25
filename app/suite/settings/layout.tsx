@@ -19,7 +19,7 @@ export default async function SettingsRootLayout({ children }: { children: React
   const sessionUser = await validateSession(context.env.DB, readSessionCookie(request));
 
   if (!sessionUser && !context.user.isLocalAdminBypass) {
-    redirect("/login?redirect=/suite/settings");
+    redirect("/login?next=/suite/settings");
   }
 
   return (

@@ -21,7 +21,7 @@ export default async function SuiteRootRedirect() {
   const sessionUser = await validateSession(db, readSessionCookie(request));
 
   if (!sessionUser && !context.user.isLocalAdminBypass) {
-    redirect("/login?redirect=/suite");
+    redirect("/login?next=/suite");
   }
   const organizationId = organizationIdForSession(sessionUser);
 

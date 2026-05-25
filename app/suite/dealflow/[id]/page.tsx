@@ -200,7 +200,7 @@ export default async function DealDetailPage({ params }: PageProps) {
 
   const sessionUser = await validateSession(db, readSessionCookie(request));
   if (!sessionUser && !context.user.isLocalAdminBypass) {
-    redirect(`/login?redirect=/suite/dealflow/${encodeURIComponent(id)}`);
+    redirect(`/login?next=/suite/dealflow/${encodeURIComponent(id)}`);
   }
   const organizationId = organizationIdForSession(sessionUser);
 

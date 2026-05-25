@@ -16,7 +16,7 @@ export default async function SuitePendingPage() {
   const context = getRuntimeContext(request);
   const sessionUser = await validateSession(context.env.DB, readSessionCookie(request));
   if (!sessionUser && !context.user.isLocalAdminBypass) {
-    redirect("/login?redirect=/suite/pending");
+    redirect("/login?next=/suite/pending");
   }
   const role = sessionUser?.role || context.user.role;
   if (role !== "owner" && role !== "admin") {

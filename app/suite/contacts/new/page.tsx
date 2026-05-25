@@ -13,7 +13,7 @@ export default async function NewContactPage() {
   const context = getRuntimeContext(proxyRequest);
   const sessionUser = await validateSession(context.env.DB, readSessionCookie(proxyRequest));
   if (!sessionUser && !context.user.isLocalAdminBypass) {
-    redirect("/login?redirect=/suite/contacts/new");
+    redirect("/login?next=/suite/contacts/new");
   }
   return <NewContactFormClient />;
 }

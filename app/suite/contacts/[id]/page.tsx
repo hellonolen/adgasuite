@@ -26,7 +26,7 @@ export default async function ContactDetailPage({ params }: PageProps) {
 
   const sessionUser = await validateSession(db, readSessionCookie(proxyRequest));
   if (!sessionUser && !context.user.isLocalAdminBypass) {
-    redirect(`/login?redirect=/suite/contacts/${encodeURIComponent(id)}`);
+    redirect(`/login?next=/suite/contacts/${encodeURIComponent(id)}`);
   }
 
   if (!db) {

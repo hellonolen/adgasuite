@@ -221,10 +221,17 @@ export default function HomePage() {
           primaryCta={{ label: "Start closing deals", href: "/pricing" }}
         >
           <figure className="hero-dealflow-shot">
-            <img
-              src="/adga/dealflow-hero.png"
-              alt="ADGA DealFlow workspace with a populated deal graph, connected nodes, and the ADGA assistant panel."
-            />
+            <picture>
+              <source srcSet="/adga/dealflow-hero.webp" type="image/webp" />
+              <img
+                src="/adga/dealflow-hero.png"
+                alt="ADGA DealFlow workspace with a populated deal graph, connected nodes, and the ADGA assistant panel."
+                width={1440}
+                height={960}
+                fetchPriority="high"
+                decoding="async"
+              />
+            </picture>
           </figure>
         </MarketingHero>
 
