@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { type CSSProperties, type FormEvent, useState } from "react";
 import Link from "next/link";
 import { MarketingLayout } from "@/components/adga/layout/MarketingLayout";
 import { MarketingHero } from "@/components/adga/layout/MarketingHero";
@@ -71,6 +71,112 @@ const USE_CASES = [
   { label: "Licensing", body: "Manage rights, counterparties, term sheets, review cycles, signatures, and renewal paths." },
   { label: "High-ticket sales", body: "Turn qualified interest into calls, proposals, follow-up, close, delivery, and expansion." },
 ];
+
+const HERO_DEAL_TYPES = [
+  "Real estate",
+  "M&A",
+  "Capital raise",
+  "Licensing",
+  "Procurement",
+  "Partnership",
+  "High-ticket sales",
+  "Franchise",
+];
+
+function HeroDealFlow() {
+  return (
+    <div className="hero-workspace hero-workspace-live" aria-label="Live ADGA DealFlow preview across multiple deal types">
+      <div className="hero-workspace-head">
+        <div>
+          <span className="hero-workspace-kicker">ADGA DealFlow</span>
+          <strong>One workspace for complex deals</strong>
+        </div>
+        <span className="hero-workspace-status">Live deal activity</span>
+      </div>
+
+      <div className="hero-industry-strip" aria-label="Deal categories ADGA supports">
+        {HERO_DEAL_TYPES.map((type, index) => (
+          <span key={type} style={{ "--chip-index": index } as CSSProperties}>
+            {type}
+          </span>
+        ))}
+      </div>
+
+      <div className="hero-workspace-grid">
+        <div className="hero-suite-nav" aria-hidden="true">
+          <span className="hero-suite-brand">ADGA</span>
+          <span className="active">Deals</span>
+          <span>Contacts</span>
+          <span>Files</span>
+          <span>Calendar</span>
+          <span>Invoices</span>
+        </div>
+
+        <div className="hero-dealflow-preview" aria-hidden="true">
+          <div className="hero-canvas-toolbar">
+            <span>Working deal</span>
+            <b>Expansion financing with eight parties attached</b>
+          </div>
+          <div className="hero-link hero-link-a" />
+          <div className="hero-link hero-link-b" />
+          <div className="hero-link hero-link-c" />
+          <div className="hero-link hero-link-d" />
+
+          <div className="hero-node hero-node-core hero-node-pulse">
+            <span>Deal</span>
+            <b>Close path</b>
+            <small>Terms, owner, next action, risk, and payment status stay connected.</small>
+          </div>
+          <div className="hero-node hero-node-contact hero-node-float-a">
+            <span>People</span>
+            <b>Contacts & stakeholders</b>
+            <small>Buyer, seller, investor, broker, attorney, lender, operator.</small>
+          </div>
+          <div className="hero-node hero-node-doc hero-node-float-b">
+            <span>Proof</span>
+            <b>Files & diligence</b>
+            <small>Contracts, terms, statements, memos, approvals, invoices.</small>
+          </div>
+          <div className="hero-node hero-node-call hero-node-float-c">
+            <span>Calls</span>
+            <b>Notes & transcripts</b>
+            <small>Meeting context and decisions stay tied to the right deal.</small>
+          </div>
+          <div className="hero-node hero-node-invoice hero-node-float-d">
+            <span>Money</span>
+            <b>Invoice & payment</b>
+            <small>Checkout, billing status, handoff, and follow-up in one view.</small>
+          </div>
+        </div>
+
+        <div className="hero-context-panel">
+          <div className="hero-panel-title">ADGA is watching the work</div>
+          <div className="hero-context-row">
+            <span>Next move</span>
+            <b>Send lender brief</b>
+          </div>
+          <div className="hero-context-row">
+            <span>Missing</span>
+            <b>Signed terms</b>
+          </div>
+          <div className="hero-context-row">
+            <span>Risk</span>
+            <b>Attorney review</b>
+          </div>
+          <div className="hero-agent-note">
+            Ask ADGA which deals need attention, where a contact fits, what file is missing, or what should happen next.
+          </div>
+        </div>
+      </div>
+
+      <div className="hero-workspace-foot" aria-hidden="true">
+        <div><b>8</b><span>deal categories shown</span></div>
+        <div><b>1</b><span>DealFlow per opportunity</span></div>
+        <div><b>All</b><span>contacts, files, calls, and payments connected</span></div>
+      </div>
+    </div>
+  );
+}
 
 const IMPORT_SOURCES = [
   "CSV export from another CRM",
@@ -221,19 +327,7 @@ export default function HomePage() {
           deck="Leverage this agentic deal system so you can open, position, and close more deals without missing a beat."
           primaryCta={{ label: "Start closing deals", href: "/pricing" }}
         >
-          <figure className="hero-dealflow-shot">
-            <picture>
-              <source srcSet="/adga/dealflow-hero.webp" type="image/webp" />
-              <img
-                src="/adga/dealflow-hero.png"
-                alt="ADGA DealFlow workspace with a populated deal graph, connected nodes, and the ADGA assistant panel."
-                width={1440}
-                height={960}
-                fetchPriority="high"
-                decoding="async"
-              />
-            </picture>
-          </figure>
+          <HeroDealFlow />
         </MarketingHero>
 
         <section className="section" id="value" style={{ borderTop: 0, paddingTop: 32 }}>
