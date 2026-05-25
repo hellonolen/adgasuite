@@ -30,6 +30,7 @@ const TEAM_INCLUDED_SEATS = 5;
 const TEAM_MAX_SEATS = 12;
 const ENTERPRISE_INCLUDED_SEATS = 12;
 const STRIPE_API_VERSION = "2026-02-25.clover";
+const WEBHOOK_TOLERANCE_SECONDS = 300;
 
 export function seatCountForPlan(plan: AdgaPlanId, requested?: number) {
   if (plan === "pro") return 1;
@@ -91,6 +92,7 @@ export async function createStripeCheckout(input: StripeCheckoutInput) {
 
   params.set("mode", "subscription");
   params.set("customer_email", input.email);
+  params.set("client_reference_id", input.organizationId || input.email);
   params.set("success_url", `${input.origin}/onboarding?checkout=stripe&session_id={CHECKOUT_SESSION_ID}&plan=${plan}&cadence=${cadence}&seats=${seats}`);
   params.set("cancel_url", `${input.origin}/checkout?plan=${plan}&cadence=${cadence}&seats=${seats}`);
   params.set("metadata[email]", input.email);
@@ -100,6 +102,7 @@ export async function createStripeCheckout(input: StripeCheckoutInput) {
   params.set("metadata[cadence]", cadence);
   if (input.organizationId) params.set("metadata[organization_id]", input.organizationId);
   params.set("subscription_data[metadata][email]", input.email);
+  params.set("subscription_data[metadata][name]", input.name || "");
   params.set("subscription_data[metadata][plan]", plan);
   params.set("subscription_data[metadata][seats]", String(seats));
   params.set("subscription_data[metadata][cadence]", cadence);
@@ -184,13 +187,23 @@ export async function verifyStripeWebhook(input: {
   if (!input.secret) return { ok: false, reason: "STRIPE_WEBHOOK_SECRET is not configured." };
   if (!input.signature) return { ok: false, reason: "Missing Stripe signature." };
 
-  const parts = Object.fromEntries(input.signature.split(",").map((part) => {
-    const [key, value] = part.split("=");
-    return [key, value];
-  }));
-  const timestamp = parts.t;
-  const signature = parts.v1;
-  if (!timestamp || !signature) return { ok: false, reason: "Malformed Stripe signature." };
+  const parts = input.signature.split(",").reduce<{ timestamp?: string; signatures: string[] }>((acc, part) => {
+    const separator = part.indexOf("=");
+    if (separator === -1) return acc;
+    const key = part.slice(0, separator);
+    const value = part.slice(separator + 1);
+    if (key === "t") acc.timestamp = value;
+    if (key === "v1") acc.signatures.push(value);
+    return acc;
+  }, { signatures: [] });
+  const timestamp = parts.timestamp;
+  if (!timestamp || parts.signatures.length === 0) return { ok: false, reason: "Malformed Stripe signature." };
+
+  const timestampSeconds = Number.parseInt(timestamp, 10);
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  if (!Number.isFinite(timestampSeconds) || Math.abs(nowSeconds - timestampSeconds) > WEBHOOK_TOLERANCE_SECONDS) {
+    return { ok: false, reason: "Expired Stripe signature." };
+  }
 
   const signedPayload = `${timestamp}.${input.rawBody}`;
   const key = await crypto.subtle.importKey(
@@ -204,7 +217,7 @@ export async function verifyStripeWebhook(input: {
   const expected = Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 
   return {
-    ok: timingSafeEqual(signature, expected),
+    ok: parts.signatures.some((signature) => timingSafeEqual(signature, expected)),
     reason: "Invalid Stripe signature.",
   };
 }

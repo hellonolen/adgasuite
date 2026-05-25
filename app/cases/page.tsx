@@ -60,7 +60,7 @@ const USE_CASES: ReadonlyArray<UseCase> = [
   {
     label: "Partnership",
     who: "For BD leads, founders, and ops teams negotiating commercial or strategic partnerships.",
-    body: "Partnership work moves slowly across many stakeholders inside a counterparty. ADGA keeps the introduction trail, the working contacts, the commercial terms, the integration scope, and the launch plan in one place — so the deal doesn't die when a single champion leaves.",
+    body: "Partnership work moves slowly across many stakeholders inside a counterparty. ADGA keeps the introduction trail, the working contacts, the commercial terms, the integration scope, and the launch plan in one place — so the deal does not stall when a single champion leaves.",
     bullets: [
       "Counterparty company plus every working contact linked to the deal",
       "Introduction source, champion, and decision authority on the record",
@@ -143,13 +143,13 @@ export default function CasesPage() {
           </p>
 
           <div
+            className="balanced-card-grid"
             style={{
               marginTop: 48,
               maxWidth: 1080,
               marginLeft: "auto",
               marginRight: "auto",
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
               gap: 24,
             }}
           >

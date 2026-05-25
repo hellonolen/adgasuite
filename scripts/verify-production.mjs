@@ -35,6 +35,38 @@ async function assertStatus(url, expectedStatus, options = {}) {
   return response;
 }
 
+async function assertHtmlContains(pathname, needle) {
+  const url = `${origin}${pathname}`;
+  const response = await assertFetch(url, {
+    headers: {
+      accept: "text/html, */*",
+      "user-agent": "adga-production-verifier/1.0",
+    },
+  });
+  const html = await response.text();
+  if (!html.includes(needle)) {
+    throw new Error(`${url} did not include expected customer-ready marker: ${needle}`);
+  }
+  console.log(`${url} is reachable`);
+  return html;
+}
+
+async function assertProtectedRedirect(pathname) {
+  const url = `${origin}${pathname}`;
+  const response = await fetch(url, {
+    redirect: "manual",
+    headers: {
+      accept: "text/html, */*",
+      "user-agent": "adga-production-verifier/1.0",
+    },
+  });
+  const location = response.headers.get("location") || "";
+  if (![302, 303, 307, 308].includes(response.status) || !location.startsWith("/login")) {
+    throw new Error(`${url} should redirect unauthenticated visitors to /login; got ${response.status} ${location}`);
+  }
+  console.log(`${url} auth gate redirects to ${location}`);
+}
+
 async function assertDns(provider, url) {
   const response = await fetch(url, {
     headers: {
@@ -81,14 +113,16 @@ if (!homeHtml.includes("ADGA")) {
 }
 console.log(`${origin}/ is reachable`);
 
-await assertFetch(`${origin}/suite`);
-console.log(`${origin}/suite is reachable`);
+await assertHtmlContains("/pricing", "Checkout");
+await assertHtmlContains("/login", "Sign in");
+await assertHtmlContains("/checkout?plan=team", "Complete checkout");
+
+await assertProtectedRedirect("/suite");
+await assertProtectedRedirect("/suite/deals");
+await assertProtectedRedirect("/suite/dealflow/launch-readiness");
 
 await assertFetch(`${origin}/5-secrets`);
 console.log(`${origin}/5-secrets is reachable`);
-
-await assertFetch(`${origin}/login`);
-console.log(`${origin}/login is reachable`);
 
 const accessResponse = await fetch(`${origin}/5-secrets/access`, {
   redirect: "manual",

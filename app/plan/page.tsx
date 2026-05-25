@@ -171,13 +171,13 @@ export default function PlanPage() {
           </p>
 
           <div
+            className="balanced-card-grid"
             style={{
               marginTop: 48,
               maxWidth: 1080,
               marginLeft: "auto",
               marginRight: "auto",
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
               gap: 24,
             }}
           >

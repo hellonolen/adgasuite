@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "next dev --port 3010",
     "build": "next build",
-    "build:cf": "opennextjs-cloudflare build && node scripts/patch-open-next-worker.mjs",
-    "build:cf:ci": "opennextjs-cloudflare build && node scripts/patch-open-next-worker.mjs",
+    "clean:next": "rm -rf .next .open-next",
+    "build:cf": "npm run clean:next && opennextjs-cloudflare build && node scripts/patch-open-next-worker.mjs",
+    "build:cf:ci": "npm run clean:next && opennextjs-cloudflare build && node scripts/patch-open-next-worker.mjs",
     "deploy": "npm run build:cf && wrangler deploy worker.js --cwd .open-next --config ../wrangler.ci.toml --x-autoconfig=false --keep-vars",
     "preview": "npm run build:cf && wrangler dev",
     "cloudflare:production": "node scripts/cloudflare-production-setup.mjs",

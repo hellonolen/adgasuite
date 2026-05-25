@@ -52,7 +52,7 @@ export default function AboutPage() {
         </section>
 
         <section className="section">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, maxWidth: 1080, margin: "0 auto" }}>
+          <div className="balanced-card-grid balanced-card-grid-2" style={{ display: "grid", gap: 24, maxWidth: 1080, margin: "0 auto" }}>
             <div style={{ background: "var(--surface)", border: "1px solid var(--rule)", borderRadius: 14, padding: 28 }}>
               <span className="ed-label">Authority</span>
               <h2 style={{ margin: "8px 0 0", fontSize: 32, lineHeight: 1.05 }}>The platform is wired around the close path.</h2>

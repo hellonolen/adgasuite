@@ -16,12 +16,16 @@ JSON payload R2 keys must be deterministic and organization-scoped: `payloads/{o
 
 Reads that hydrate payload pointers must use the bucket recorded on the `storage_objects` row when a `storage_object_id` is present. Falling back to the default payload bucket is only acceptable for legacy rows that have a `payload_r2_key` but no storage object metadata.
 
+Payload reads must also enforce the tenant boundary when the caller knows the organization. Lead, contact, invoice, and similar workspace routes pass the row organization into payload hydration; if a `storage_object_id` points to another organization, the payload must not be read or merged into the response.
+
 ADP partner referrals follow this rule: the full submitted lead/contact payload is written to R2 first; D1 keeps the partner referral number, partner metadata, routing status, and the R2 pointer. ADP referral numbers are not ADGA customer IDs and not internal affiliate IDs.
 
 Current implementation coverage:
 
 - New public leads and manual lead/deal/task records write full payloads to R2 and keep D1 pointer metadata.
 - New and updated contacts write full payloads to R2 and keep D1 pointer metadata.
+- Lead, contact, and invoice list/detail reads hydrate R2 payloads only through storage object metadata and the caller organization boundary.
+- Document uploads write binary content to R2 and record the actual bucket, key, hash, MIME type, size, and owning resource metadata in D1.
 - New maps, map nodes, and map edges write labels/data/style payloads to R2 and keep D1 graph/index metadata.
 - New voice-note transcripts, SMS messages, communication messages, invoices, deal representations, access requests, and ADP partner referrals write full payloads to R2 and keep D1 pointer metadata.
 - Voice call participants, transcripts, summaries, recordings, and agentic outputs write to R2; D1 keeps status/timing/provider metadata and the payload pointer.

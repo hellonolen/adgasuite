@@ -31,7 +31,7 @@ const SECRETS = [
     short: "The Next Move",
     title: "Never leave the next move implied",
     paragraphs: [
-      "Momentum dies when the next step lives in somebody's memory. In a large deal, vague follow-up creates space for doubt, delay, and competing priorities.",
+      "Momentum stalls when the next step lives in somebody's memory. In a large deal, vague follow-up creates space for doubt, delay, and competing priorities.",
       "Every serious conversation should end with one clear next move. That move needs an owner, a due date, and a reason it matters to the deal.",
       "Do not settle for phrases like \"we will circle back\" or \"let's stay in touch.\" Those are not next steps. They are placeholders.",
       "A strong next move gives everyone something to organize around. It makes the deal easier to inspect, easier to support, and harder to lose quietly.",

@@ -19,6 +19,7 @@ audit-*.png
 # Local dev screenshots / dump artifacts — never tracked
 *.png
 *.jpg
+!public/adga/dealflow-hero.png
 docs/COMPACT*.txt
 /tmp/
 archive/build-artifacts/

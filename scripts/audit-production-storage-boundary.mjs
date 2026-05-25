@@ -49,6 +49,12 @@ for (const table of archiveTables) {
 
 const hardDeletePattern = /DELETE\s+FROM\s+(leads|contacts|deals|maps|map_nodes|map_edges|map_shares|voice_notes|voice_calls|sms_messages|communication_messages|client_invoices|documents|storage_objects)\b/i;
 const directPayloadReadPattern = /\breadJsonPayload\s*</;
+const requiredTenantHydrationRoutes = new Set([
+  "app/api/leads/route.ts",
+  "app/api/contacts/route.ts",
+  "app/api/contacts/[id]/route.ts",
+  "app/api/invoices/route.ts",
+]);
 
 function walk(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -69,7 +75,25 @@ for (const scope of scopedRoutes) {
     if (rel !== "lib/server/payload-storage.ts" && directPayloadReadPattern.test(source)) {
       failures.push(`${rel} reads JSON payloads without storage_object bucket metadata; use readStoredJsonPayload`);
     }
+    if (requiredTenantHydrationRoutes.has(rel)) {
+      const calls = source.match(/readStoredJsonPayload<[\s\S]*?\);/g) || [];
+      for (const call of calls) {
+        if (!/\b(organizationId|ORG_ID|session\.organizationId)\b/.test(call)) {
+          failures.push(`${rel} hydrates R2 payloads without an organization boundary`);
+        }
+      }
+    }
   }
+}
+
+const payloadStorage = fs.readFileSync(path.join(root, "lib/server/payload-storage.ts"), "utf8");
+if (!payloadStorage.includes("storageObject.organization_id !== organizationId")) {
+  failures.push("lib/server/payload-storage.ts must reject storage_object payload reads outside the requested organization");
+}
+
+const documentUpload = fs.readFileSync(path.join(root, "app/api/documents/upload/route.ts"), "utf8");
+if (!documentUpload.includes("const bucketName = context.env.DOCUMENTS_BUCKET ? \"documents\" : \"uploads\"")) {
+  failures.push("app/api/documents/upload/route.ts must record the actual R2 bucket used for document uploads");
 }
 
 if (failures.length) {

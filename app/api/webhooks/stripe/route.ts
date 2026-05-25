@@ -4,6 +4,7 @@ import { createEvent } from "@/lib/server/repository";
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
 import { DEFAULT_ORG_ID, orgIdForEmail, orgNameForEmail, orgSlugForEmail } from "@/lib/server/tenant";
+import { normalizePlan } from "@/lib/plans";
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
@@ -17,14 +18,20 @@ export async function POST(request: Request) {
 
   if (!verified.ok) return json({ ok: false, error: verified.reason }, { status: 401 });
 
-  const payload = JSON.parse(rawBody || "{}") as StripeEvent;
+  let payload: StripeEvent;
+  try {
+    payload = JSON.parse(rawBody || "{}") as StripeEvent;
+  } catch {
+    return json({ ok: false, error: "Malformed Stripe webhook payload." }, { status: 400 });
+  }
+
   const object = payload.data?.object || {};
   const email = extractEmail(object);
   const organizationId =
     normalizedString(object.metadata?.organization_id) ||
     (await findOrganizationIdForStripeObject(context.env.DB, object)) ||
     (email ? orgIdForEmail(email) : DEFAULT_ORG_ID);
-  const plan = String(object.metadata?.plan || (await findPlanForStripeObject(context.env.DB, object)) || "team");
+  const plan = normalizePlan(object.metadata?.plan || (await findPlanForStripeObject(context.env.DB, object)) || "team");
   const status = subscriptionStatus(payload.type, object);
   const now = nowIso();
 

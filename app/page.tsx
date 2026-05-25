@@ -220,95 +220,15 @@ export default function HomePage() {
           deck="Leverage this agentic deal system so you can open, position, and close more deals without missing a beat."
           primaryCta={{ label: "Start closing deals", href: "/pricing" }}
         >
-          <div className="hero-mocks" aria-hidden="true">
-            <div className="hero-mock hero-mock-left">
-              <div className="hero-mock-head">
-                <span className="hero-mock-badge hero-mock-badge-dark">Deal</span>
-                <span className="hero-mock-id">DEAL-1224</span>
-              </div>
-              <div className="hero-mock-title">Capital raise — Series B</div>
-              <div className="hero-mock-meta">
-                <span>Closing</span>
-                <span className="dot">·</span>
-                <span>$24M</span>
-                <span className="dot">·</span>
-                <span>3 stakeholders</span>
-              </div>
-              <div className="hero-mock-row">
-                <span className="hero-mock-icon">·</span>
-                <span>Term sheet · sent</span>
-                <span className="hero-mock-tag">Signed</span>
-              </div>
-              <div className="hero-mock-row">
-                <span className="hero-mock-icon">·</span>
-                <span>Diligence call · Thu 3:00pm</span>
-                <span className="hero-mock-tag">Confirmed</span>
-              </div>
-              <div className="hero-mock-row hero-mock-row-active">
-                <span className="hero-mock-icon">→</span>
-                <span>Counter offer · draft ready</span>
-                <span className="hero-mock-tag hero-mock-tag-accent">Next</span>
-              </div>
-            </div>
-
-            <div className="hero-mock hero-mock-right">
-              <div className="hero-mock-head">
-                <span className="hero-mock-badge">Contact</span>
-                <span className="hero-mock-id">+12 More</span>
-              </div>
-              <div className="hero-mock-title">Aurore Chastain</div>
-              <div className="hero-mock-meta">
-                <span>Head of Corp Dev</span>
-                <span className="dot">·</span>
-                <span>Sutter Maritime</span>
-              </div>
-              <div className="hero-mock-row">
-                <span className="hero-mock-label">Stage</span>
-                <span>Negotiation</span>
-              </div>
-              <div className="hero-mock-row">
-                <span className="hero-mock-label">Value</span>
-                <span>$22M weighted</span>
-              </div>
-              <div className="hero-mock-row">
-                <span className="hero-mock-label">Owner</span>
-                <span>Maren Voss</span>
-              </div>
-              <div className="hero-mock-row">
-                <span className="hero-mock-label">Next</span>
-                <span className="hero-mock-next">Send counter · 5 min</span>
-              </div>
-            </div>
-          </div>
+          <figure className="hero-dealflow-shot">
+            <img
+              src="/adga/dealflow-hero.png"
+              alt="ADGA DealFlow workspace with a populated deal graph, connected nodes, and the ADGA assistant panel."
+            />
+          </figure>
         </MarketingHero>
 
-        <section className="section" id="stakes" style={{ borderTop: 0, paddingTop: 32 }}>
-          <span className="ed-label">The cost of doing nothing</span>
-          <h2 className="title">Deals usually die quietly.</h2>
-          <p style={{ maxWidth: "62ch", marginTop: 12, color: "var(--adga-text-2)" }}>
-            The offer can be strong and the buyer can still drift. When the next move is unclear, the workspace is scattered, or the close path is disconnected from payment, momentum turns into silence.
-          </p>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-              gap: 14,
-              marginTop: 28,
-              maxWidth: 1080,
-              marginLeft: "auto",
-              marginRight: "auto",
-            }}
-          >
-            {NEGATIVE_STAKES.map((stake) => (
-              <div key={stake} style={{ border: "1px solid var(--rule)", borderRadius: 12, padding: "18px 20px", background: "var(--surface)" }}>
-                <span style={{ color: "var(--accent)", fontSize: 18, lineHeight: 1 }}>-</span>
-                <p style={{ margin: "8px 0 0", fontSize: 14, lineHeight: 1.55, color: "var(--adga-text)" }}>{stake}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="section" id="value">
+        <section className="section" id="value" style={{ borderTop: 0, paddingTop: 32 }}>
           <span className="ed-label">Deal management platform</span>
           <h2 className="title">One system for the work that gets deals closed.</h2>
           <div className="three" style={{ marginTop: 32, maxWidth: 1080, marginLeft: "auto", marginRight: "auto" }}>
@@ -333,6 +253,32 @@ export default function HomePage() {
                 </span>
                 <div className="head">{item.title}</div>
                 <div className="body">{item.body}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="section" id="stakes">
+          <span className="ed-label">Where ADGA helps</span>
+          <h2 className="title">Make the next move obvious.</h2>
+          <p style={{ maxWidth: "62ch", marginTop: 12, color: "var(--adga-text-2)" }}>
+            The offer can be strong and the buyer can still drift. ADGA keeps the next move, workspace, and close path visible before momentum turns into silence.
+          </p>
+          <div
+            className="balanced-card-grid balanced-card-grid-5"
+            style={{
+              display: "grid",
+              gap: 14,
+              marginTop: 28,
+              maxWidth: 1080,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            {NEGATIVE_STAKES.map((stake) => (
+              <div key={stake} style={{ border: "1px solid var(--rule)", borderRadius: 12, padding: "18px 20px", background: "var(--surface)" }}>
+                <span style={{ color: "var(--accent)", fontSize: 18, lineHeight: 1 }}>-</span>
+                <p style={{ margin: "8px 0 0", fontSize: 14, lineHeight: 1.55, color: "var(--adga-text)" }}>{stake}</p>
               </div>
             ))}
           </div>
@@ -374,13 +320,12 @@ export default function HomePage() {
           <span className="ed-label">Simple plan</span>
           <h2 className="title">Open the workspace. Bring in the deal. Move the next action.</h2>
           <div
-            className="process-rail"
+            className="process-rail balanced-process-rail"
             style={{
               marginTop: 32,
               maxWidth: 1080,
               marginLeft: "auto",
               marginRight: "auto",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
             }}
           >
             {SIMPLE_PLAN.map((step, index) => (
@@ -400,10 +345,9 @@ export default function HomePage() {
             A deal is more than a card on a board. People, process, proof, and close path — together in one place.
           </p>
           <div
-            className="anatomy-grid"
+            className="anatomy-grid balanced-card-grid balanced-card-grid-4"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
               gap: 24,
               marginTop: 32,
               maxWidth: 1080,
@@ -518,13 +462,13 @@ export default function HomePage() {
             Most platforms make you abandon what you've built. ADGA brings active pipeline, contacts, files, and notes with you — match on day one.
           </p>
           <div
+            className="balanced-card-grid"
             style={{
               marginTop: 28,
               maxWidth: 1080,
               marginLeft: "auto",
               marginRight: "auto",
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
               gap: 16,
             }}
           >

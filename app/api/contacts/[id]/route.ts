@@ -57,6 +57,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       db,
       String(contact.payload_r2_key || ""),
       contact.storage_object_id ? String(contact.storage_object_id) : null,
+      ORG_ID,
     );
     const mergedContact = payload ? { ...contact, ...payload, id: contact.id, organization_id: contact.organization_id } : contact;
 
@@ -106,6 +107,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       db,
       String(existing.payload_r2_key || ""),
       existing.storage_object_id ? String(existing.storage_object_id) : null,
+      ORG_ID,
     );
     const nextPayload = {
       ...(existingPayload || existing),

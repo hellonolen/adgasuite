@@ -66,7 +66,7 @@ The Pro tier is the entry. The Team tier is the growth. The Enterprise tier is t
 | **2** | **Problem** | External | Deals scattered across email, calls, files, calendars · manual follow-up dropping leads · no single source of truth · spreadsheets disconnected from CRM · team duplicates work or misses handoffs |
 | | | Internal | Anxious about hitting the number · overwhelmed by too many balls in the air · embarrassed when a client asks for a status update you can't pull in 30 seconds · exhausted from running everything yourself |
 | | | Philosophical | Running a real business shouldn't require sticky notes. Closing deals is hard enough — operating the business shouldn't add more friction. Your deal flow shouldn't depend on who happened to take the call |
-| **3** | **Guide** | Empathy | We've lost the deal because a follow-up slipped. We've scrambled to pull a client update from three tools. We've watched good leads die in a spreadsheet |
+| **3** | **Guide** | Empathy | We've lost the deal because a follow-up slipped. We've scrambled to pull a client update from three tools. We've watched good leads stall in a spreadsheet |
 | | | Authority | ADGA is built around the actual nine-stage path every B2B deal runs — Lead through Expand. Every touchpoint captured. Every next action queued. Built for closers, not for transactional CRM workflows |
 | **4** | **Plan** | Step 1 | Import or create your deals — bring everything into one place |
 | | | Step 2 | Run the nine-stage process — ADGA guides every deal from Lead to Expand |

@@ -336,9 +336,9 @@ export default function PricingPage() {
             </p>
           </div>
           <div
+            className="balanced-card-grid"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
               gap: 18,
               maxWidth: 1080,
               marginLeft: "auto",
@@ -418,6 +418,7 @@ export default function PricingPage() {
         {/* TRUST STRIP */}
         <section className="section" style={{ paddingTop: 80 }}>
           <div
+            className="balanced-card-grid"
             style={{
               maxWidth: 1080,
               margin: "0 auto",
@@ -426,7 +427,6 @@ export default function PricingPage() {
               background: "linear-gradient(180deg, rgba(86, 36, 199, 0.03), rgba(86, 36, 199, 0.07))",
               border: "1px solid rgba(86, 36, 199, 0.12)",
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
               gap: 28,
             }}
           >

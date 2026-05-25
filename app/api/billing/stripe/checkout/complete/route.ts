@@ -42,6 +42,11 @@ export async function POST(request: Request) {
   if (session.object && session.object !== "checkout.session") {
     return errorJson("Stripe returned an unexpected checkout object.", 502);
   }
+  if (session.mode !== "subscription") {
+    return errorJson("Checkout session is not for a subscription.", 409, {
+      mode: session.mode || null,
+    });
+  }
   if (!isCompletedPaidSession(session)) {
     return errorJson("Checkout is not complete yet.", 409, {
       status: session.status || null,

@@ -100,7 +100,7 @@ interface SuiteClientProps {
 export default function SuiteClient({ children, bootstrap = null }: SuiteClientProps) {
   const pathname = usePathname();
   const billing = bootstrap?.billing;
-  const recoveryRoute = pathname === "/suite/settings/billing" || pathname === "/suite/billing" || pathname === "/suite/onboarding";
+  const recoveryRoute = pathname === "/suite/settings/billing" || pathname === "/suite/billing";
 
   if (billing && !billing.accessAllowed && !recoveryRoute) {
     return <BillingRecovery billing={billing} />;

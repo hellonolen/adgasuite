@@ -30,6 +30,7 @@ export async function GET(request: Request) {
         context.env.DB,
         String(row.payload_r2_key || ""),
         row.storage_object_id ? String(row.storage_object_id) : null,
+        organizationId,
       );
       return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
     }));

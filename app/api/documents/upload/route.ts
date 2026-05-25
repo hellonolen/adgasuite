@@ -17,6 +17,7 @@ export async function POST(request: Request) {
   const contactName = stringField(form.get("contact_name"));
   const folder = stringField(form.get("folder")) || "general";
 
+  const bucketName = context.env.DOCUMENTS_BUCKET ? "documents" : "uploads";
   const bucket = context.env.DOCUMENTS_BUCKET || context.env.UPLOADS_BUCKET;
   if (!bucket) {
     return errorJson("Document uploads are not available right now.", 503);
@@ -24,14 +25,20 @@ export async function POST(request: Request) {
 
   const bytes = await file.arrayBuffer();
   const hash = await sha256Hex(bytes);
-  const key = `documents/${newId("doc")}/${file.name}`;
+  const safeFileName = storageSafeFileName(file.name);
+  const key = `documents/${newId("doc")}/${safeFileName}`;
   await bucket.put(key, bytes, {
     httpMetadata: { contentType: file.type || "application/octet-stream" },
+    customMetadata: {
+      organization_id: "org_adga_primary",
+      resource_type: dealId ? "deal" : "document",
+      sha256: hash,
+    },
   });
 
   const document = await createDocumentMetadata(context.env.DB, {
-    title: file.name,
-    type: documentTypeFromName(file.name),
+    title: safeFileName,
+    type: documentTypeFromName(safeFileName),
     recipient_name: contactName || null,
     recipient_company: companyName || companyId || null,
     status: "stored",
@@ -40,9 +47,9 @@ export async function POST(request: Request) {
   });
 
   const storageObject = await createStorageObject(context.env.DB, {
-    bucket: "documents",
+    bucket: bucketName,
     r2_key: key,
-    file_name: file.name,
+    file_name: safeFileName,
     mime_type: file.type || "application/octet-stream",
     size_bytes: file.size,
     sha256: hash,
@@ -64,7 +71,7 @@ export async function POST(request: Request) {
       document_id: document.id,
       storage_object_id: storageObject.id,
       key,
-      name: file.name,
+      name: safeFileName,
       size: file.size,
       type: file.type,
       sha256: hash,
@@ -84,7 +91,7 @@ export async function POST(request: Request) {
       document_id: document.id,
       storage_object_id: storageObject.id,
       r2_key: key,
-      file_name: file.name,
+      file_name: safeFileName,
       mime_type: file.type || "application/octet-stream",
       size_bytes: file.size,
       deal_id: dealId,
@@ -109,6 +116,11 @@ async function sha256Hex(buffer: ArrayBuffer) {
 
 function stringField(value: FormDataEntryValue | null) {
   return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function storageSafeFileName(name: string) {
+  const trimmed = name.trim().split(/[\\/]/).pop() || "document";
+  return trimmed.replace(/[^A-Za-z0-9._ -]/g, "_").slice(0, 160) || "document";
 }
 
 function documentTypeFromName(name: string) {

@@ -17,8 +17,8 @@ import {
   type DealFlowNodeKind,
   type DealFlowNodeStatus,
 } from "@/lib/server/repository";
-import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
-import { DEFAULT_ORG_ID } from "@/lib/server/tenant";
+import { getRuntimeContext } from "@/lib/server/runtime";
+import { resolveTenantSession } from "@/lib/server/tenant";
 import { formatSearchContext, searchWorkspace } from "@/lib/server/workspace-search";
 
 const MessageSchema = z.object({
@@ -425,6 +425,7 @@ async function queuePreparedApproval(input: {
   action: ChatActionRecord;
   context: z.infer<typeof ContextSchema>;
   actorEmail: string | null;
+  organizationId: string;
   state: ChatActionState;
 }): Promise<ChatActionExecution> {
   const type = input.action.type.trim();
@@ -437,6 +438,7 @@ async function queuePreparedApproval(input: {
     input.context?.id ||
     null;
   const approval = await createAgentApproval(input.db, {
+    organization_id: input.organizationId,
     agent: "conductor",
     title: `Approval required: ${type}`,
     proposed_action: archiveAction
@@ -455,7 +457,7 @@ async function queuePreparedApproval(input: {
   });
 
   await publish(input.db, {
-    organization_id: DEFAULT_ORG_ID,
+    organization_id: input.organizationId,
     event_type: "agent_approval.requested",
     actor_type: "user",
     actor_id: input.actorEmail,
@@ -570,10 +572,30 @@ function parseNodeRequests(text: string): ChatActionRecord[] {
     .filter((action): action is ChatActionRecord => Boolean(action));
 }
 
+function actionDedupeKey(action: ChatActionRecord): string {
+  return [
+    stringValue(action.type).toLowerCase(),
+    stringValue(action.kind).toLowerCase(),
+    stringValue(action.dealflow_id ?? action.dealFlowId ?? action.deal_flow_id ?? action.map_id).toLowerCase(),
+    stringValue(action.node_id ?? action.nodeId ?? action.id).toLowerCase(),
+    stringValue(action.label ?? action.name ?? action.title ?? action.query).toLowerCase(),
+  ].join(":");
+}
+
+function dedupeActions(actions: ChatActionRecord[]): ChatActionRecord[] {
+  const seen = new Set<string>();
+  return actions.filter((action) => {
+    const key = actionDedupeKey(action);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function inferredServerActions(messages: ChatMessage[], context: z.infer<typeof ContextSchema>, modelActions: Array<{ type: string }>): ChatActionRecord[] {
   const latest = latestUserMessage(messages);
   const explicitActions = parseActionJson(latest);
-  if (explicitActions.length) return explicitActions;
+  if (explicitActions.length) return dedupeActions(explicitActions);
 
   const actions = modelActions.map((action) => action as ChatActionRecord);
   const lower = latest.toLowerCase();
@@ -593,7 +615,7 @@ function inferredServerActions(messages: ChatMessage[], context: z.infer<typeof 
     actions.push({ type: "search_workspace", query: extractNamedValue(latest, "next step") || context?.deal?.nextAction || "next step" });
   }
 
-  return actions;
+  return dedupeActions(actions);
 }
 
 async function executeChatAction(input: {
@@ -601,15 +623,16 @@ async function executeChatAction(input: {
   action: ChatActionRecord;
   context: z.infer<typeof ContextSchema>;
   actorEmail: string | null;
+  organizationId: string;
   index: number;
   state: ChatActionState;
 }): Promise<ChatActionExecution> {
-  const { action, env, context, actorEmail, index, state } = input;
+  const { action, env, context, actorEmail, organizationId, index, state } = input;
   const db = env.DB;
   const type = action.type.trim();
 
   if (EXTERNAL_ACTIONS.has(type) || EXPLICIT_APPROVAL_ACTIONS.has(type) || DESTRUCTIVE_ACTIONS.has(type)) {
-    return queuePreparedApproval({ db, action, context, actorEmail, state });
+    return queuePreparedApproval({ db, action, context, actorEmail, organizationId, state });
   }
 
   if (type === "create_deal") {
@@ -618,11 +641,11 @@ async function executeChatAction(input: {
     const deal = await createDeal(db, {
       ...normalizeDealPatch(action),
       id: stringValue(action.id) || undefined,
-      organization_id: DEFAULT_ORG_ID,
+      organization_id: organizationId,
       name,
     });
     await publish(db, {
-      organization_id: DEFAULT_ORG_ID,
+      organization_id: organizationId,
       event_type: "deal.created",
       actor_type: "user",
       actor_id: actorEmail,
@@ -644,10 +667,10 @@ async function executeChatAction(input: {
       if (DEAL_STAGES.has(stage)) patch.stage = stage;
     }
     if (Object.keys(patch).length === 0) return { status: "skipped", action_type: type, message: "update_deal had no supported fields." };
-    const deal = await updateDeal(db, dealId, DEFAULT_ORG_ID, patch);
+    const deal = await updateDeal(db, dealId, organizationId, patch);
     if (!deal) return { status: "failed", action_type: type, resource_type: "deal", resource_id: dealId, message: "Deal not found." };
     await publish(db, {
-      organization_id: DEFAULT_ORG_ID,
+      organization_id: organizationId,
       event_type: patch.stage ? "deal.stage_changed" : "deal.updated",
       actor_type: "user",
       actor_id: actorEmail,
@@ -664,14 +687,14 @@ async function executeChatAction(input: {
     const name = stringValue(action.name || action.label);
     if (!name) return { status: "skipped", action_type: type, message: "create_dealflow requires a name." };
     const dealFlow = await createDealFlow(db, {
-      organization_id: DEFAULT_ORG_ID,
+      organization_id: organizationId,
       name,
       deal_id: resolveRef(action.deal_id ?? action.dealId, state) || state.lastDealId || context?.deal?.id || null,
       template: nullableString(action.template),
       created_by_user_id: actorEmail,
     });
     await publish(db, {
-      organization_id: DEFAULT_ORG_ID,
+      organization_id: organizationId,
       event_type: "dealflow.created",
       actor_type: "user",
       actor_id: actorEmail,
@@ -692,10 +715,10 @@ async function executeChatAction(input: {
       ...(action.deal_id !== undefined || action.dealId !== undefined ? { deal_id: resolveRef(action.deal_id ?? action.dealId, state) || null } : {}),
       ...(action.template !== undefined ? { template: nullableString(action.template) } : {}),
     };
-    const dealFlow = await updateDealFlow(db, dealFlowId, DEFAULT_ORG_ID, patch);
+    const dealFlow = await updateDealFlow(db, dealFlowId, organizationId, patch);
     if (!dealFlow) return { status: "failed", action_type: type, resource_type: "dealflow", resource_id: dealFlowId, message: "DealFlow not found." };
     await publish(db, {
-      organization_id: DEFAULT_ORG_ID,
+      organization_id: organizationId,
       event_type: "dealflow.updated",
       actor_type: "user",
       actor_id: actorEmail,
@@ -711,7 +734,7 @@ async function executeChatAction(input: {
   if (type === "add_node" || type === "create_node") {
     const dealFlowId = actionDealFlowId(action, context, state);
     if (!dealFlowId) return { status: "skipped", action_type: type, message: "add_node requires a DealFlow id." };
-    const existing = await getDealFlow(db, dealFlowId, DEFAULT_ORG_ID);
+    const existing = await getDealFlow(db, dealFlowId, organizationId);
     if (!existing) return { status: "failed", action_type: type, resource_type: "dealflow", resource_id: dealFlowId, message: "DealFlow not found." };
     const kind = normalizeNodeKind(action.kind);
     const label = stringValue(action.label || action.name || action.title);
@@ -729,7 +752,7 @@ async function executeChatAction(input: {
       data: objectValue(action.data),
     });
     await publish(db, {
-      organization_id: DEFAULT_ORG_ID,
+      organization_id: organizationId,
       event_type: "dealflow.node_added",
       actor_type: "user",
       actor_id: actorEmail,
@@ -760,7 +783,7 @@ async function executeChatAction(input: {
     const node = await updateDealFlowNode(db, dealFlowId, nodeId, patch);
     if (!node) return { status: "failed", action_type: type, resource_type: "dealflow_node", resource_id: nodeId, message: "Node not found." };
     await publish(db, {
-      organization_id: DEFAULT_ORG_ID,
+      organization_id: organizationId,
       event_type: "dealflow.node_updated",
       actor_type: "user",
       actor_id: actorEmail,
@@ -778,7 +801,7 @@ async function executeChatAction(input: {
     const targetNodeId = resolveRef(action.target_node_id || action.targetNodeId || action.target, state);
     if (!dealFlowId || !sourceNodeId || !targetNodeId) return { status: "skipped", action_type: type, message: "add_edge requires a DealFlow id, source node id, and target node id." };
     if (sourceNodeId === targetNodeId) return { status: "skipped", action_type: type, message: "add_edge source and target must differ." };
-    const existing = await getDealFlow(db, dealFlowId, DEFAULT_ORG_ID);
+    const existing = await getDealFlow(db, dealFlowId, organizationId);
     if (!existing) return { status: "failed", action_type: type, resource_type: "dealflow", resource_id: dealFlowId, message: "DealFlow not found." };
     const edge = await createDealFlowEdge(db, dealFlowId, {
       id: stringValue(action.id) || undefined,
@@ -788,7 +811,7 @@ async function executeChatAction(input: {
       style: action.style === undefined ? null : objectValue(action.style),
     });
     await publish(db, {
-      organization_id: DEFAULT_ORG_ID,
+      organization_id: organizationId,
       event_type: "dealflow.edge_added",
       actor_type: "user",
       actor_id: actorEmail,
@@ -821,7 +844,7 @@ async function executeChatAction(input: {
         },
       };
     }
-    const search = await searchWorkspace(env, { query, organizationId: DEFAULT_ORG_ID, limit: 5 });
+    const search = await searchWorkspace(env, { query, organizationId: organizationId, limit: 5 });
     return {
       status: "executed",
       action_type: type,
@@ -847,6 +870,7 @@ async function executeChatActions(input: {
   actions: Array<{ type: string }>;
   context: z.infer<typeof ContextSchema>;
   actorEmail: string | null;
+  organizationId: string;
 }): Promise<ChatActionExecution[]> {
   const results: ChatActionExecution[] = [];
   const state: ChatActionState = { refs: new Map() };
@@ -866,13 +890,9 @@ async function executeChatActions(input: {
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
-
-  try {
-    requireAdmin(context);
-  } catch (response) {
-    if (response instanceof Response) return response;
-    return errorJson("Forbidden", 403);
-  }
+  const tenant = await resolveTenantSession(context, request);
+  if (!tenant) return errorJson("Authentication required.", 401);
+  if (tenant.role !== "owner" && tenant.role !== "admin") return errorJson("Forbidden", 403);
 
   const rawBody = await readJson<Record<string, unknown>>(request);
   const parsed = BodySchema.safeParse(rawBody);
@@ -880,7 +900,7 @@ export async function POST(request: Request) {
     return errorJson("Invalid request body.", 400, parsed.error.issues);
   }
 
-  const rateKey = context.user.email || request.headers.get("x-forwarded-for") || "anon";
+  const rateKey = tenant.email || request.headers.get("x-forwarded-for") || "anon";
   if (!checkRateLimit(rateKey)) {
     return errorJson("Rate limit reached. Please slow down.", 429);
   }
@@ -888,7 +908,7 @@ export async function POST(request: Request) {
   const baseContextBlock = await buildContextBlock(context.env.DB, parsed.data.context);
   const retrieval = await searchWorkspace(context.env, {
     query: latestUserMessage(parsed.data.messages),
-    organizationId: DEFAULT_ORG_ID,
+    organizationId: tenant.organizationId,
     limit: 5,
   }).catch(() => null);
   const retrievalBlock = retrieval ? formatSearchContext(retrieval, 5) : "";
@@ -909,7 +929,8 @@ export async function POST(request: Request) {
     env: context.env,
     actions,
     context: parsed.data.context,
-    actorEmail: context.user.email || null,
+    actorEmail: tenant.email,
+    organizationId: tenant.organizationId,
   });
 
   return json({

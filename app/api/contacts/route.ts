@@ -120,6 +120,7 @@ export async function GET(request: Request) {
         db,
         String(row.payload_r2_key || ""),
         row.storage_object_id ? String(row.storage_object_id) : null,
+        ORG_ID,
       );
       return payload ? { ...row, ...payload, id: row.id, organization_id: row.organization_id } : row;
     }));

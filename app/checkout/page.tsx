@@ -15,7 +15,7 @@ const TEAM_MAX_SEATS = 12;
 const ENTERPRISE_BASE_MONTHLY = 597;
 const ENTERPRISE_INCLUDED_SEATS = 12;
 const ENTERPRISE_SEAT_ADD = 20;
-const ANNUAL_MONTHS_BILLED = 11;
+const ANNUAL_MONTHS_BILLED = 10;
 
 const PLAN_META: Record<PlanId, { name: string; tagline: string; seatsLabel: string }> = {
   pro: {
@@ -240,7 +240,7 @@ function CheckoutInner() {
             </div>
 
             {cadence === "year" && (
-              <p style={{ margin: "16px 0 0", color: "#322d27", fontSize: 13 }}>Annual billing includes one month free.</p>
+              <p style={{ margin: "16px 0 0", color: "#322d27", fontSize: 13 }}>Annual billing includes two months free.</p>
             )}
           </div>
 
@@ -369,6 +369,15 @@ function CheckoutInner() {
           .checkout-fields {
             grid-template-columns: 1fr !important;
           }
+        }
+      `}</style>
+      <style jsx global>{`
+        body {
+          background: #fff !important;
+        }
+
+        body::before {
+          display: none !important;
         }
       `}</style>
     </main>

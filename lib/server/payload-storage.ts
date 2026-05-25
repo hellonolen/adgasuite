@@ -121,7 +121,11 @@ export async function readStoredJsonPayload<T = Record<string, unknown>>(
   db: D1Database | undefined,
   r2Key: string | null | undefined,
   storageObjectId: string | null | undefined,
+  organizationId?: string | null,
 ): Promise<T | null> {
   const storageObject = await getStorageObjectById(db, storageObjectId);
+  if (organizationId && storageObject && storageObject.organization_id !== organizationId) {
+    return null;
+  }
   return readJsonPayload<T>(env, storageObject?.r2_key || r2Key, storageObject?.bucket || null);
 }

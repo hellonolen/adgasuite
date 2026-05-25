@@ -1,5 +1,6 @@
 const baseUrl = process.env.BASE_URL || "http://localhost:3010";
 const checks = [];
+let createdDealFlowId = null;
 
 async function check(name, fn) {
   try {
@@ -62,10 +63,41 @@ await check("ADGA chat creates deal, DealFlow, nodes, and searches next step", a
   const data = await response.json();
   assert(data.ok === true, "chat response did not return ok");
   const results = Array.isArray(data.action_results) ? data.action_results : [];
-  assert(results.some((item) => item.status === "executed" && item.action_type === "create_deal" && item.resource_type === "deal"), "chat did not create a deal");
-  assert(results.some((item) => item.status === "executed" && item.action_type === "create_dealflow" && item.resource_type === "dealflow"), "chat did not create a DealFlow");
-  assert(results.filter((item) => item.status === "executed" && item.action_type === "add_node" && item.resource_type === "dealflow_node").length >= 3, "chat did not create expected DealFlow nodes");
+  const createdDeal = results.find((item) => item.status === "executed" && item.action_type === "create_deal" && item.resource_type === "deal");
+  const createdDealFlow = results.find((item) => item.status === "executed" && item.action_type === "create_dealflow" && item.resource_type === "dealflow");
+  const createdNodes = results.filter((item) => item.status === "executed" && item.action_type === "add_node" && item.resource_type === "dealflow_node");
+  assert(createdDeal?.resource_id, "chat did not create a deal with a resource id");
+  assert(createdDealFlow?.resource_id, "chat did not create a DealFlow with a resource id");
+  assert(createdNodes.length >= 3, "chat did not create expected DealFlow nodes");
+  assert(new Set(createdNodes.map((item) => item.resource_id).filter(Boolean)).size === createdNodes.length, "chat returned duplicate DealFlow node resource ids");
   assert(results.some((item) => item.status === "executed" && item.action_type === "search_workspace"), "chat did not run the next-step workspace search");
+  const actions = Array.isArray(data.actions) ? data.actions : [];
+  const actionKeys = actions.map((item) => `${item.type}:${item.kind || ""}:${item.label || item.name || item.query || ""}`);
+  assert(new Set(actionKeys).size === actionKeys.length, "chat returned duplicate inferred actions");
+  createdDealFlowId = createdDealFlow.resource_id;
+});
+
+await check("ADGA chat updates existing DealFlow and returns search results", async () => {
+  assert(createdDealFlowId, "previous DealFlow create check did not produce an id");
+  const response = await postJson("/api/agent/chat", {
+    context: { kind: "dealflow", dealFlowId: createdDealFlowId, id: createdDealFlowId },
+    messages: [
+      {
+        role: "user",
+        content: `Do this action: \`\`\`json
+{"actions":[{"type":"update_dealflow","dealflow_id":"${createdDealFlowId}","name":"Launch Smoke Riverfront Renewal Updated"},{"type":"search_workspace","query":"Riverfront Renewal next step"}]}
+\`\`\``,
+      },
+    ],
+  });
+  assert(response.status === 200, `expected 200, got ${response.status}`);
+  const data = await response.json();
+  assert(data.ok === true, "chat response did not return ok");
+  const results = Array.isArray(data.action_results) ? data.action_results : [];
+  const update = results.find((item) => item.status === "executed" && item.action_type === "update_dealflow");
+  const search = results.find((item) => item.status === "executed" && item.action_type === "search_workspace");
+  assert(update?.resource_type === "dealflow" && update.resource_id === createdDealFlowId, "chat did not update the requested DealFlow");
+  assert(search?.data?.query === "Riverfront Renewal next step", "chat did not return the requested workspace search result payload");
 });
 
 await check("ADGA chat keeps external sends approval-only", async () => {

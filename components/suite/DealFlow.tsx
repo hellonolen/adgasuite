@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import {
   ReactFlow,
   Background,
@@ -21,7 +22,7 @@ import {
   type NodeMouseHandler,
   type OnSelectionChangeParams,
 } from "@xyflow/react";
-import { Hand, Link2, MousePointer2, Palette, Plus, Search, Share2, SlidersHorizontal, Trash2, X } from "lucide-react";
+import { Check, Edit3, Hand, Link2, MousePointer2, Palette, Plus, Search, Share2, SlidersHorizontal, Trash2, X } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 
 export type DealFlowEntityKind =
@@ -169,6 +170,29 @@ const VIEW_MODES = [
 type ViewMode = (typeof VIEW_MODES)[number]["id"];
 type DealFlowToolPanel = "search" | "nodes" | "style" | "links" | "view" | "share";
 type CanvasInteractionMode = "select" | "pan";
+
+type AgentActionResult = {
+  status?: string;
+  action_type?: string;
+  resource_type?: string;
+  resource_id?: string;
+  message?: string;
+  data?: {
+    results?: Array<{ type?: string; id?: string; title?: string; url?: string }>;
+  };
+};
+
+type AgentChatResponse = {
+  ok?: boolean;
+  error?: string;
+  message?: { content?: string } | string;
+  action_results?: AgentActionResult[];
+};
+
+function agentMessageText(message: AgentChatResponse["message"]): string {
+  if (typeof message === "string") return message;
+  return typeof message?.content === "string" ? message.content : "";
+}
 
 function DealNodeView({ data, selected }: NodeProps) {
   const deal = data as unknown as DealFlowDeal;
@@ -412,6 +436,12 @@ export function DealFlow({
   onAddEdge,
   onDeleteEdge,
 }: DealFlowProps) {
+  const router = useRouter();
+  const [currentDeal, setCurrentDeal] = React.useState(deal);
+  const [dealTitleDraft, setDealTitleDraft] = React.useState(deal.name);
+  const [dealTitleEditing, setDealTitleEditing] = React.useState(false);
+  const [dealTitleError, setDealTitleError] = React.useState<string | null>(null);
+
   const initial = React.useMemo(() => {
     if (initialNodes && initialNodes.length >= 0 && (initialNodes.length > 0 || initialEdges)) {
       // Build from persisted nodes/edges (Phase 9d). Keep the deal node at the canvas center.
@@ -642,6 +672,18 @@ export function DealFlow({
   const positionFlushTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const knownNodeIdsRef = React.useRef<Set<string>>(new Set());
 
+  React.useEffect(() => {
+    setCurrentDeal(deal);
+    setDealTitleDraft(deal.name);
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === deal.id
+          ? { ...node, data: deal as unknown as Record<string, unknown> }
+          : node,
+      ),
+    );
+  }, [deal, setNodes]);
+
   // Seed the known-node set with everything that came from the server. Locally-added
   // nodes (with `new:` prefix) are tracked client-side until POST returns a real id.
   React.useEffect(() => {
@@ -650,6 +692,51 @@ export function DealFlow({
     for (const node of initial.nodes) set.add(node.id);
     knownNodeIdsRef.current = set;
   }, [persistEnabled, deal.id, initial.nodes]);
+
+  const hydratePersistedDealFlow = React.useCallback(async () => {
+    const base = persistBaseRef.current;
+    if (!base) return false;
+    const res = await fetch(base, { credentials: "include" });
+    const body = await res.json().catch(() => null);
+    if (!res.ok || !body?.ok) return false;
+    const hydratedNodes = Array.isArray(body.nodes) ? body.nodes : [];
+    const hydratedEdges = Array.isArray(body.edges) ? body.edges : [];
+    setNodes([
+      {
+        id: deal.id,
+        type: "deal",
+        position: { x: CENTER_X - 130, y: CENTER_Y - 60 },
+        data: currentDeal as unknown as Record<string, unknown>,
+      },
+      ...hydratedNodes.map((node: Record<string, unknown>) => ({
+        id: String(node.id),
+        type: "entity",
+        position: {
+          x: Number(node.position_x || 0),
+          y: Number(node.position_y || 0),
+        },
+        data: {
+          id: String(node.id),
+          kind: node.kind === "deal" ? "action" : node.kind,
+          label: String(node.label || "Untitled"),
+          sublabel: typeof node.sublabel === "string" ? node.sublabel : undefined,
+          status: typeof node.status === "string" ? node.status : "neutral",
+          data: typeof node.data === "object" && node.data ? node.data : {},
+        } as unknown as Record<string, unknown>,
+      })) as Node[],
+    ]);
+    setEdges(
+      hydratedEdges.map((edge: Record<string, unknown>) => ({
+        id: String(edge.id),
+        source: String(edge.source_node_id),
+        target: String(edge.target_node_id),
+        label: typeof edge.label === "string" ? edge.label : undefined,
+        style: { stroke: "rgba(86, 36, 199, 0.35)", strokeWidth: 1.5 },
+      })) as Edge[],
+    );
+    knownNodeIdsRef.current = new Set<string>([deal.id, ...hydratedNodes.map((node: Record<string, unknown>) => String(node.id))]);
+    return true;
+  }, [currentDeal, deal.id, setEdges, setNodes]);
 
   const flushPendingPositions = React.useCallback(() => {
     const base = persistBaseRef.current;
@@ -1096,8 +1183,50 @@ export function DealFlow({
     }
   };
 
+  const saveDealTitle = React.useCallback((title: string) => {
+    const name = title.trim();
+    if (!name) {
+      setDealTitleError("Deal title is required.");
+      return;
+    }
+    setDealTitleError(null);
+    setDealTitleDraft(name);
+    setDealTitleEditing(false);
+    setCurrentDeal((current) => ({ ...current, name }));
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === deal.id
+          ? { ...node, data: { ...(node.data as Record<string, unknown>), name } }
+          : node,
+      ),
+    );
+
+    const base = persistBaseRef.current;
+    if (persistEnabled && base) {
+      void fetch(base, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            throw new Error(body?.error || "Could not save deal title.");
+          }
+        })
+        .catch((err) => {
+          setDealTitleError(err instanceof Error ? err.message : "Could not save deal title.");
+        });
+    }
+  }, [deal.id, persistEnabled, setNodes]);
+
   const updateSelectedLabel = (label: string) => {
     if (!selectedId) return;
+    if (selectedId === deal.id) {
+      saveDealTitle(label);
+      return;
+    }
     setNodes((nds) =>
       nds.map((n) =>
         n.id === selectedId
@@ -1125,7 +1254,7 @@ export function DealFlow({
   const selectedData = selectedNode?.data as unknown as (DealFlowEntity & DealFlowDeal) | undefined;
   const commandPlaceholder = selectedNode && !isDealSelected
     ? `Ask ADGA about ${selectedData?.label || "this node"}...`
-    : `Ask ADGA about ${deal.name}, or tell dealflow what to do...`;
+    : `Ask ADGA about ${currentDeal.name}, or tell dealflow what to do...`;
   const visibleNodes = React.useMemo(() => {
     const active = VIEW_MODES.find((mode) => mode.id === viewMode);
     const activeKinds = new Set<string>(active?.kinds || []);
@@ -1272,11 +1401,107 @@ export function DealFlow({
         >
           <span style={{ fontSize: 9.5, fontWeight: 850, letterSpacing: "0.12em", color: "#5d2cd6", whiteSpace: "nowrap" }}>{deal.id}</span>
           <span style={{ width: 1, height: 14, background: "rgba(15, 23, 42, 0.09)" }} />
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 12, fontWeight: 820 }}>{deal.name}</span>
+          {dealTitleEditing && !readOnly ? (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, minWidth: 220, maxWidth: 360 }}>
+              <input
+                autoFocus
+                value={dealTitleDraft}
+                onChange={(event) => setDealTitleDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") saveDealTitle(dealTitleDraft);
+                  if (event.key === "Escape") {
+                    setDealTitleDraft(currentDeal.name);
+                    setDealTitleEditing(false);
+                    setDealTitleError(null);
+                  }
+                }}
+                aria-label="Deal title"
+                style={{
+                  width: "100%",
+                  minWidth: 0,
+                  border: "1px solid rgba(93, 44, 214, 0.34)",
+                  borderRadius: 999,
+                  background: "#fff",
+                  color: "#0d0c0a",
+                  fontSize: 12,
+                  fontWeight: 820,
+                  outline: "none",
+                  padding: "5px 9px",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => saveDealTitle(dealTitleDraft)}
+                aria-label="Save deal title"
+                title="Save title"
+                style={{ width: 24, height: 24, border: 0, borderRadius: 999, background: "#5d2cd6", color: "#fff", display: "grid", placeItems: "center", cursor: "pointer", flex: "0 0 auto" }}
+              >
+                <Check size={13} />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDealTitleDraft(currentDeal.name);
+                  setDealTitleEditing(false);
+                  setDealTitleError(null);
+                }}
+                aria-label="Cancel deal title edit"
+                title="Cancel"
+                style={{ width: 24, height: 24, border: "1px solid rgba(15, 23, 42, 0.09)", borderRadius: 999, background: "#fff", color: "#6b6760", display: "grid", placeItems: "center", cursor: "pointer", flex: "0 0 auto" }}
+              >
+                <X size={13} />
+              </button>
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (readOnly) return;
+                setDealTitleDraft(currentDeal.name);
+                setDealTitleEditing(true);
+              }}
+              aria-label="Edit deal title"
+              title="Edit deal title"
+              style={{
+                all: "unset",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                minWidth: 0,
+                maxWidth: 360,
+                cursor: readOnly ? "default" : "text",
+              }}
+            >
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 12, fontWeight: 820 }}>{currentDeal.name}</span>
+              {!readOnly && <Edit3 aria-hidden="true" size={12} style={{ color: "#5d2cd6", flex: "0 0 auto" }} />}
+            </button>
+          )}
           <span style={{ fontSize: 11, fontWeight: 720, color: "#6b6760", whiteSpace: "nowrap" }}>{deal.stage}</span>
           {deal.value && <span style={{ fontSize: 11, fontWeight: 820, color: "#0d0c0a", whiteSpace: "nowrap" }}>{deal.value}</span>}
           {deal.nextAction && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 11, color: "#6b6760" }}>Next: {deal.nextAction}</span>}
         </div>
+        {dealTitleError && (
+          <div
+            role="alert"
+            style={{
+              position: "absolute",
+              top: 58,
+              left: 112,
+              zIndex: 19,
+              maxWidth: 360,
+              border: "1px solid rgba(180, 35, 24, 0.18)",
+              borderRadius: 10,
+              background: "#fff",
+              color: "#b42318",
+              boxShadow: "0 16px 38px rgba(15, 23, 42, 0.12)",
+              padding: "8px 10px",
+              fontSize: 12,
+              fontWeight: 700,
+            }}
+          >
+            {dealTitleError}
+          </div>
+        )}
 
         {/* Drop-to-ingest overlay — covers the canvas during dragover */}
         {ingestActive && (
@@ -1442,7 +1667,7 @@ export function DealFlow({
                       context: {
                         kind: "dealflow",
                         dealFlowId,
-                        deal: { id: deal.id, name: deal.name, stage: deal.stage, value: deal.value, nextAction: deal.nextAction },
+                        deal: { id: deal.id, name: currentDeal.name, stage: deal.stage, value: deal.value, nextAction: deal.nextAction },
                         selectedNode: selectedNode ? {
                           id: selectedNode.id,
                           kind: selectedKind,
@@ -1456,38 +1681,44 @@ export function DealFlow({
                       },
                     }),
                   });
-                  const json = await res.json().catch(() => null);
-                  setCommandReply(json?.message?.content || "");
+                  const json = (await res.json().catch(() => null)) as AgentChatResponse | null;
+                  if (!res.ok || !json?.ok) {
+                    setCommandReply(json?.error || "ADGA could not complete that request.");
+                    return;
+                  }
+                  const actionResults = Array.isArray(json.action_results) ? json.action_results : [];
+                  const searchResults = actionResults
+                    .flatMap((result) => result.data?.results || [])
+                    .filter((result) => result.title || result.url)
+                    .slice(0, 5);
+                  const resultSummary = actionResults
+                    .filter((result) => result.message)
+                    .map((result) => result.message)
+                    .slice(0, 4)
+                    .join("\n");
+                  const searchSummary = searchResults.length
+                    ? `\n\nResults:\n${searchResults.map((result) => `- ${result.title || result.id}${result.url ? ` (${result.url})` : ""}`).join("\n")}`
+                    : "";
+                  setCommandReply([agentMessageText(json.message), resultSummary].filter(Boolean).join("\n\n") + searchSummary);
                   setCommandValue("");
-                  // Apply LLM-proposed actions to the graph if the engine returned any.
-                  for (const a of (json?.actions ?? [])) {
-                    if (a?.type === "add_node" && a.kind && a.label) {
-                      const id = `mnode_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
-                      const newNode: Node = {
-                        id,
-                        type: "entity",
-                        position: { x: 100 + Math.random() * 320, y: 100 + Math.random() * 320 },
-                        data: { id, kind: a.kind, label: a.label, sublabel: a.sublabel, status: a.status || "neutral", data: a.data || {} } as unknown as Record<string, unknown>,
-                      };
-                      setNodes((nds) => [...nds, newNode]);
-                      const base = persistBaseRef.current;
-                      if (persistEnabled && base) {
-                        void fetch(`${base}/nodes`, {
-                          method: "POST", credentials: "include",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            id,
-                            kind: a.kind,
-                            label: a.label,
-                            sublabel: a.sublabel,
-                            status: a.status || "neutral",
-                            position_x: newNode.position.x,
-                            position_y: newNode.position.y,
-                            data: a.data || {},
-                          }),
-                        }).catch(() => {});
-                      }
+                  const executedCanvasMutation = actionResults.some((result) =>
+                    result.status === "executed" &&
+                    ["create_dealflow", "update_dealflow", "add_node", "create_node", "update_node", "archive_node", "add_edge", "create_edge"].includes(result.action_type || ""),
+                  );
+                  if (executedCanvasMutation) {
+                    const createdDealFlow = actionResults.find((result) =>
+                      result.status === "executed" &&
+                      result.action_type === "create_dealflow" &&
+                      result.resource_type === "dealflow" &&
+                      result.resource_id &&
+                      result.resource_id !== dealFlowId,
+                    );
+                    if (createdDealFlow?.resource_id) {
+                      router.push(`/suite/dealflow/${encodeURIComponent(createdDealFlow.resource_id)}`);
+                      return;
                     }
+                    const hydrated = await hydratePersistedDealFlow();
+                    if (!hydrated) router.refresh();
                   }
                 } finally {
                   setCommandSubmitting(false);

@@ -9,9 +9,9 @@ import {
 import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { redirect } from "next/navigation";
-import { getDealFlow, getDealFlowEdges, getDealFlowNodes } from "@/lib/server/repository";
+import { createDealFlow, createDealFlowEdge, createDealFlowNode, getDealFlow, getDealFlowEdges, getDealFlowNodes } from "@/lib/server/repository";
 import DealFlowClient from "@/components/suite/workspaces/DealFlowClient";
-import { readJsonPayload } from "@/lib/server/payload-storage";
+import { readJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 import { organizationIdForSession } from "@/lib/server/tenant";
 
 interface PageProps {
@@ -257,6 +257,60 @@ export default async function DealDetailPage({ params }: PageProps) {
     return renderMap(deal, initialNodes, initialEdges, mapRecord.id);
   }
 
+  const dealLinkedMap = await db
+    .prepare("SELECT * FROM maps WHERE deal_id = ? AND organization_id = ? AND archived_at IS NULL ORDER BY updated_at DESC LIMIT 1")
+    .bind(id, organizationId)
+    .first<Record<string, unknown>>()
+    .catch(() => null);
+  if (dealLinkedMap?.id) {
+    const map = await getDealFlow(db, String(dealLinkedMap.id), organizationId);
+    if (map) {
+      const [mapPayload, nodeRows, edgeRows] = await Promise.all([
+        readJsonPayload<Record<string, unknown>>(context.env, map.payload_r2_key),
+        getDealFlowNodes(db, map.id),
+        getDealFlowEdges(db, map.id),
+      ]);
+      const [hydratedNodes, hydratedEdges] = await Promise.all([
+        Promise.all(
+          nodeRows.map(async (node) => {
+            const payload = await readJsonPayload<Record<string, unknown>>(context.env, node.payload_r2_key);
+            return payload ? { ...node, ...payload, id: node.id, map_id: node.map_id } : node;
+          }),
+        ),
+        Promise.all(
+          edgeRows.map(async (edge) => {
+            const payload = await readJsonPayload<Record<string, unknown>>(context.env, edge.payload_r2_key);
+            return payload ? { ...edge, ...payload, id: edge.id, map_id: edge.map_id } : edge;
+          }),
+        ),
+      ]);
+      const hydratedMap = mapPayload ? { ...map, ...mapPayload, id: map.id, organization_id: map.organization_id } : map;
+      const deal: DealFlowDeal = {
+        id: id,
+        name: String(hydratedMap.name || map.name || id),
+        stage: String(hydratedMap.template || "Deal"),
+      };
+      return renderMap(
+        deal,
+        hydratedNodes.map((node) => ({
+          id: node.id,
+          kind: node.kind === "deal" ? "action" : (node.kind as DealFlowEntity["kind"]),
+          label: String(node.label || "Untitled"),
+          sublabel: node.sublabel ? String(node.sublabel) : undefined,
+          status: (node.status as DealFlowEntity["status"]) || "neutral",
+          position: { x: Number(node.position_x || 0), y: Number(node.position_y || 0) },
+        })),
+        hydratedEdges.map((edge) => ({
+          id: edge.id,
+          source: edge.source_node_id,
+          target: edge.target_node_id,
+          label: edge.label ? String(edge.label) : undefined,
+        })),
+        map.id,
+      );
+    }
+  }
+
   // 2. Otherwise fall back to deal-based rendering.
   const dealRow = await db
     .prepare("SELECT * FROM deals WHERE id = ? AND organization_id = ? LIMIT 1")
@@ -356,7 +410,16 @@ export default async function DealDetailPage({ params }: PageProps) {
     });
   }
 
-  return renderPage(deal, entities, dealRow);
+  const materialized = await materializeDealFlowForDeal({
+    db,
+    env: context.env,
+    organizationId,
+    createdBy: sessionUser?.user_id || context.user.email || null,
+    deal,
+    entities,
+  });
+
+  return renderMap(deal, materialized.initialNodes, materialized.initialEdges, materialized.dealFlowId);
 }
 
 // Each render function returns the workspace content for the suite layout to compose
@@ -401,6 +464,101 @@ function renderMap(
   );
 }
 
-function renderPage(deal: DealFlowDeal, entities: DealFlowEntity[], _dealRow: DealRow) {
-  return <DealFlowClient deal={deal} entities={entities} />;
+async function materializeDealFlowForDeal(input: {
+  db: D1Database;
+  env: CloudflareEnv;
+  organizationId: string;
+  createdBy: string | null;
+  deal: DealFlowDeal;
+  entities: DealFlowEntity[];
+}) {
+  const map = await createDealFlow(input.db, {
+    organization_id: input.organizationId,
+    name: "DealFlow payload in R2",
+    deal_id: input.deal.id,
+    template: input.deal.stage,
+    created_by_user_id: input.createdBy,
+  });
+  const mapPayload = {
+    ...map,
+    name: input.deal.name,
+    deal_id: input.deal.id,
+    template: input.deal.stage,
+  };
+  const storedMap = await storeJsonPayload({
+    env: input.env,
+    db: input.db,
+    organization_id: input.organizationId,
+    resource_type: "dealflow",
+    resource_id: map.id,
+    payload: mapPayload,
+    created_by: input.createdBy,
+  });
+  await input.db
+    .prepare("UPDATE maps SET payload_r2_key = ?, storage_object_id = ? WHERE id = ?")
+    .bind(storedMap.r2_key, storedMap.storage_object_id, map.id)
+    .run();
+
+  const initialNodes: DealFlowInitialNode[] = [];
+  const initialEdges: DealFlowInitialEdge[] = [];
+  const centerX = 480;
+  const centerY = 320;
+  const radius = input.entities.length > 5 ? 430 : 300;
+
+  for (const [index, entity] of input.entities.entries()) {
+    const angle = ((index / Math.max(input.entities.length, 1)) * Math.PI * 2) - Math.PI / 2;
+    const position = {
+      x: centerX + radius * Math.cos(angle) - 100,
+      y: centerY + radius * Math.sin(angle) - 30,
+    };
+    const node = await createDealFlowNode(input.db, map.id, {
+      kind: entity.kind,
+      label: "DealFlow node payload in R2",
+      sublabel: null,
+      status: entity.status || "neutral",
+      position_x: position.x,
+      position_y: position.y,
+      data: {},
+    });
+    const nodePayload = {
+      ...node,
+      label: entity.label,
+      sublabel: entity.sublabel || null,
+      data: {
+        source_id: entity.id,
+        role: entity.role || null,
+        child_kind: entity.childKind || null,
+        children_count: entity.childrenCount || null,
+      },
+    };
+    const storedNode = await storeJsonPayload({
+      env: input.env,
+      db: input.db,
+      organization_id: input.organizationId,
+      resource_type: "dealflow_node",
+      resource_id: node.id,
+      payload: nodePayload,
+      created_by: input.createdBy,
+    });
+    await input.db
+      .prepare("UPDATE map_nodes SET payload_r2_key = ?, storage_object_id = ? WHERE id = ? AND map_id = ?")
+      .bind(storedNode.r2_key, storedNode.storage_object_id, node.id, map.id)
+      .run();
+
+    const edge = await createDealFlowEdge(input.db, map.id, {
+      source_node_id: input.deal.id,
+      target_node_id: node.id,
+    });
+    initialNodes.push({
+      id: node.id,
+      kind: entity.kind,
+      label: entity.label,
+      sublabel: entity.sublabel,
+      status: entity.status || "neutral",
+      position,
+    });
+    initialEdges.push({ id: edge.id, source: input.deal.id, target: node.id });
+  }
+
+  return { dealFlowId: map.id, initialNodes, initialEdges };
 }

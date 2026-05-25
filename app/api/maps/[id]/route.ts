@@ -77,7 +77,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       })
     : null;
   const updated = await updateDealFlow(auth.context.env.DB, id, organizationId, {
-    name: parsed.data.name ? "DealFlow payload in R2" : undefined,
+    name: parsed.data.name,
     deal_id: parsed.data.deal_id,
     template: parsed.data.template,
   });

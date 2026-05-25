@@ -75,7 +75,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
        WHERE id = ? AND organization_id = ?`,
     )
     .bind(
-      `Deal ${id.slice(-8)}`,
+      String(nextPayload.name),
       String(nextPayload.stage),
       stored.r2_key,
       stored.storage_object_id,

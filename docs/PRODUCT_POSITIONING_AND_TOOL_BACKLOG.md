@@ -10,7 +10,7 @@ The product should communicate control, momentum, and operational clarity for pe
 
 ## Copy And Positioning Rules
 
-- Do not use the word "die" in the main headline.
+- Do not use language about deals ending quietly in the main headline.
 - Do not use editorial framing such as ledger, issue, reader, room, cover plate, leisure, magazine, or under glass.
 - Do not lead with generic AI language.
 - Start with a problem the buyer already recognizes: deal work is scattered across people, files, calls, calendars, notes, and follow-ups.
