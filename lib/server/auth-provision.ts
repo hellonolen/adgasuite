@@ -57,17 +57,34 @@ export async function provisionUserSession(
     .bind(userId, email, displayName, role, now, now)
     .run();
 
+  // Look up the actual user_id by email — INSERT OR IGNORE may have skipped due to
+  // an existing row with a legacy id, in which case the email-derived userId won't
+  // match what's in the DB and downstream FK inserts would fail.
+  const userRow = await db
+    .prepare("SELECT id FROM users WHERE email = ? LIMIT 1")
+    .bind(email)
+    .first<{ id: string }>();
+  const resolvedUserId = userRow?.id || userId;
+
   await db
     .prepare("UPDATE users SET name = COALESCE(NULLIF(?, ''), name), updated_at = ? WHERE id = ?")
-    .bind(displayName, now, userId)
+    .bind(displayName, now, resolvedUserId)
     .run();
+
+  // Same defensive lookup for organizations — there may be an existing row with
+  // a legacy id that the slug UNIQUE constraint collides with.
+  const orgRow = await db
+    .prepare("SELECT id FROM organizations WHERE id = ? OR slug = ? LIMIT 1")
+    .bind(organizationId, organizationSlug)
+    .first<{ id: string }>();
+  const resolvedOrgId = orgRow?.id || organizationId;
 
   await db
     .prepare(
       `INSERT OR IGNORE INTO organization_members (organization_id, user_id, role, created_at)
        VALUES (?, ?, ?, ?)`,
     )
-    .bind(organizationId, userId, role, now)
+    .bind(resolvedOrgId, resolvedUserId, role, now)
     .run();
 
   await db
@@ -75,8 +92,8 @@ export async function provisionUserSession(
       `INSERT INTO sessions (id, user_id, organization_id, token_hash, expires_at, created_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
     )
-    .bind(sessionId, userId, organizationId, sessionHash, isoDaysFromNow(30), now)
+    .bind(sessionId, resolvedUserId, resolvedOrgId, sessionHash, isoDaysFromNow(30), now)
     .run();
 
-  return { email, organizationId, sessionToken };
+  return { email, organizationId: resolvedOrgId, sessionToken };
 }

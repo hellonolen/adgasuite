@@ -1,6 +1,17 @@
 import type { RuntimeContext } from "@/lib/server/runtime";
-import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
-import { DEFAULT_ORG_ID, organizationIdForSession } from "@/lib/server/tenant";
+import { readSessionCookie, validateSession, type SessionUser } from "@/lib/server/magic-auth";
+import { DEFAULT_ORG_ID, OWNER_EMAIL, organizationIdForSession } from "@/lib/server/tenant";
+
+function isBillingExemptUser(env: CloudflareEnv, sessionUser: SessionUser | null): boolean {
+  if (!sessionUser?.email) return false;
+  if (sessionUser.email === OWNER_EMAIL) return true;
+  if (sessionUser.role === "owner" || sessionUser.role === "admin") return true;
+  const adminList = (env.ADGA_ADMIN_EMAILS || OWNER_EMAIL)
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  return adminList.includes(sessionUser.email.toLowerCase());
+}
 
 export const BILLING_ALLOWED_STATUSES = new Set(["active", "trialing"]);
 export const BILLING_RECOVERY_STATUSES = new Set([
@@ -77,15 +88,16 @@ export async function loadWorkspaceBillingState(
 
   const hasSubscriptionRecord = Boolean(row);
   const status = normalizeBillingStatus(row?.status);
+  const ownerBypass = isBillingExemptUser(context.env, sessionUser);
   return {
     organizationId,
-    plan: row?.plan || "team",
-    status,
+    plan: ownerBypass ? (row?.plan || "enterprise") : (row?.plan || "team"),
+    status: ownerBypass ? "active" : status,
     hasStripeCustomer: Boolean(row?.provider_customer_id),
     stripeCustomerId: row?.provider_customer_id || null,
     stripeSubscriptionId: row?.provider_subscription_id || null,
     currentPeriodEnd: row?.current_period_end || null,
-    hasSubscriptionRecord,
-    accessAllowed: context.user.isLocalAdminBypass || isSubscriptionAccessAllowed(status, hasSubscriptionRecord),
+    hasSubscriptionRecord: ownerBypass ? true : hasSubscriptionRecord,
+    accessAllowed: context.user.isLocalAdminBypass || ownerBypass || isSubscriptionAccessAllowed(status, hasSubscriptionRecord),
   };
 }
