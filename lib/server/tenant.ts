@@ -3,12 +3,21 @@ import { readSessionCookie, validateSession, type SessionUser } from "@/lib/serv
 
 export const DEFAULT_ORG_ID = "org_adga_primary";
 export const OWNER_EMAIL = "hellonolen@gmail.com";
+export const PRIMARY_ORG_ADMINS = new Set([
+  "hellonolen@gmail.com",
+  "kamarokyle5@gmail.com",
+  "tracyhogan76@gmail.com",
+]);
 
 const PERSONAL_EMAIL_DOMAINS = new Set(["gmail.com", "icloud.com", "outlook.com", "hotmail.com", "yahoo.com"]);
 
+function belongsToPrimaryOrg(normalizedEmail: string) {
+  return PRIMARY_ORG_ADMINS.has(normalizedEmail);
+}
+
 export function orgIdForEmail(email: string) {
   const normalized = email.trim().toLowerCase();
-  if (!normalized || normalized === OWNER_EMAIL) return DEFAULT_ORG_ID;
+  if (!normalized || belongsToPrimaryOrg(normalized)) return DEFAULT_ORG_ID;
   const [local, domain = ""] = normalized.split("@");
   const source = domain && !PERSONAL_EMAIL_DOMAINS.has(domain)
     ? domain.replace(/\.[^.]+$/, "")
@@ -18,7 +27,7 @@ export function orgIdForEmail(email: string) {
 
 export function orgSlugForEmail(email: string) {
   const normalized = email.trim().toLowerCase();
-  if (!normalized || normalized === OWNER_EMAIL) return "adga-primary";
+  if (!normalized || belongsToPrimaryOrg(normalized)) return "adga-primary";
   const [local, domain = "workspace"] = normalized.split("@");
   const base = PERSONAL_EMAIL_DOMAINS.has(domain)
     ? local
@@ -28,7 +37,7 @@ export function orgSlugForEmail(email: string) {
 
 export function orgNameForEmail(email: string) {
   const normalized = email.trim().toLowerCase();
-  if (!normalized || normalized === OWNER_EMAIL) return "ADGA";
+  if (!normalized || belongsToPrimaryOrg(normalized)) return "ADGA";
   const domain = normalized.split("@")[1] || "";
   const source = domain && !PERSONAL_EMAIL_DOMAINS.has(domain)
     ? domain.replace(/\.[^.]+$/, "")

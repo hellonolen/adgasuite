@@ -11,7 +11,7 @@ export interface RuntimeContext {
   user: RequestUser;
 }
 
-const ADMIN_EMAILS = ["hellonolen@gmail.com", "kamarokyle5@gmail.com"];
+const ADMIN_EMAILS = ["hellonolen@gmail.com", "kamarokyle5@gmail.com", "tracyhogan76@gmail.com"];
 
 function envFromProcess(): CloudflareEnv {
   return {

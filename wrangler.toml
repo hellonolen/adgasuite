@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 ADGA_AI_MODEL = "@cf/moonshotai/kimi-k2.6"
 ADGA_ADMIN_EMAIL = "hellonolen@gmail.com"
-ADGA_ADMIN_EMAILS = "hellonolen@gmail.com,kamarokyle5@gmail.com"
+ADGA_ADMIN_EMAILS = "hellonolen@gmail.com,kamarokyle5@gmail.com,tracyhogan76@gmail.com"
 ADGA_LOCAL_ADMIN_BYPASS = "false"
 ADP_REFERRAL_TO_EMAIL = "matt.ganton@adp.com"
 WHOP_REDIRECT_URL = "https://adga.ai/suite"
