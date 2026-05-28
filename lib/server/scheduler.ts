@@ -7,6 +7,7 @@ import {
   listQueuedAgentJobs,
   markAgentJobRunning,
 } from "@/lib/server/repository";
+import { type BackupResult, runDailySnapshotIfDue } from "@/lib/server/backup";
 
 const BATCH_LIMIT = 10;
 const STALE_LEAD_DAYS = 7;
@@ -22,6 +23,7 @@ export interface SchedulerResult {
 export interface MaintenanceResult extends SchedulerResult {
   staleLeadJobsCreated: number;
   stalledDealJobsCreated: number;
+  backup?: BackupResult;
 }
 
 async function hasOpenAgentJobForResource(
@@ -119,6 +121,12 @@ export async function runHourlyMaintenance(env: CloudflareEnv): Promise<Maintena
     staleLeadJobsCreated: 0,
     stalledDealJobsCreated: 0,
   };
+
+  // Daily D1 → R2 snapshot. No-ops outside 06:00 UTC.
+  result.backup = await runDailySnapshotIfDue(env).catch((error) => ({
+    attempted: false,
+    reason: error instanceof Error ? error.message : "backup error",
+  }));
 
   if (!env.DB) return result;
 
