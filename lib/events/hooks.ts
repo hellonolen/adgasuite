@@ -76,3 +76,62 @@ export function useSuiteEvent<T extends DomainEventType>(
 export function emitSuiteEvent(event: DomainEvent): void {
   getEmitter().emit(event);
 }
+
+/**
+ * useEventStream — polls /api/events/stream and fans new events into the client emitter.
+ * Closes the server→client link required by GAP #6. One mount per app at most (handled
+ * by the SuiteContextProvider so every workspace gets reactive updates "for free").
+ *
+ *   - Polls every `intervalMs` (default 10 s) while the tab is visible.
+ *   - Pauses while hidden (visibilitychange), resumes on focus.
+ *   - Cursor persists across polls; on first call it picks events from the last 10 s.
+ */
+export function useEventStream({ intervalMs = 10_000 }: { intervalMs?: number } = {}): void {
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+    let cursor: string | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const poll = async () => {
+      if (cancelled) return;
+      if (document.visibilityState === "hidden") {
+        timer = setTimeout(poll, intervalMs);
+        return;
+      }
+      try {
+        const url = new URL("/api/events/stream", window.location.origin);
+        if (cursor) url.searchParams.set("since", cursor);
+        const response = await fetch(url.toString(), {
+          credentials: "include",
+          headers: { accept: "application/json" },
+        });
+        if (response.ok) {
+          const data = (await response.json().catch(() => null)) as
+            | { ok?: boolean; events?: DomainEvent[]; cursor?: string }
+            | null;
+          if (data?.cursor) cursor = data.cursor;
+          if (data?.events) {
+            const emitter = getEmitter();
+            for (const event of data.events) emitter.emit(event);
+          }
+        }
+      } catch {
+        // Quiet — next tick retries. The audit log on the server is the truth.
+      }
+      if (!cancelled) timer = setTimeout(poll, intervalMs);
+    };
+
+    poll();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible" && !timer) poll();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [intervalMs]);
+}

@@ -210,8 +210,56 @@ export default async function PublicSharedMapPage({ params }: PageProps) {
             <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6b6760]">Shared dealflow</div>
             <div className="mt-0.5 text-sm text-[#0d0c0a]">{deal.name}</div>
           </div>
-          <div style={{ height: "calc(100vh - 220px)", minHeight: 560 }}>
+          <div style={{ position: "relative", height: "calc(100vh - 220px)", minHeight: 560 }}>
             <DealFlow deal={deal} entities={entities} readOnly />
+            {/* GAP #9: visible watermark for Enterprise client-share guardrail */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+                zIndex: 5,
+                display: "grid",
+                placeItems: "center",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  transform: "rotate(-22deg)",
+                  fontSize: 64,
+                  fontWeight: 700,
+                  letterSpacing: "0.12em",
+                  color: "rgba(13, 12, 10, 0.05)",
+                  whiteSpace: "nowrap",
+                  userSelect: "none",
+                }}
+              >
+                ADGA · {share.token.slice(0, 8).toUpperCase()} · SHARED
+              </div>
+            </div>
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                right: 12,
+                bottom: 12,
+                zIndex: 6,
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: "rgba(13, 12, 10, 0.45)",
+                background: "rgba(255, 255, 255, 0.72)",
+                padding: "4px 8px",
+                borderRadius: 999,
+                border: "1px solid rgba(232, 228, 222, 0.9)",
+                userSelect: "none",
+              }}
+            >
+              Shared via ADGA · {new Date().toISOString().slice(0, 10)}
+            </div>
           </div>
         </div>
       </div>

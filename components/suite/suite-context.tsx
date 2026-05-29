@@ -10,6 +10,7 @@
  */
 
 import React from "react";
+import { useEventStream } from "@/lib/events/hooks";
 
 export interface SuiteUser {
   id: string;
@@ -44,6 +45,10 @@ export function SuiteContextProvider({
   value: SuiteContextValue;
   children: React.ReactNode;
 }) {
+  // GAP #6: mount the event stream once at the suite shell so every workspace's
+  // useSuiteEvent() listeners receive server-emitted events without each one
+  // having to wire its own poll loop.
+  useEventStream();
   return <SuiteContext.Provider value={value}>{children}</SuiteContext.Provider>;
 }
 
