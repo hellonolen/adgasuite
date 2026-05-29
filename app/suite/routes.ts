@@ -71,8 +71,9 @@ export const SUITE_ROUTES: SuiteRoute[] = [
       { id: "brand",        path: "/suite/settings",               label: "Branding" },
       { id: "integrations", path: "/suite/settings/integrations",  label: "Integrations" },
       { id: "user-billing", path: "/suite/settings/billing",       label: "Billing" },
+      { id: "seats",        path: "/suite/settings/seats",         label: "Seats" },
     ],
-    capabilities: ["settings.read", "settings.update"],
+    capabilities: ["settings.read", "settings.update", "seats.read", "seats.update"],
   },
 
   {

@@ -3,6 +3,7 @@ import { createAgentApproval, listAgentApprovals, type AgentName } from "@/lib/s
 import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
 import { publish } from "@/lib/events/bus";
 import { normalizePreparedAction } from "@/lib/agents/prepared-actions";
+import { notifyApprovalRequested } from "@/lib/server/approval-notify";
 
 const agents = new Set(["conductor", "sales", "intelligence", "documents", "operations", "communication", "payments"]);
 
@@ -61,6 +62,20 @@ export async function POST(request: Request) {
       risk: approval.risk,
     },
   });
+
+  // GAP #7 — fire-and-forget notification. Postmark failures don't block the
+  // approval. The audit trail already records the request; the email is a
+  // delivery layer on top.
+  await notifyApprovalRequested(context.env.DB, {
+    env: context.env,
+    organizationId: approval.organization_id,
+    payload: {
+      approval_id: approval.id,
+      agent: approval.agent,
+      title: approval.title,
+      risk: approval.risk as "low" | "medium" | "high",
+    },
+  }).catch(() => null);
 
   return json({ ok: true, approval });
 }
