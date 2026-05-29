@@ -4,6 +4,7 @@ import { listMcpTools } from "@/mcp-server";
 import { SUITE_ROUTES } from "@/app/suite/routes";
 import { WORKSPACES, listAllActions } from "@/app/suite/workspaces";
 import { inspectHandlers, publish } from "@/lib/events/bus";
+import { hasNativeHandler, listNativeDispatchIds, runNativeDispatch } from "@/lib/server/mcp-native-dispatch";
 
 /**
  * MCP transport — HTTP-based discovery and dispatch surface.
@@ -62,6 +63,7 @@ export async function GET(_request: Request) {
     bus: {
       handlers: inspectHandlers(),
     },
+    native_dispatch: listNativeDispatchIds(),
   });
 }
 
@@ -105,6 +107,46 @@ export async function POST(request: Request) {
     return errorJson("This tool is owner-only and cannot be invoked through MCP.", 403);
   }
 
+  const actionId = `${action.workspace}.${action.id}`;
+
+  // GAP #10 — native handler dispatch. If this specific action has a native
+  // handler registered, run it inline and return the result deterministically.
+  // Otherwise fall through to the generic event-emit path so a subscribing
+  // agent picks it up.
+  if (hasNativeHandler(actionId)) {
+    const result = await runNativeDispatch(actionId, {
+      env: context.env,
+      organizationId: "org_adga_primary",
+      arguments: body.arguments ?? {},
+      actorEmail: context.user.email || null,
+    });
+    await publish(context.env.DB, {
+      organization_id: "org_adga_primary",
+      event_type: "agent_job.completed",
+      actor_type: "agent",
+      actor_id: "mcp",
+      resource_type: "workspace_action",
+      resource_id: actionId,
+      payload: {
+        job_id: `mcp-${Date.now()}`,
+        agent: "mcp",
+        job_type: action.id,
+        dispatch: "native",
+        ok: result.ok,
+        error: result.error || null,
+        data: result.data || null,
+      },
+    });
+    return json({
+      ok: result.ok,
+      dispatched: true,
+      dispatch: "native",
+      action,
+      result: result.data,
+      error: result.error,
+    }, { status: result.ok ? 200 : 502 });
+  }
+
   // Auto-dispatch path: emit a domain event so any subscribed agent reacts.
   await publish(context.env.DB, {
     organization_id: "org_adga_primary",
@@ -112,7 +154,7 @@ export async function POST(request: Request) {
     actor_type: "agent",
     actor_id: "mcp",
     resource_type: "workspace_action",
-    resource_id: `${action.workspace}.${action.id}`,
+    resource_id: actionId,
     payload: {
       job_id: `mcp-${Date.now()}`,
       agent: "mcp",
@@ -124,6 +166,7 @@ export async function POST(request: Request) {
   return json({
     ok: true,
     dispatched: true,
+    dispatch: "event",
     action,
     note: "Action emitted as an agent_job.started event. Subscribers will handle it.",
   });
