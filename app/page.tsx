@@ -73,11 +73,11 @@ const USE_CASES = [
 ];
 
 const HERO_HEADLINES = [
+  "real estate",
   "acquisition",
   "procurement",
   "licensing",
   "partnership",
-  "real estate",
   "premium sales",
   "franchise",
   "M&A",
