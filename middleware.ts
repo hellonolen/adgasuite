@@ -24,6 +24,13 @@ export function middleware(request: NextRequest) {
   requestHeaders.set("x-adga-pathname", request.nextUrl.pathname);
   const next = () => applySecurityHeaders(NextResponse.next({ request: { headers: requestHeaders } }));
 
+  // Security headers apply to every request that hits this middleware.
+  // The auth-redirect block only applies to /suite/* — everything else
+  // (marketing pages, /login, /signup, API) returns its content with
+  // headers attached and no redirect logic.
+  const pathname = request.nextUrl.pathname;
+  if (!pathname.startsWith("/suite")) return next();
+
   if (process.env.NODE_ENV !== "production") return next();
 
   const hostname = request.nextUrl.hostname;
@@ -35,7 +42,7 @@ export function middleware(request: NextRequest) {
   if (hasSession) return next();
 
   const loginUrl = new URL("/login", request.url);
-  loginUrl.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search);
+  loginUrl.searchParams.set("next", pathname + request.nextUrl.search);
   return applySecurityHeaders(NextResponse.redirect(loginUrl));
 }
 
