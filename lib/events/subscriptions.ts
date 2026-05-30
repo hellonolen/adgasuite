@@ -42,6 +42,20 @@ export const SUBSCRIPTION_INVENTORY = {
   "gap.identified":           ["conductor"],
 
   "suite.route_viewed":       ["intelligence"],
+
+  // Workspace lifecycle — first paying customer → ready to use
+  "subscription.activated":   ["conductor", "intelligence", "sales"],
+  "workspace.activated":      ["conductor", "intelligence", "sales"],
+
+  // Conductor daily brief — the agent's primary visible output
+  "conductor.brief.requested":["conductor"],
+  "conductor.brief.composed": ["intelligence"],
+  "brief.item_clicked":       ["intelligence"],
+
+  // Team invites — replaces the SQL-only path
+  "team.invite.sent":         ["communication", "intelligence"],
+  "team.invite.accepted":     ["sales", "intelligence"],
+  "team.invite.expired":      ["conductor"],
 } as const satisfies Partial<Record<DomainEventType, readonly AgentName[]>>;
 
 export type EventSubscriptionKey = keyof typeof SUBSCRIPTION_INVENTORY;

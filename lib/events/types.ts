@@ -122,6 +122,60 @@ export interface SuiteRouteViewedEvent extends BaseEvent {
   payload: { route: string; section?: string };
 }
 
+// ─── Subscription + workspace activation ─────────────────────────────────────
+export interface SubscriptionActivatedEvent extends BaseEvent {
+  event_type: "subscription.activated";
+  payload: {
+    email: string;
+    plan: string;
+    stripe_customer_id: string | null;
+    stripe_subscription_id: string | null;
+    cadence?: "month" | "year";
+  };
+}
+export interface WorkspaceActivatedEvent extends BaseEvent {
+  event_type: "workspace.activated";
+  payload: {
+    email: string;
+    plan: string;
+    activated_at: string;
+    autonomy_mode: "hands_off" | "medium" | "hands_on";
+  };
+}
+
+// ─── Conductor brief ─────────────────────────────────────────────────────────
+export interface ConductorBriefRequestedEvent extends BaseEvent {
+  event_type: "conductor.brief.requested";
+  payload: { user_email: string };
+}
+export interface ConductorBriefComposedEvent extends BaseEvent {
+  event_type: "conductor.brief.composed";
+  payload: { user_email: string; item_count: number; composed_at: string };
+}
+export interface BriefItemClickedEvent extends BaseEvent {
+  event_type: "brief.item_clicked";
+  payload: { brief_item_id: string; kind: string; deal_id: string | null };
+}
+
+// ─── Team invites ────────────────────────────────────────────────────────────
+export interface TeamInviteSentEvent extends BaseEvent {
+  event_type: "team.invite.sent";
+  payload: {
+    invite_id: string;
+    invitee_email: string;
+    invitee_role: "admin" | "member";
+    expires_at: string;
+  };
+}
+export interface TeamInviteAcceptedEvent extends BaseEvent {
+  event_type: "team.invite.accepted";
+  payload: { invite_id: string; invitee_email: string; user_id: string };
+}
+export interface TeamInviteExpiredEvent extends BaseEvent {
+  event_type: "team.invite.expired";
+  payload: { invite_id: string; invitee_email: string };
+}
+
 export type DomainEvent =
   | LeadCapturedEvent
   | LeadQualifiedEvent
@@ -144,6 +198,14 @@ export type DomainEvent =
   | RevenueCapturedEvent
   | ForecastBelowTargetEvent
   | GapIdentifiedEvent
-  | SuiteRouteViewedEvent;
+  | SuiteRouteViewedEvent
+  | SubscriptionActivatedEvent
+  | WorkspaceActivatedEvent
+  | ConductorBriefRequestedEvent
+  | ConductorBriefComposedEvent
+  | BriefItemClickedEvent
+  | TeamInviteSentEvent
+  | TeamInviteAcceptedEvent
+  | TeamInviteExpiredEvent;
 
 export type DomainEventType = DomainEvent["event_type"];

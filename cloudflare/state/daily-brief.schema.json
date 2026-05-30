@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/daily-brief.schema.json",
+  "title": "DailyBrief",
+  "description": "Conductor agent's composed brief shown on /suite home. Replaces the empty redirect with a ranked, action-ready read of the operator's day. Produced by the daily-brief skill, consumed by the suite shell.",
+  "type": "object",
+  "required": ["organization_id", "user_email", "composed_at", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Owner org of the brief. Brief is per-org, per-operator."
+    },
+    "user_email": {
+      "type": "string",
+      "format": "email",
+      "description": "The operator the brief is composed for."
+    },
+    "composed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp the brief was composed. Older than 15 min = stale; the skill should recompose."
+    },
+    "stale_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Set when the brief is served from cache because the live composition failed. Null otherwise."
+    },
+    "items": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 7,
+      "items": { "$ref": "#/$defs/BriefItem" }
+    },
+    "totals": {
+      "type": "object",
+      "description": "Aggregated counts surfaced alongside the brief.",
+      "properties": {
+        "active_deals": { "type": "integer", "minimum": 0 },
+        "pipeline_value_cents": { "type": "integer", "minimum": 0 },
+        "weighted_pipeline_cents": { "type": "integer", "minimum": 0 },
+        "stalled_count": { "type": "integer", "minimum": 0 },
+        "pending_approvals": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "BriefItem": {
+      "type": "object",
+      "required": ["id", "kind", "priority", "headline", "cta_label", "cta_href"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable id, e.g. brief:stalled:DEAL-621810:2026-05-30. Same id across recomposes lets the UI dedupe + animate."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "stalled_deal",
+            "overdue_commitment",
+            "prepared_action",
+            "qualified_lead",
+            "closing_soon",
+            "activity",
+            "pipeline_summary"
+          ]
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "1 = surface first (highest deal impact). 5 = pipeline summary, always last."
+        },
+        "headline": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140,
+          "description": "One-line operator-readable summary."
+        },
+        "subheadline": {
+          "type": ["string", "null"],
+          "maxLength": 280,
+          "description": "Context that doesn't fit on the headline. Optional."
+        },
+        "deal_id": {
+          "type": ["string", "null"],
+          "description": "If the item is about a specific deal, the deal id. Drives deep link."
+        },
+        "cta_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "cta_href": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Where the operator goes when they click. Must always be set — a non-actionable item doesn't belong in the brief."
+        },
+        "prepared_action_id": {
+          "type": ["string", "null"],
+          "description": "If the item is backed by a prepared-action (e.g. a draft email), the action id so one-click can execute it through the approval lane."
+        },
+        "risk": {
+          "type": ["string", "null"],
+          "enum": ["low", "medium", "high", null],
+          "description": "Operator-facing risk hint on the item. Sourced from the underlying signal (e.g. pipeline-risk skill)."
+        },
+        "expires_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "If the item is time-bounded (closing this week, lead from last 24h), when it falls off the brief."
+        }
+      }
+    }
+  }
+}

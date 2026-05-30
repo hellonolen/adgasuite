@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.ai/state/team-invite.schema.json",
+  "title": "TeamInvite",
+  "description": "An outstanding or completed invitation to join a workspace as admin or member. Produced + consumed by the team-invite skill. Source of truth for the team_invites D1 table.",
+  "type": "object",
+  "required": [
+    "id",
+    "organization_id",
+    "inviter_user_id",
+    "invitee_email",
+    "invitee_role",
+    "token_hash",
+    "status",
+    "expires_at",
+    "created_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable invite id, e.g. inv_<random>. Used in event payloads + email link."
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "inviter_user_id": {
+      "type": "string",
+      "description": "Must hold owner or admin role on the org at invite-time."
+    },
+    "invitee_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "invitee_role": {
+      "type": "string",
+      "enum": ["admin", "member"],
+      "description": "owner is intentionally absent — ownership transfer is a separate flow."
+    },
+    "token_hash": {
+      "type": "string",
+      "description": "SHA-256 base64url hash of the plaintext token. Plaintext only exists in the email; never persisted."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "pending_email_retry",
+        "accepted",
+        "expired",
+        "revoked"
+      ]
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "14 days from creation by default. Acceptance after this fails closed."
+    },
+    "accepted_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "revoked_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Set when inviter cancels before acceptance. Invite row archived but never deleted."
+    },
+    "archived_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "accepted_user_id": {
+      "type": ["string", "null"],
+      "description": "User id created (or matched) at acceptance time. Joins organization_members on org_id + this user_id."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional extras: invite source (UI / API / MCP), inviter display name for the email subject, custom message.",
+      "properties": {
+        "source": { "type": "string", "enum": ["ui", "api", "mcp"] },
+        "inviter_name": { "type": "string" },
+        "message": { "type": "string", "maxLength": 500 }
+      },
+      "additionalProperties": false
+    }
+  }
+}
