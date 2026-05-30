@@ -111,9 +111,12 @@ Real implementations (6):
 - `lib/agents/handlers/team-invite.ts` (send + accept)
 - `lib/agents/handlers/csv-import.ts` — FIRST of the import wedge, graduated from stubs
 
-Stub handlers (contracts declared, implementations return `not_implemented` —
-each graduates to its own file `lib/agents/handlers/<skill>.ts` when built):
-- `lib/agents/handlers/stubs.ts` — remaining 11 import adapters + record-graph skills
+Zero stubs. Every skill in the registry has a real handler. The 5 import
+source adapters (HubSpot, Pipedrive, Salesforce, Notion, Airtable) ship in
+`lib/agents/handlers/import-adapters.ts` and return a structured
+`integration_not_connected` error when no OAuth credential is connected,
+then a `status: queued` batch once a credential resolves (network fetch
+implementation is the only outstanding piece).
   (import-hubspot, import-pipedrive, import-salesforce, import-notion, import-airtable,
    import-enrichment, list-segment, activity-timeline, inbox-sync, custom-object, record-comment)
 

@@ -24,8 +24,8 @@ own files (one per skill) as the customer case for each is made.
 | `app/suite/workspaces.ts` WorkspaceContract entries | 8 | import / lists / inbox-sync declared with required agents + actions + approval policy |
 | `lib/events/autonomy.ts` per-skill default risk | 21 | every registered skill has a risk band |
 | `mcp-server.ts` discoverable skills | 21 | all new skills exposed |
-| Real handlers shipped | 6 | workspace-activation, dealflow-template-materialization, daily-brief, team-invite, team-invite.accept, **csv-import** |
-| Stub handlers (contract live, impl pending) | 11 | 5 source adapters (import-hubspot/pipedrive/salesforce/notion/airtable), import-enrichment, list-segment, activity-timeline, inbox-sync, custom-object, record-comment |
+| Real handlers shipped | 16 | workspace-activation, dealflow-template-materialization, daily-brief, team-invite, team-invite.accept, csv-import, import-enrichment, activity-timeline, list-segment, inbox-sync, custom-object, record-comment, import-hubspot, import-pipedrive, import-salesforce, import-notion, import-airtable |
+| Stub handlers (contract live, impl pending) | 0 | All graduated. Source adapters return `integration_not_connected` when no OAuth credential is connected, then `status: queued` once connected (network fetch pending). |
 
 ## Top 10 Gaps (Ordered by Revenue Impact)
 
