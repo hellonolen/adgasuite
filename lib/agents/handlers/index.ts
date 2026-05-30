@@ -18,6 +18,19 @@ import {
   type DealflowMaterializationInput,
   type DealflowMaterializationOutput,
 } from "./dealflow-template-materialization";
+import {
+  dailyBrief,
+  type DailyBriefInput,
+  type DailyBriefOutput,
+} from "./daily-brief";
+import {
+  teamInviteSend,
+  teamInviteAccept,
+  type TeamInviteSendInput,
+  type TeamInviteSendOutput,
+  type TeamInviteAcceptInput,
+  type TeamInviteAcceptOutput,
+} from "./team-invite";
 
 let registered = false;
 
@@ -34,6 +47,21 @@ export function ensureSkillHandlersRegistered(): void {
     "dealflow-template-materialization",
     "conductor",
     dealflowTemplateMaterialization,
+  );
+  registerSkill<DailyBriefInput, DailyBriefOutput>(
+    "daily-brief",
+    "conductor",
+    dailyBrief,
+  );
+  registerSkill<TeamInviteSendInput, TeamInviteSendOutput>(
+    "team-invite",
+    "sales",
+    teamInviteSend,
+  );
+  registerSkill<TeamInviteAcceptInput, TeamInviteAcceptOutput>(
+    "team-invite.accept",
+    "sales",
+    teamInviteAccept,
   );
 }
 

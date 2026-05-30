@@ -9,6 +9,7 @@ import { getRuntimeContext } from "@/lib/server/runtime";
 import { readSessionCookie, validateSession } from "@/lib/server/magic-auth";
 import { DEFAULT_ORG_ID, organizationIdForSession } from "@/lib/server/tenant";
 import { loadWorkspaceBillingState } from "@/lib/server/billing";
+import InviteForm from "./InviteForm";
 
 export const dynamic = "force-dynamic";
 
@@ -110,6 +111,16 @@ export default async function SuiteSettingsSeatsPage() {
         <Metric label="Included seats" value={String(includedSeats)} />
         <Metric label="Used" value={String(used)} sub={`${Math.max(0, includedSeats - used)} remaining included`} />
         <Metric label="Extra seats" value={String(extra)} sub={extra > 0 ? `${fmtUsd(monthlyExtraCents)}/mo` : undefined} />
+      </section>
+
+      <section style={{ border: "1px solid #e8e4de", borderRadius: 8, background: "#fff", padding: 18 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#6b6760", marginBottom: 12 }}>
+          Invite a teammate
+        </div>
+        <InviteForm defaultRole="member" />
+        <div style={{ marginTop: 10, fontSize: 12, color: "#6b6760" }}>
+          Invitee receives a one-click join link valid for 14 days.
+        </div>
       </section>
 
       <section style={{ border: "1px solid #e8e4de", borderRadius: 8, background: "#fff" }}>
