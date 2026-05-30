@@ -265,7 +265,7 @@ export default function HomePage() {
     <MarketingLayout>
       <div className="wrap">
         <MarketingHero
-          headline="Close more deals."
+          headline="Close more real estate deals."
           headlineNode={<HeroHeadline />}
           deck="Leverage this agentic deal system so you can open, position, and close more deals without missing a beat."
           primaryCta={{ label: "Start closing deals", href: "/pricing" }}
