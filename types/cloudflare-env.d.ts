@@ -79,6 +79,12 @@ declare global {
     WHOP_COMPANY_ID?: string;
     WHOP_REDIRECT_URL?: string;
     SESSION_SECRET?: string;
+    // Inbox Sync — Gmail OAuth (separate from sign-in OAuth above)
+    GOOGLE_OAUTH_CLIENT_ID?: string;
+    GOOGLE_OAUTH_CLIENT_SECRET?: string;
+    ADGA_PUBLIC_HOST?: string;
+    // Server-side symmetric encryption passphrase (>= 32 chars)
+    ADGA_ENCRYPTION_KEY?: string;
   }
 }
 

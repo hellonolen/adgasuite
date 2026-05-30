@@ -3,7 +3,7 @@
 > Project conforms to the canonical structure in `~/.claude/rules/common/agentic-backbone.md`.
 > This file lists project-specific overrides only. Read the canonical doc for the framework.
 
-Last audited: 2026-05-24
+Last audited: 2026-05-30
 
 ## North star
 $1,000,000/month ARR. Every architectural decision ties back to closing deals on the platform.
@@ -51,7 +51,7 @@ This enum is locked in `cloudflare/state/agent-job.schema.json` and shared by pr
 deal memory, record graph generation, and outcome rollups.
 
 ## State contract index
-Backbone/state contracts live under `cloudflare/state/`:
+Backbone/state contracts live under `cloudflare/state/` (28 schemas total):
 
 - `prepared-action.schema.json` — approval lanes for agent-prepared work
 - `record-graph.schema.json` — relationships across records
@@ -68,6 +68,7 @@ Backbone/state contracts live under `cloudflare/state/`:
 - `email-sync-cursor.schema.json` — per-mailbox sync resume state (provider, account, opaque cursor)
 - `custom-object.schema.json` — user-defined record type metadata + field schema
 - `record-comment.schema.json` — threaded comment + reaction + @mention shape
+- Plus 13 additional schemas for workspace, contact, deal, organization, and related structures
 
 ## Skills (`skills/*.skill.md`)
 
@@ -103,15 +104,18 @@ Attio-parity capability surface:
 - `record-comment` — owner: Communication — threaded comments + @mentions (stub)
 
 ### Executable handlers (deterministic counterpart of the markdown contracts)
-Real implementations:
+Real implementations (6):
 - `lib/agents/handlers/workspace-activation.ts`
 - `lib/agents/handlers/dealflow-template-materialization.ts`
 - `lib/agents/handlers/daily-brief.ts`
 - `lib/agents/handlers/team-invite.ts` (send + accept)
+- `lib/agents/handlers/csv-import.ts` — FIRST of the import wedge, graduated from stubs
 
 Stub handlers (contracts declared, implementations return `not_implemented` —
 each graduates to its own file `lib/agents/handlers/<skill>.ts` when built):
-- `lib/agents/handlers/stubs.ts` — all 12 import-wedge + Attio-parity skills
+- `lib/agents/handlers/stubs.ts` — remaining 11 import adapters + Attio-parity skills
+  (import-hubspot, import-pipedrive, import-salesforce, import-notion, import-airtable,
+   import-enrichment, list-segment, activity-timeline, inbox-sync, custom-object, record-comment)
 
 Registered in `lib/agents/handlers/index.ts` via `registerSkill(id, owner, handler)` —
 both real and stub. The registry knows every contract; calling a stub returns
@@ -143,12 +147,13 @@ the bus invokes the bound handler inline (in addition to the standard `agent_job
 ### Per-skill default risk (autonomy gate)
 
 `lib/events/autonomy.ts` exports `SKILL_DEFAULT_RISK` — the conservative default
-risk band per skill, used by `decide(mode, risk)`:
+risk band per skill, used by `decide(mode, risk)`. All 21 registered skills have
+a risk classification:
 
 | Risk band | Examples |
 |---|---|
 | `low`  | `daily-brief`, `pipeline-risk`, `knowledge-summary`, `activity-timeline`, `list-segment`, `lead-scoring`, `record-comment`, `team-invite.accept`, `workspace-activation`, `dealflow-template-materialization` |
-| `medium` | `csv-import`, `import-*` adapters, `import-enrichment`, `proposal-generation`, `battlecard-generation`, `team-invite` |
+| `medium` | `csv-import`, `import-hubspot`, `import-pipedrive`, `import-salesforce`, `import-notion`, `import-airtable`, `import-enrichment`, `proposal-generation`, `battlecard-generation`, `team-invite` |
 | `high` | `inbox-sync` (private data), `custom-object` (schema change) |
 
 ## Suite route contract
@@ -177,8 +182,8 @@ Every action persists to the `events` table in D1 (append-only — see route har
                                               actions emit `agent_job.started` on the bus so the
                                               platform's own agents handle the work.
 
-The inventory is generated from contracts — `app/suite/routes.ts` (route capabilities),
-`app/suite/workspaces.ts` (per-workspace actions + policies), `skills/*.skill.md`. Adding a row
+The inventory is generated from contracts — `app/suite/routes.ts` (route capabilities + 22 tools),
+`app/suite/workspaces.ts` (per-workspace actions + policies), `skills/*.skill.md` (21 skills). Adding a row
 to any of those automatically widens the MCP surface — no separate registration step.
 
 ## Replay surface

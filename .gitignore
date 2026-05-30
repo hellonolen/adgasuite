@@ -23,3 +23,8 @@ audit-*.png
 docs/COMPACT*.txt
 /tmp/
 archive/build-artifacts/
+
+# Claude Code worktrees / agent transcripts
+.claude/worktrees/
+.claude/projects/
+

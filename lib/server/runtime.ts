@@ -45,6 +45,10 @@ function envFromProcess(): CloudflareEnv {
     WHOP_COMPANY_ID: process.env.WHOP_COMPANY_ID,
     WHOP_REDIRECT_URL: process.env.WHOP_REDIRECT_URL,
     SESSION_SECRET: process.env.SESSION_SECRET,
+    GOOGLE_OAUTH_CLIENT_ID: process.env.GOOGLE_OAUTH_CLIENT_ID,
+    GOOGLE_OAUTH_CLIENT_SECRET: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+    ADGA_PUBLIC_HOST: process.env.ADGA_PUBLIC_HOST,
+    ADGA_ENCRYPTION_KEY: process.env.ADGA_ENCRYPTION_KEY,
   };
 }
 

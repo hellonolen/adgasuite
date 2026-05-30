@@ -15,17 +15,17 @@ own files (one per skill) as the customer case for each is made.
 
 | Layer | Count | Status |
 |---|---|---|
-| `skills/*.skill.md` markdown contracts | 17 | all on disk |
-| `cloudflare/state/*.schema.json` state schemas | 15 | all on disk (6 new this pass) |
+| `skills/*.skill.md` markdown contracts | 21 | all on disk (5 original + 16 new import/Attio-parity) |
+| `cloudflare/state/*.schema.json` state schemas | 28 | all on disk |
 | `lib/events/types.ts` typed event variants | 60+ | all unioned |
 | `SUBSCRIPTION_INVENTORY` agent reaction rows | 50+ | every new event has agent subscribers |
 | `EVENT_SKILL_BINDINGS` inline cross-skill chains | 8 | wedge chains wired (import.completed → enrichment + brief; contact.auto_created → lead-scoring; etc.) |
 | `app/suite/routes.ts` routes | 24 | `/suite/import`, `/suite/lists`, `/suite/inbox-sync` added |
 | `app/suite/workspaces.ts` WorkspaceContract entries | 8 | import / lists / inbox-sync declared with required agents + actions + approval policy |
 | `lib/events/autonomy.ts` per-skill default risk | 21 | every registered skill has a risk band |
-| `mcp-server.ts` discoverable skills | 22 | all 12 new skills exposed |
-| Real handlers shipped | 5 | workspace-activation, dealflow-template-materialization, daily-brief, team-invite, team-invite.accept |
-| Stub handlers (contract live, impl pending) | 12 | csv-import, 5 source adapters, import-enrichment, list-segment, activity-timeline, inbox-sync, custom-object, record-comment |
+| `mcp-server.ts` discoverable skills | 21 | all new skills exposed |
+| Real handlers shipped | 6 | workspace-activation, dealflow-template-materialization, daily-brief, team-invite, team-invite.accept, **csv-import** |
+| Stub handlers (contract live, impl pending) | 11 | 5 source adapters (import-hubspot/pipedrive/salesforce/notion/airtable), import-enrichment, list-segment, activity-timeline, inbox-sync, custom-object, record-comment |
 
 ## Top 10 Gaps (Ordered by Revenue Impact)
 
