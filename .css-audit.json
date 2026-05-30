@@ -1,0 +1,86 @@
+{
+  "generated_at": "2026-05-30T00:16:56.600Z",
+  "files": [
+    {
+      "file": "app/globals.css",
+      "exists": true,
+      "bytes": 171893,
+      "lines": 7634,
+      "selectors": 1054,
+      "important": 736,
+      "media_queries": 39,
+      "custom_properties": 221,
+      "keyframes": 6,
+      "has_tailwind_import": true
+    },
+    {
+      "file": "components/adga/marketing.css",
+      "exists": true,
+      "bytes": 40016,
+      "lines": 1637,
+      "selectors": 321,
+      "important": 6,
+      "media_queries": 5,
+      "custom_properties": 15,
+      "keyframes": 1,
+      "has_tailwind_import": false
+    },
+    {
+      "file": "components/adga/styles.css",
+      "exists": true,
+      "bytes": 2601,
+      "lines": 155,
+      "selectors": 23,
+      "important": 0,
+      "media_queries": 0,
+      "custom_properties": 0,
+      "keyframes": 2,
+      "has_tailwind_import": false
+    },
+    {
+      "file": "components/adga/styles-v4.css",
+      "exists": true,
+      "bytes": 67992,
+      "lines": 2274,
+      "selectors": 630,
+      "important": 144,
+      "media_queries": 27,
+      "custom_properties": 37,
+      "keyframes": 1,
+      "has_tailwind_import": false
+    },
+    {
+      "file": "components/adga/design-system.css",
+      "exists": true,
+      "bytes": 20702,
+      "lines": 432,
+      "selectors": 164,
+      "important": 0,
+      "media_queries": 1,
+      "custom_properties": 61,
+      "keyframes": 2,
+      "has_tailwind_import": false
+    },
+    {
+      "file": "components/adga/final-overrides.css",
+      "exists": true,
+      "bytes": 4128,
+      "lines": 149,
+      "selectors": 20,
+      "important": 56,
+      "media_queries": 2,
+      "custom_properties": 0,
+      "keyframes": 0,
+      "has_tailwind_import": false
+    }
+  ],
+  "totals": {
+    "bytes": 307332,
+    "lines": 12281,
+    "selectors": 2212,
+    "important": 942,
+    "media_queries": 74,
+    "custom_properties": 334,
+    "keyframes": 12
+  }
+}

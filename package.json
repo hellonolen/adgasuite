@@ -16,7 +16,8 @@
     "verify:launch": "node scripts/verify-launch-readiness.mjs && node scripts/verify-email-safety.mjs",
     "test:real": "node scripts/test-real-deal-flow.mjs",
     "typecheck": "tsc --noEmit",
-    "setup:stripe": "bash scripts/setup-stripe.sh"
+    "setup:stripe": "bash scripts/setup-stripe.sh",
+    "css:audit": "node scripts/css-audit.mjs"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.17.1",
