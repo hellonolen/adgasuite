@@ -40,8 +40,10 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Match every route except Next internals + static assets — security headers
-  // need to apply everywhere a browser sees them. The auth gate inside still
-  // only triggers on /suite/* paths.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|otf)).*)"],
+  // Match every route except Next internals, static assets, and the public
+  // crawler / SEO surfaces (sitemap.xml, robots.txt, .well-known) — those
+  // must respond as the file the crawler expects, not be auth-redirected.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|og-default|\\.well-known|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|otf|xml|txt)).*)",
+  ],
 };
