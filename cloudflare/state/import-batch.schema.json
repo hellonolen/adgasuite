@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.suite/state/import-batch.schema.json",
+  "title": "ImportBatch",
+  "description": "A single ingest operation: source, target_type, mapping, row counts, and lifecycle state. One ImportBatch per user-initiated import run. Per-row failures live in import_batch_rows with batch_id FK.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "organization_id",
+    "actor_type",
+    "actor_id",
+    "source_type",
+    "target_type",
+    "field_mapping",
+    "dedupe_strategy",
+    "status",
+    "rows_total",
+    "rows_succeeded",
+    "rows_failed",
+    "started_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Batch identifier — prefixed `imp_` followed by 12-char crockford32."
+    },
+    "organization_id": {
+      "type": "string",
+      "description": "Per-tenant scope. Every read/write filtered on this column."
+    },
+    "actor_type": {
+      "type": "string",
+      "enum": ["user", "agent"],
+      "description": "Who initiated the batch. Agent-initiated imports come through callSkill(ctx, 'csv-import', …)."
+    },
+    "actor_id": {
+      "type": "string",
+      "description": "User id or agent id."
+    },
+    "source_type": {
+      "type": "string",
+      "enum": ["csv", "paste", "hubspot", "pipedrive", "salesforce", "notion", "airtable"],
+      "description": "Where the records came from. csv + paste land in v1; remaining adapters land as separate handlers satisfying the same shape."
+    },
+    "source_file_url": {
+      "type": ["string", "null"],
+      "description": "R2 path for csv source; null for paste / API sources."
+    },
+    "source_reference": {
+      "type": ["string", "null"],
+      "description": "External system reference — e.g. HubSpot list id, Pipedrive filter id. Null for csv/paste."
+    },
+    "target_type": {
+      "type": "string",
+      "enum": ["contacts", "leads", "deals", "organizations"],
+      "description": "Record type rows are written into."
+    },
+    "field_mapping": {
+      "type": "object",
+      "description": "source_column → target_field. Validated against target_type's required fields at preview time.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "dedupe_strategy": {
+      "type": "string",
+      "enum": ["email", "external_id", "name_plus_company", "domain", "name", "phone", "none"],
+      "description": "How a duplicate is identified. Per-target defaults: contacts=email, leads=email, deals=name_plus_company, organizations=domain."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["preview", "queued", "running", "completed", "completed_with_failures", "failed", "cancelled"],
+      "description": "Lifecycle state. `preview` = parsed + validated but not committed; `queued` = waiting on worker; `running` = handler executing; `completed` = all rows succeeded; `completed_with_failures` = batch finalized but rows_failed > 0; `failed` = batch-level fault."
+    },
+    "rows_total": { "type": "integer", "minimum": 0 },
+    "rows_succeeded": { "type": "integer", "minimum": 0 },
+    "rows_failed": { "type": "integer", "minimum": 0 },
+    "failure_summary": {
+      "type": "object",
+      "description": "{ reason: count } rollup of import_batch_rows failure_reason values.",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "size_bytes": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Original payload size — used for the upload cap audit + telemetry."
+    },
+    "duration_ms": {
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "started_at": { "type": "string", "format": "date-time" },
+    "completed_at": { "type": ["string", "null"], "format": "date-time" },
+    "error": {
+      "type": ["string", "null"],
+      "description": "Batch-level failure reason. Populated only when status=failed."
+    }
+  }
+}

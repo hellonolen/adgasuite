@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.suite/state/import-row.schema.json",
+  "title": "ImportRow",
+  "description": "Per-row outcome of an ImportBatch. Successful rows reference the inserted target record; failed rows hold the raw source data + failure_reason and become the dead-letter the operator can fix and retry.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "batch_id",
+    "organization_id",
+    "row_number",
+    "status",
+    "raw_data"
+  ],
+  "properties": {
+    "id": { "type": "string", "description": "Prefixed `impr_` + 12-char crockford32." },
+    "batch_id": { "type": "string", "description": "FK → import_batches.id." },
+    "organization_id": { "type": "string" },
+    "row_number": { "type": "integer", "minimum": 1, "description": "1-indexed position in the source." },
+    "status": {
+      "type": "string",
+      "enum": ["succeeded", "failed", "skipped", "retried"],
+      "description": "succeeded = inserted or matched-via-dedupe; failed = validation/constraint reject; skipped = blank row or filtered out; retried = re-attempted after failure."
+    },
+    "raw_data": {
+      "type": "object",
+      "additionalProperties": { "type": ["string", "number", "boolean", "null"] },
+      "description": "Original source columns → values. Preserved so retry / download / debug work without the original file."
+    },
+    "mapped_data": {
+      "type": ["object", "null"],
+      "additionalProperties": true,
+      "description": "Source values after field_mapping applied. Null on rows that failed before mapping."
+    },
+    "target_record_id": {
+      "type": ["string", "null"],
+      "description": "FK to the inserted/matched record (contact id, lead id, deal id, organization id). Null on failed rows."
+    },
+    "target_record_type": {
+      "type": ["string", "null"],
+      "enum": ["contact", "lead", "deal", "organization", null]
+    },
+    "dedupe_match": {
+      "type": ["string", "null"],
+      "description": "Existing record id if the dedupe strategy matched. Same as target_record_id when matched; null when a fresh insert."
+    },
+    "failure_reason": {
+      "type": ["string", "null"],
+      "enum": [
+        null,
+        "missing_required_field",
+        "invalid_email",
+        "invalid_phone",
+        "invalid_date",
+        "field_too_long",
+        "foreign_key_miss",
+        "type_mismatch",
+        "duplicate_constraint",
+        "permission_denied",
+        "unknown"
+      ]
+    },
+    "failure_detail": {
+      "type": ["string", "null"],
+      "description": "Human-readable detail when failure_reason is set."
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

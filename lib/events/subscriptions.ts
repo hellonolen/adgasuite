@@ -37,6 +37,14 @@ export const EVENT_SKILL_BINDINGS: Partial<Record<DomainEventType, string[]>> = 
 
   // When a dealflow is created or a node is added, the brief may need a refresh.
   "deal.created": ["daily-brief"],
+
+  // Import wedge — completed batches trigger optional enrichment + brief recompose.
+  // Enrichment skill decides whether to actually run based on operations input.
+  "import.completed": ["daily-brief"],
+
+  // Inbox auto-population — when sync finishes, recompose the brief so the
+  // operator sees the freshly-populated contact/deal cards on next load.
+  "inbox.sync.completed": ["daily-brief"],
 };
 
 export const SUBSCRIPTION_INVENTORY = {
@@ -82,6 +90,49 @@ export const SUBSCRIPTION_INVENTORY = {
   "team.invite.sent":         ["communication", "intelligence"],
   "team.invite.accepted":     ["sales", "intelligence"],
   "team.invite.expired":      ["conductor"],
+
+  // Import wedge — operations owns the batch lifecycle; intelligence watches
+  // for cohorts that change after import; sales gets the lead spike.
+  "import.requested":         ["operations"],
+  "import.row_succeeded":     ["operations"],
+  "import.row_failed":        ["operations"],
+  "import.completed":         ["operations", "intelligence", "sales"],
+  "import.failed":            ["operations", "conductor"],
+  "enrichment.requested":     ["intelligence"],
+  "enrichment.completed":     ["intelligence"],
+  "enrichment.failed":        ["intelligence", "conductor"],
+
+  // Lists — intelligence owns saved cohorts; conductor on delete is for
+  // gap-detection cleanup of stale references.
+  "list.created":             ["intelligence"],
+  "list.updated":             ["intelligence"],
+  "list.deleted":             ["intelligence", "conductor"],
+  "list.queried":             ["intelligence"],
+
+  // Activity timeline reads — intelligence learns which records get attention.
+  "timeline.viewed":          ["intelligence"],
+
+  // Inbox/calendar sync — communication owns the channel boundary, intelligence
+  // gets the new-record spike, sales gets the new contacts to qualify.
+  "inbox.sync.started":       ["communication"],
+  "inbox.sync.completed":     ["communication", "intelligence", "sales"],
+  "inbox.sync.failed":        ["communication", "conductor"],
+  "inbox.message.linked":     ["communication", "intelligence"],
+  "contact.auto_created":     ["sales", "intelligence"],
+
+  // Custom objects — operations owns the metadata change; intelligence
+  // rebuilds any cached schema after a new object lands.
+  "custom_object.created":    ["operations", "intelligence"],
+  "custom_object.updated":    ["operations", "intelligence"],
+  "custom_object.deleted":    ["operations", "intelligence", "conductor"],
+
+  // Record comments — communication delivers mentions; intelligence indexes
+  // comment volume per record as an attention signal.
+  "record.comment.created":   ["communication", "intelligence"],
+  "record.comment.mentioned": ["communication"],
+  "record.comment.updated":   ["communication"],
+  "record.comment.deleted":   ["communication", "conductor"],
+  "record.comment.reacted":   ["intelligence"],
 } as const satisfies Partial<Record<DomainEventType, readonly AgentName[]>>;
 
 export type EventSubscriptionKey = keyof typeof SUBSCRIPTION_INVENTORY;

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.suite/state/custom-object.schema.json",
+  "title": "CustomObject",
+  "description": "User-defined record type. Each custom object materializes a D1 table custom_obj_<slug> with the declared fields; metadata in this record drives the UI, lists, MCP exposure, and timeline integration.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "organization_id",
+    "slug",
+    "name_singular",
+    "name_plural",
+    "fields",
+    "visibility",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "id": { "type": "string", "description": "Prefixed `co_` + 12-char crockford32." },
+    "organization_id": { "type": "string" },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{1,30}$",
+      "description": "Lowercase, used as the D1 table suffix and the MCP tool prefix."
+    },
+    "name_singular": { "type": "string", "minLength": 1, "maxLength": 40, "description": "e.g. \"Property\"" },
+    "name_plural":   { "type": "string", "minLength": 1, "maxLength": 40, "description": "e.g. \"Properties\"" },
+    "icon": { "type": ["string", "null"], "description": "Icon key from the suite icon set." },
+    "fields": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "label", "type", "required"],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,40}$",
+            "description": "Used as the D1 column name."
+          },
+          "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text", "long_text", "number", "currency",
+              "boolean", "select", "multi_select",
+              "date", "datetime", "email", "phone",
+              "url", "reference", "formula"
+            ]
+          },
+          "required": { "type": "boolean" },
+          "options": {
+            "type": ["object", "null"],
+            "description": "Type-specific config. select/multi_select: { choices: string[] }. reference: { target_type: string, target_slug: string | null }. formula: { expression: string }. currency: { code: string }.",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "visibility": { "type": "string", "enum": ["private", "team", "workspace"] },
+    "archived_at": { "type": ["string", "null"], "format": "date-time" },
+    "record_count_cache": { "type": ["integer", "null"], "minimum": 0 },
+    "created_by": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": ["string", "null"], "format": "date-time" }
+  }
+}

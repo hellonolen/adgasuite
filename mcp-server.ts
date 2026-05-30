@@ -38,16 +38,32 @@ export function listMcpTools(): McpToolDefinition[] {
   // with a registered handler in lib/agents/handlers/ is callable from the MCP
   // POST surface via skill.<id> tool name (dispatches through callSkill).
   const SKILLS = [
+    // Original suite skills
     "lead-scoring",
     "pipeline-risk",
     "proposal-generation",
     "battlecard-generation",
     "knowledge-summary",
+    // Workspace lifecycle + brief composition
     "workspace-activation",
     "dealflow-template-materialization",
     "daily-brief",
     "team-invite",
     "team-invite.accept",
+    // Import wedge — CSV/paste in v1, third-party adapters land later
+    "csv-import",
+    "import-hubspot",
+    "import-pipedrive",
+    "import-salesforce",
+    "import-notion",
+    "import-airtable",
+    "import-enrichment",
+    // Attio-parity capability surface
+    "list-segment",
+    "activity-timeline",
+    "inbox-sync",
+    "custom-object",
+    "record-comment",
   ];
   for (const skillId of SKILLS) {
     tools.push({

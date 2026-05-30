@@ -176,6 +176,165 @@ export interface TeamInviteExpiredEvent extends BaseEvent {
   payload: { invite_id: string; invitee_email: string };
 }
 
+// ─── Import wedge (csv-import + adapter skills) ──────────────────────────────
+export interface ImportRequestedEvent extends BaseEvent {
+  event_type: "import.requested";
+  payload: {
+    batch_id: string;
+    source_type: "csv" | "paste" | "hubspot" | "pipedrive" | "salesforce" | "notion" | "airtable";
+    target_type: "contacts" | "leads" | "deals" | "organizations";
+    rows_total: number | null;
+  };
+}
+export interface ImportRowSucceededEvent extends BaseEvent {
+  event_type: "import.row_succeeded";
+  payload: {
+    batch_id: string;
+    row_number: number;
+    target_record_id: string;
+    dedupe_match: string | null;
+  };
+}
+export interface ImportRowFailedEvent extends BaseEvent {
+  event_type: "import.row_failed";
+  payload: {
+    batch_id: string;
+    row_number: number;
+    failure_reason: string;
+    failure_detail: string | null;
+  };
+}
+export interface ImportCompletedEvent extends BaseEvent {
+  event_type: "import.completed";
+  payload: {
+    batch_id: string;
+    target_type: "contacts" | "leads" | "deals" | "organizations";
+    rows_total: number;
+    rows_succeeded: number;
+    rows_failed: number;
+    duration_ms: number;
+  };
+}
+export interface ImportFailedEvent extends BaseEvent {
+  event_type: "import.failed";
+  payload: { batch_id: string; error: string };
+}
+
+// ─── Import enrichment skill ─────────────────────────────────────────────────
+export interface EnrichmentRequestedEvent extends BaseEvent {
+  event_type: "enrichment.requested";
+  payload: { enrichment_id: string; batch_id: string; operations: string[] };
+}
+export interface EnrichmentCompletedEvent extends BaseEvent {
+  event_type: "enrichment.completed";
+  payload: {
+    enrichment_id: string;
+    batch_id: string;
+    operations_applied: Array<{ operation: string; rows_touched: number; rows_changed: number }>;
+    duration_ms: number;
+  };
+}
+export interface EnrichmentFailedEvent extends BaseEvent {
+  event_type: "enrichment.failed";
+  payload: { enrichment_id: string; batch_id: string; error: string };
+}
+
+// ─── List segments ───────────────────────────────────────────────────────────
+export interface ListCreatedEvent extends BaseEvent {
+  event_type: "list.created";
+  payload: { list_id: string; name: string; target_type: string };
+}
+export interface ListUpdatedEvent extends BaseEvent {
+  event_type: "list.updated";
+  payload: { list_id: string };
+}
+export interface ListDeletedEvent extends BaseEvent {
+  event_type: "list.deleted";
+  payload: { list_id: string };
+}
+export interface ListQueriedEvent extends BaseEvent {
+  event_type: "list.queried";
+  payload: { list_id: string; matched_count: number; duration_ms: number };
+}
+
+// ─── Activity timeline ───────────────────────────────────────────────────────
+export interface TimelineViewedEvent extends BaseEvent {
+  event_type: "timeline.viewed";
+  payload: {
+    resource_type: "contact" | "lead" | "deal" | "organization" | "workspace";
+    resource_id: string;
+    items_returned: number;
+  };
+}
+
+// ─── Inbox sync ──────────────────────────────────────────────────────────────
+export interface InboxSyncStartedEvent extends BaseEvent {
+  event_type: "inbox.sync.started";
+  payload: { sync_id: string; provider: "gmail" | "outlook"; account_email: string };
+}
+export interface InboxSyncCompletedEvent extends BaseEvent {
+  event_type: "inbox.sync.completed";
+  payload: {
+    sync_id: string;
+    messages_processed: number;
+    contacts_created: number;
+    records_touched: number;
+  };
+}
+export interface InboxSyncFailedEvent extends BaseEvent {
+  event_type: "inbox.sync.failed";
+  payload: { sync_id: string; error: string };
+}
+export interface InboxMessageLinkedEvent extends BaseEvent {
+  event_type: "inbox.message.linked";
+  payload: { message_id: string; thread_id: string; resource_type: string; resource_id: string };
+}
+export interface ContactAutoCreatedEvent extends BaseEvent {
+  event_type: "contact.auto_created";
+  payload: { contact_id: string; source: "inbox" | "calendar"; sender_email: string };
+}
+
+// ─── Custom objects ──────────────────────────────────────────────────────────
+export interface CustomObjectCreatedEvent extends BaseEvent {
+  event_type: "custom_object.created";
+  payload: { object_id: string; slug: string };
+}
+export interface CustomObjectUpdatedEvent extends BaseEvent {
+  event_type: "custom_object.updated";
+  payload: { object_id: string };
+}
+export interface CustomObjectDeletedEvent extends BaseEvent {
+  event_type: "custom_object.deleted";
+  payload: { object_id: string };
+}
+
+// ─── Record comments ─────────────────────────────────────────────────────────
+export interface RecordCommentCreatedEvent extends BaseEvent {
+  event_type: "record.comment.created";
+  payload: {
+    comment_id: string;
+    resource_type: string;
+    resource_id: string;
+    body_preview: string;
+  };
+}
+export interface RecordCommentMentionedEvent extends BaseEvent {
+  event_type: "record.comment.mentioned";
+  payload: { comment_id: string; mentioned_user_id: string; mentioned_email: string };
+}
+export interface RecordCommentUpdatedEvent extends BaseEvent {
+  event_type: "record.comment.updated";
+  payload: { comment_id: string };
+}
+export interface RecordCommentDeletedEvent extends BaseEvent {
+  event_type: "record.comment.deleted";
+  payload: { comment_id: string };
+}
+export interface RecordCommentReactedEvent extends BaseEvent {
+  event_type: "record.comment.reacted";
+  payload: { comment_id: string; emoji: string; action: "add" | "remove" };
+}
+
 export type DomainEvent =
   | LeadCapturedEvent
   | LeadQualifiedEvent
@@ -206,6 +365,32 @@ export type DomainEvent =
   | BriefItemClickedEvent
   | TeamInviteSentEvent
   | TeamInviteAcceptedEvent
-  | TeamInviteExpiredEvent;
+  | TeamInviteExpiredEvent
+  | ImportRequestedEvent
+  | ImportRowSucceededEvent
+  | ImportRowFailedEvent
+  | ImportCompletedEvent
+  | ImportFailedEvent
+  | EnrichmentRequestedEvent
+  | EnrichmentCompletedEvent
+  | EnrichmentFailedEvent
+  | ListCreatedEvent
+  | ListUpdatedEvent
+  | ListDeletedEvent
+  | ListQueriedEvent
+  | TimelineViewedEvent
+  | InboxSyncStartedEvent
+  | InboxSyncCompletedEvent
+  | InboxSyncFailedEvent
+  | InboxMessageLinkedEvent
+  | ContactAutoCreatedEvent
+  | CustomObjectCreatedEvent
+  | CustomObjectUpdatedEvent
+  | CustomObjectDeletedEvent
+  | RecordCommentCreatedEvent
+  | RecordCommentMentionedEvent
+  | RecordCommentUpdatedEvent
+  | RecordCommentDeletedEvent
+  | RecordCommentReactedEvent;
 
 export type DomainEventType = DomainEvent["event_type"];

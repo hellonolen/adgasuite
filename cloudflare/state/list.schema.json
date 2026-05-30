@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.suite/state/list.schema.json",
+  "title": "List",
+  "description": "Saved filtered segment over a target record type. Resolved live at query time — no materialization. Same shape powers human Lists in the sidebar and agent-tracked cohorts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "organization_id",
+    "name",
+    "target_type",
+    "filters",
+    "visibility",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "id": { "type": "string", "description": "Prefixed `list_` + 12-char crockford32." },
+    "organization_id": { "type": "string" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "description": { "type": ["string", "null"], "maxLength": 280 },
+    "target_type": {
+      "type": "string",
+      "enum": ["contacts", "leads", "deals", "organizations"]
+    },
+    "filters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "op", "value"],
+        "properties": {
+          "field": { "type": "string" },
+          "op": {
+            "type": "string",
+            "enum": ["eq", "neq", "in", "gt", "gte", "lt", "lte", "contains", "starts_with", "between", "is_null", "is_not_null"]
+          },
+          "value": {}
+        }
+      }
+    },
+    "sort": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "direction"],
+        "properties": {
+          "field": { "type": "string" },
+          "direction": { "type": "string", "enum": ["asc", "desc"] }
+        }
+      }
+    },
+    "visibility": {
+      "type": "string",
+      "enum": ["private", "team", "workspace"],
+      "description": "private = creator only; team = members of creator's team; workspace = all org members. Owner/admin always sees workspace lists."
+    },
+    "pinned": {
+      "type": "boolean",
+      "default": false,
+      "description": "Sidebar-pinned lists appear under the target_type group."
+    },
+    "cohort_tracking": {
+      "type": ["object", "null"],
+      "description": "When set, Intelligence agent re-queries on the interval and emits cohort.changed when membership shifts. v1: not active.",
+      "additionalProperties": false,
+      "properties": {
+        "interval_minutes": { "type": "integer", "minimum": 5 },
+        "last_run_at": { "type": ["string", "null"], "format": "date-time" },
+        "last_count": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "created_by": { "type": "string", "description": "User id." },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": ["string", "null"], "format": "date-time" }
+  }
+}

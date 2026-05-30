@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.suite/state/record-comment.schema.json",
+  "title": "RecordComment",
+  "description": "A single threaded comment attached to a workspace record. Comments live in their own table; the activity-timeline skill reads them via the events table.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "organization_id",
+    "resource_type",
+    "resource_id",
+    "body",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "id": { "type": "string", "description": "Prefixed `cmt_` + 12-char crockford32." },
+    "organization_id": { "type": "string" },
+    "resource_type": {
+      "type": "string",
+      "enum": ["contact", "lead", "deal", "organization", "custom_object"]
+    },
+    "resource_id": { "type": "string" },
+    "custom_object_slug": {
+      "type": ["string", "null"],
+      "description": "When resource_type=custom_object, the slug of the custom object the resource_id belongs to."
+    },
+    "parent_comment_id": {
+      "type": ["string", "null"],
+      "description": "Null for top-level; set for replies inside a thread."
+    },
+    "body": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000,
+      "description": "Markdown-formatted comment body. Mentions written as @email — resolved at create time, stored as plain text plus a separate mentions[] array."
+    },
+    "mentions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["user_id", "email"],
+        "properties": {
+          "user_id": { "type": "string" },
+          "email": { "type": "string", "format": "email" }
+        }
+      }
+    },
+    "reactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["emoji", "user_id"],
+        "properties": {
+          "emoji": { "type": "string", "minLength": 1, "maxLength": 12 },
+          "user_id": { "type": "string" }
+        }
+      }
+    },
+    "created_by": { "type": "string", "description": "user_id of author. Agent-authored comments use the agent id prefixed `agent:`." },
+    "created_at": { "type": "string", "format": "date-time" },
+    "edited_at": { "type": ["string", "null"], "format": "date-time" },
+    "deleted_at": { "type": ["string", "null"], "format": "date-time" },
+    "deleted_by": { "type": ["string", "null"] }
+  }
+}

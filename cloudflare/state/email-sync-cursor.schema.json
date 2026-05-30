@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adga.suite/state/email-sync-cursor.schema.json",
+  "title": "EmailSyncCursor",
+  "description": "Per-mailbox sync state — provider, account id, current cursor, last-success timestamps. The handler resumes from this record on every incremental run.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "organization_id",
+    "user_id",
+    "provider",
+    "account_email",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "id": { "type": "string", "description": "Prefixed `esc_` + 12-char crockford32." },
+    "organization_id": { "type": "string" },
+    "user_id": { "type": "string", "description": "Owner of the connected mailbox." },
+    "provider": { "type": "string", "enum": ["gmail", "outlook"] },
+    "account_email": { "type": "string", "format": "email" },
+    "credential_id": {
+      "type": ["string", "null"],
+      "description": "Reference into integrations table; secrets never live on this record."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["connecting", "active", "paused", "revoked", "errored"]
+    },
+    "cursor": {
+      "type": ["string", "null"],
+      "description": "Provider-specific opaque cursor (Gmail historyId or Outlook delta link)."
+    },
+    "sync_started_at": { "type": ["string", "null"], "format": "date-time" },
+    "last_success_at": { "type": ["string", "null"], "format": "date-time" },
+    "last_error_at": { "type": ["string", "null"], "format": "date-time" },
+    "last_error_reason": { "type": ["string", "null"] },
+    "messages_total": { "type": "integer", "minimum": 0, "default": 0 },
+    "contacts_created": { "type": "integer", "minimum": 0, "default": 0 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": ["string", "null"], "format": "date-time" }
+  }
+}
