@@ -33,6 +33,9 @@ export function subscribe<T extends DomainEventType>(eventType: T, handler: Hand
   return () => set.delete(handler as unknown as AnyHandler);
 }
 
+// Register skill handlers BEFORE wiring subscriptions so the EVENT_SKILL_BINDINGS
+// can look them up. The handlers self-register via the side-effect import.
+import "@/lib/agents/handlers";
 registerEventSubscriptions(subscribe);
 
 export interface PublishInput {

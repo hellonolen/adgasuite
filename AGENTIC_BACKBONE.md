@@ -64,6 +64,8 @@ Backbone/state contracts live under `cloudflare/state/`:
 - `dealflow-map.schema.json` — map nodes, edges, positions, and resource bindings
 
 ## Skills (`skills/*.skill.md`)
+
+### Markdown contracts (behavior + recovery + telemetry per skill)
 - `lead-scoring` — owner: Sales — scores inbound leads against ICP
 - `pipeline-risk` — owner: Intelligence — surfaces slipping deals
 - `proposal-generation` — owner: Creative — drafts proposals from a deal record
@@ -71,6 +73,36 @@ Backbone/state contracts live under `cloudflare/state/`:
 - `knowledge-summary` — owner: Research — summarizes uploaded docs
 - `prepared-action` — owner: Conductor / Operations — queues approval-lane work
 - `deal-memory` — owner: Sales / Conductor — maintains persistent deal context
+- `workspace-activation` — owner: Conductor — turns a paid checkout into a ready workspace
+- `dealflow-template-materialization` — owner: Conductor — populates a canvas from a template
+- `daily-brief` — owner: Conductor — composes the `/suite/home` brief
+- `team-invite` / `team-invite.accept` — owner: Sales — invitation lifecycle
+
+### Executable handlers (deterministic counterpart of the markdown contracts)
+- `lib/agents/handlers/workspace-activation.ts`
+- `lib/agents/handlers/dealflow-template-materialization.ts`
+- `lib/agents/handlers/daily-brief.ts`
+- `lib/agents/handlers/team-invite.ts` (send + accept)
+
+Registered in `lib/agents/handlers/index.ts` via `registerSkill(id, owner, handler)`.
+
+### Agent-to-agent invocation
+`lib/agents/skill-registry.ts` exposes `callSkill(context, skill_id, input)`. Every call
+emits `agent_job.started` + `agent_job.completed` / `agent_job.failed` events on the bus,
+correlated by a generated `job_id` and the `calling_skill` field. No direct imports
+between agent modules — synchronous cross-agent calls flow through this primitive so the
+audit trail holds.
+
+### Event → handler bindings
+`lib/events/subscriptions.ts` declares `EVENT_SKILL_BINDINGS`. When an event publishes,
+the bus invokes the bound handler inline (in addition to the standard `agent_job` queue):
+
+| Event | Skill handler invoked inline |
+|---|---|
+| `subscription.activated` | `workspace-activation` |
+| `workspace.activated`    | `daily-brief` (recompose for the new operator) |
+| `team.invite.accepted`   | `daily-brief` (recompose for the inviter) |
+| `deal.created`           | `daily-brief` (recompose) |
 
 ## Suite route contract
 `app/suite/routes.ts` is the single source of truth for every `/suite/*` URL — sidebar, breadcrumbs,

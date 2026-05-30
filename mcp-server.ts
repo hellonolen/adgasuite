@@ -34,13 +34,20 @@ export function listMcpTools(): McpToolDefinition[] {
     }
   }
 
-  // Skills are discovered statically by the harness today; runtime read pending.
+  // Skills inventory — keep in sync with skills/<id>.skill.md files. Any skill
+  // with a registered handler in lib/agents/handlers/ is callable from the MCP
+  // POST surface via skill.<id> tool name (dispatches through callSkill).
   const SKILLS = [
     "lead-scoring",
     "pipeline-risk",
     "proposal-generation",
     "battlecard-generation",
     "knowledge-summary",
+    "workspace-activation",
+    "dealflow-template-materialization",
+    "daily-brief",
+    "team-invite",
+    "team-invite.accept",
   ];
   for (const skillId of SKILLS) {
     tools.push({

@@ -1,10 +1,12 @@
 import { errorJson, json, readJson } from "@/lib/server/http";
-import { getRuntimeContext, requireAdmin } from "@/lib/server/runtime";
+import { getRuntimeContext, hydrateUserFromSession, requireAdmin } from "@/lib/server/runtime";
 import { listMcpTools } from "@/mcp-server";
 import { SUITE_ROUTES } from "@/app/suite/routes";
 import { WORKSPACES, listAllActions } from "@/app/suite/workspaces";
 import { inspectHandlers, publish } from "@/lib/events/bus";
 import { hasNativeHandler, listNativeDispatchIds, runNativeDispatch } from "@/lib/server/mcp-native-dispatch";
+import { callSkill, getRegisteredSkill, listRegisteredSkills } from "@/lib/agents/skill-registry";
+import "@/lib/agents/handlers"; // side-effect: registers all skill handlers
 
 /**
  * MCP transport — HTTP-based discovery and dispatch surface.
@@ -64,6 +66,7 @@ export async function GET(_request: Request) {
       handlers: inspectHandlers(),
     },
     native_dispatch: listNativeDispatchIds(),
+    registered_skills: listRegisteredSkills(),
   });
 }
 
@@ -76,10 +79,37 @@ export async function POST(request: Request) {
     return errorJson("Forbidden", 403);
   }
 
+  await hydrateUserFromSession(context, request);
+
   const body = await readJson<McpToolCallBody>(request);
   if (!body.tool) return errorJson("`tool` is required.");
 
-  // Look up the action by qualified id ("<workspace>.<action_id>" or "skill.<id>").
+  // skill.<id> tool name → dispatch directly to the registered skill handler.
+  // This makes every executable skill callable through MCP without needing a
+  // route capability declaration.
+  if (body.tool.startsWith("skill.")) {
+    const skillId = body.tool.slice("skill.".length);
+    if (!getRegisteredSkill(skillId)) {
+      return errorJson(`Unknown skill "${skillId}". GET /api/mcp to discover the current inventory.`, 404);
+    }
+    const result = await callSkill(
+      {
+        env: context.env,
+        organization_id: "org_adga_primary",
+        actor_type: "agent",
+        actor_id: "mcp",
+        calling_skill: `mcp:${body.tool}`,
+      },
+      skillId,
+      (body.arguments ?? {}) as Record<string, unknown>,
+    );
+    return json(
+      { ok: result.ok, dispatched: true, dispatch: "skill", skill: skillId, result: result.data, error: result.error },
+      { status: result.ok ? 200 : 502 },
+    );
+  }
+
+  // Look up the action by qualified id ("<workspace>.<action_id>").
   const all = listAllActions();
   const action = all.find((a) => `${a.workspace}.${a.id}` === body.tool);
 

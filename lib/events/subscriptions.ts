@@ -12,6 +12,32 @@
 // type should appear here with the agents that react to it so the connectivity graph is auditable.
 import { createAgentJob, type AgentName } from "@/lib/server/repository";
 import type { DomainEvent, DomainEventType } from "./types";
+import { callSkill, getRegisteredSkill } from "@/lib/agents/skill-registry";
+
+// Event → skill handler bindings. When an event fires, in addition to creating
+// an agent_job for the LLM tick, the bus invokes the bound skill handler
+// inline so deterministic work happens immediately. Async LLM enrichment
+// continues in the background via the agent_job path.
+//
+// The handler decides whether to act on the payload (idempotent, safe to
+// invoke even if the work has already been done by the originator).
+export const EVENT_SKILL_BINDINGS: Partial<Record<DomainEventType, string[]>> = {
+  // Stripe webhook also invokes workspace-activation directly; this binding
+  // catches the case where subscription.activated is published from elsewhere
+  // (replay, MCP, diag/simulate) and ensures activation still runs.
+  "subscription.activated": ["workspace-activation"],
+
+  // After a workspace activates, recompose the operator's brief so their
+  // /suite/home reflects the new state on first load.
+  "workspace.activated": ["daily-brief"],
+
+  // When a teammate accepts, recompose the inviter's brief so the new member
+  // shows up immediately.
+  "team.invite.accepted": ["daily-brief"],
+
+  // When a dealflow is created or a node is added, the brief may need a refresh.
+  "deal.created": ["daily-brief"],
+};
 
 export const SUBSCRIPTION_INVENTORY = {
   "lead.captured":            ["sales"],
@@ -98,4 +124,72 @@ export function registerEventSubscriptions(subscribe: EventSubscriber): void {
       });
     }
   }
+
+  // Skill handler bindings — invoke deterministic handlers inline so the
+  // operator's view reflects the work immediately, without waiting for the
+  // cron tick to drain the agent_job queue.
+  for (const [eventType, skillIds] of Object.entries(EVENT_SKILL_BINDINGS) as Array<
+    [DomainEventType, string[]]
+  >) {
+    for (const skillId of skillIds) {
+      subscribe(eventType, async (event, context) => {
+        if (!getRegisteredSkill(skillId)) return; // handler not yet registered (build/replay window)
+        // Map event payload to the skill's expected input shape.
+        // Each binding here is intentional and the input shape per binding is
+        // documented in the matching skills/<id>.skill.md file.
+        const input = buildSkillInputForBinding(eventType, event, skillId);
+        if (input === null) return;
+        await callSkill(
+          {
+            env: { DB: context.db } as unknown as CloudflareEnv,
+            organization_id: event.organization_id,
+            actor_type: event.actor_type,
+            actor_id: event.actor_id,
+            calling_skill: `event:${eventType}`,
+          },
+          skillId,
+          input,
+        ).catch(() => null);
+      });
+    }
+  }
+}
+
+function buildSkillInputForBinding(
+  eventType: DomainEventType,
+  event: DomainEvent,
+  skillId: string,
+): Record<string, unknown> | null {
+  const payload = (event.payload || {}) as Record<string, unknown>;
+
+  if (skillId === "workspace-activation" && eventType === "subscription.activated") {
+    const email = (payload.email as string) || "";
+    if (!email) return null;
+    return {
+      email,
+      plan: (payload.plan as string) || "team",
+      stripe_customer_id: (payload.stripe_customer_id as string | null) ?? null,
+      stripe_subscription_id: (payload.stripe_subscription_id as string | null) ?? null,
+      organization_id: event.organization_id,
+    };
+  }
+
+  if (skillId === "daily-brief") {
+    // workspace.activated / team.invite.accepted / deal.created — recompose
+    // the brief for the operator inferred from the event actor or payload.
+    const userEmail =
+      (payload.user_email as string) ||
+      (payload.email as string) ||
+      (payload.invitee_email as string) ||
+      (typeof event.actor_id === "string" && event.actor_id.includes("@") ? event.actor_id : "") ||
+      "";
+    if (!userEmail || !event.organization_id) return null;
+    return {
+      organization_id: event.organization_id,
+      user_email: userEmail,
+      force_recompose: true,
+    };
+  }
+
+  return null;
 }
