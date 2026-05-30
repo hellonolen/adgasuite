@@ -99,6 +99,29 @@ export function getRuntimeContext(request?: Request): RuntimeContext {
   };
 }
 
+/**
+ * Hydrate `context.user` from the session cookie when local-admin-bypass isn't
+ * active. Without this, every production request lands with context.user.email
+ * = "" and requireUser / requireAdmin reject everything. Call from the route
+ * before requireUser / requireAdmin.
+ */
+export async function hydrateUserFromSession(
+  context: RuntimeContext,
+  request: Request,
+): Promise<void> {
+  if (context.user.isLocalAdminBypass && context.user.email) return;
+  const { readSessionCookie, validateSession } = await import("@/lib/server/magic-auth");
+  const sessionUser = await validateSession(context.env.DB, readSessionCookie(request));
+  if (!sessionUser) return;
+  const role: "owner" | "admin" | "member" =
+    sessionUser.role === "owner" || sessionUser.role === "admin" ? sessionUser.role : "member";
+  context.user = {
+    email: sessionUser.email,
+    role,
+    isLocalAdminBypass: false,
+  };
+}
+
 export function requireAdmin(context: RuntimeContext) {
   if (context.user.role !== "owner" && context.user.role !== "admin") {
     throw new Response("Forbidden", { status: 403 });

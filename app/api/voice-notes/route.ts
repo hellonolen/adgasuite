@@ -1,6 +1,6 @@
 import { errorJson, json } from "@/lib/server/http";
 import { createEvent } from "@/lib/server/repository";
-import { getRuntimeContext, requireUser } from "@/lib/server/runtime";
+import { getRuntimeContext, hydrateUserFromSession, requireUser } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
 import { readStoredJsonPayload, storeJsonPayload } from "@/lib/server/payload-storage";
 
@@ -8,6 +8,7 @@ const STT_MODEL = "@cf/openai/whisper";
 
 export async function GET(request: Request) {
   const context = getRuntimeContext(request);
+  await hydrateUserFromSession(context, request);
   requireUser(context);
   if (!context.env.DB) return json({ ok: true, voice_notes: [] });
 
@@ -32,6 +33,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
+  await hydrateUserFromSession(context, request);
   requireUser(context);
 
   const form = await request.formData();
