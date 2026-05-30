@@ -5,6 +5,9 @@ import { getRuntimeContext } from "@/lib/server/runtime";
 import { newId, nowIso } from "@/lib/server/id";
 import { DEFAULT_ORG_ID, orgIdForEmail, orgNameForEmail, orgSlugForEmail } from "@/lib/server/tenant";
 import { normalizePlan } from "@/lib/plans";
+import { publish } from "@/lib/events/bus";
+import { callSkill } from "@/lib/agents/skill-registry";
+import "@/lib/agents/handlers"; // side-effect: registers handlers
 
 export async function POST(request: Request) {
   const context = getRuntimeContext(request);
@@ -96,7 +99,57 @@ export async function POST(request: Request) {
     payload: payload as unknown as Record<string, unknown>,
   });
 
+  // When this webhook represents a paid checkout, fire the activation chain:
+  // emit subscription.activated → Conductor runs workspace-activation skill →
+  // workspace.activated emitted for Sales + Intelligence to pick up.
+  if (
+    isCheckoutActivation(payload.type, object, status) &&
+    email &&
+    context.env.DB
+  ) {
+    await publish(context.env.DB, {
+      organization_id: organizationId,
+      event_type: "subscription.activated",
+      actor_type: "webhook",
+      actor_id: "stripe",
+      resource_type: "subscription",
+      resource_id: stripeSubscriptionId(object) || String(object.id || ""),
+      payload: {
+        email,
+        plan,
+        stripe_customer_id: stripeCustomerId(object),
+        stripe_subscription_id: stripeSubscriptionId(object),
+      },
+    }).catch(() => null);
+
+    await callSkill(
+      {
+        env: context.env,
+        organization_id: organizationId,
+        actor_type: "webhook",
+        actor_id: "stripe",
+      },
+      "workspace-activation",
+      {
+        email,
+        plan,
+        stripe_customer_id: stripeCustomerId(object),
+        stripe_subscription_id: stripeSubscriptionId(object),
+        organization_id: organizationId,
+      },
+    ).catch(() => null);
+  }
+
   return json({ ok: true, event_id: event.id });
+}
+
+function isCheckoutActivation(type: string, object: StripeObject, status: string): boolean {
+  if (type === "checkout.session.completed") {
+    return String(object.payment_status || "").toLowerCase() === "paid";
+  }
+  if (type === "invoice.paid" || type === "invoice.payment_succeeded") return true;
+  if (type === "customer.subscription.created" && status === "active") return true;
+  return false;
 }
 
 interface StripeEvent {
