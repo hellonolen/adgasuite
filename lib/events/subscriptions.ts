@@ -38,13 +38,24 @@ export const EVENT_SKILL_BINDINGS: Partial<Record<DomainEventType, string[]>> = 
   // When a dealflow is created or a node is added, the brief may need a refresh.
   "deal.created": ["daily-brief"],
 
-  // Import wedge — completed batches trigger optional enrichment + brief recompose.
-  // Enrichment skill decides whether to actually run based on operations input.
-  "import.completed": ["daily-brief"],
+  // After an import finishes, recompose the brief so the operator sees the
+  // newly-imported rows on next load, and auto-fire the enrichment pass with
+  // the default safe operations (normalize_names + derive_company_from_email).
+  // Enrichment handler decides whether to act based on rows imported.
+  "import.completed": ["daily-brief", "import-enrichment"],
 
   // Inbox auto-population — when sync finishes, recompose the brief so the
   // operator sees the freshly-populated contact/deal cards on next load.
   "inbox.sync.completed": ["daily-brief"],
+
+  // A new contact auto-created from inbox sync gets scored by Sales agent so
+  // it shows up on the brief with a score, not as a generic blob.
+  "contact.auto_created": ["lead-scoring"],
+
+  // A mention on a record fires the same notification path as approvals — the
+  // bound handler resolves the recipient + sends. record-comment skill emits
+  // record.comment.mentioned per mention.
+  "record.comment.mentioned": ["record-comment"],
 };
 
 export const SUBSCRIPTION_INVENTORY = {
@@ -222,6 +233,36 @@ function buildSkillInputForBinding(
       stripe_customer_id: (payload.stripe_customer_id as string | null) ?? null,
       stripe_subscription_id: (payload.stripe_subscription_id as string | null) ?? null,
       organization_id: event.organization_id,
+    };
+  }
+
+  if (skillId === "import-enrichment" && eventType === "import.completed") {
+    const batchId = (payload.batch_id as string) || "";
+    if (!batchId) return null;
+    return {
+      batch_id: batchId,
+      operations: ["normalize_names", "derive_company_from_email"],
+    };
+  }
+
+  if (skillId === "lead-scoring" && eventType === "contact.auto_created") {
+    const contactId = (payload.contact_id as string) || "";
+    if (!contactId) return null;
+    return {
+      contact_id: contactId,
+      source: (payload.source as string) || "inbox",
+    };
+  }
+
+  if (skillId === "record-comment" && eventType === "record.comment.mentioned") {
+    const commentId = (payload.comment_id as string) || "";
+    const mentionedUserId = (payload.mentioned_user_id as string) || "";
+    if (!commentId || !mentionedUserId) return null;
+    return {
+      operation: "notify_mention",
+      reaction: { comment_id: commentId, emoji: "@", action: "add" },
+      _mentioned_user_id: mentionedUserId,
+      _mentioned_email: (payload.mentioned_email as string) || "",
     };
   }
 

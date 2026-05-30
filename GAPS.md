@@ -1,9 +1,31 @@
 # GAPS — ADGA Suite
 
-Last audited: 2026-05-29
+Last audited: 2026-05-30
 North star: $1,000,000/month
 Current MRR: $0 (pre-launch — billing flow not yet exercised end-to-end)
 Distance to target: $1,000,000/month
+
+## Agentic surface status (2026-05-30)
+
+Every skill declared in `skills/*.skill.md` has a contract on disk AND a
+registry entry. Stubs return `not_implemented` until the real handler ships,
+but `GET /api/mcp` lists them, `callSkill()` dispatches them, and the audit
+trail captures every attempt. Handlers graduate from `stubs.ts` into their
+own files (one per skill) as the customer case for each is made.
+
+| Layer | Count | Status |
+|---|---|---|
+| `skills/*.skill.md` markdown contracts | 17 | all on disk |
+| `cloudflare/state/*.schema.json` state schemas | 15 | all on disk (6 new this pass) |
+| `lib/events/types.ts` typed event variants | 60+ | all unioned |
+| `SUBSCRIPTION_INVENTORY` agent reaction rows | 50+ | every new event has agent subscribers |
+| `EVENT_SKILL_BINDINGS` inline cross-skill chains | 8 | wedge chains wired (import.completed → enrichment + brief; contact.auto_created → lead-scoring; etc.) |
+| `app/suite/routes.ts` routes | 24 | `/suite/import`, `/suite/lists`, `/suite/inbox-sync` added |
+| `app/suite/workspaces.ts` WorkspaceContract entries | 8 | import / lists / inbox-sync declared with required agents + actions + approval policy |
+| `lib/events/autonomy.ts` per-skill default risk | 21 | every registered skill has a risk band |
+| `mcp-server.ts` discoverable skills | 22 | all 12 new skills exposed |
+| Real handlers shipped | 5 | workspace-activation, dealflow-template-materialization, daily-brief, team-invite, team-invite.accept |
+| Stub handlers (contract live, impl pending) | 12 | csv-import, 5 source adapters, import-enrichment, list-segment, activity-timeline, inbox-sync, custom-object, record-comment |
 
 ## Top 10 Gaps (Ordered by Revenue Impact)
 

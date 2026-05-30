@@ -33,3 +33,55 @@ export function decide(mode: AutonomyMode, risk: RiskLevel): AutonomyDecision {
 }
 
 export const DEFAULT_AUTONOMY: AutonomyMode = "medium";
+
+/**
+ * Per-skill default risk classification — what risk band a skill's primary
+ * action falls into when the workspace doesn't override. Handlers read this
+ * to call `decide(mode, risk)` consistently.
+ *
+ * Conservative bias: read-only skills are "low", anything that writes records
+ * is "medium", anything that touches private data or external systems on
+ * behalf of the user is "high".
+ */
+export const SKILL_DEFAULT_RISK: Record<string, RiskLevel> = {
+  // Read-only — never need approval
+  "activity-timeline":            "low",
+  "list-segment":                 "low",
+  "knowledge-summary":            "low",
+  "daily-brief":                  "low",
+  "pipeline-risk":                "low",
+
+  // Routine write — auto in medium/hands_on, escalate in hands_off
+  "lead-scoring":                 "low",
+  "proposal-generation":          "medium",
+  "battlecard-generation":        "medium",
+  "team-invite":                  "medium",
+  "team-invite.accept":           "low",
+  "record-comment":               "low",
+  "import-enrichment":            "medium",
+
+  // Bulk write — always at least medium; UI surfaces approval-required policy
+  "csv-import":                   "medium",
+  "import-hubspot":               "medium",
+  "import-pipedrive":             "medium",
+  "import-salesforce":            "medium",
+  "import-notion":                "medium",
+  "import-airtable":              "medium",
+
+  // Private data / external system access — high; always escalates in
+  // hands_off + medium, only auto-executes in hands_on with explicit consent
+  "inbox-sync":                   "high",
+
+  // Schema change — owner-gated separately; risk classified high so even
+  // hands_on still escalates without explicit consent
+  "custom-object":                "high",
+
+  // Workspace lifecycle / billing-adjacent
+  "workspace-activation":         "low",
+  "dealflow-template-materialization": "low",
+};
+
+/** Resolve a skill's default risk band; returns "medium" when unspecified. */
+export function riskForSkill(skillId: string): RiskLevel {
+  return SKILL_DEFAULT_RISK[skillId] ?? "medium";
+}

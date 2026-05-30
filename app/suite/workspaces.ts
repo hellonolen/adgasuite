@@ -160,6 +160,57 @@ export const WORKSPACES: WorkspaceContract[] = [
     approvalPolicy: { mode: "auto" },
   },
   {
+    id: "import",
+    rendererPath: "components/suite/workspaces/ImportWorkspace",
+    // Canonical agent mapping: operations rolls into Conductor (orchestrating the batch lifecycle).
+    requiredAgents: ["conductor", "intelligence", "sales"],
+    requiredSkills: ["csv-import", "import-enrichment"],
+    emitsEvents: ["import.requested", "import.completed", "import.failed"],
+    reactsToEvents: ["import.row_succeeded", "import.row_failed", "import.completed"],
+    allowedActions: [
+      { id: "import.upload",  label: "Upload CSV",       visibility: "member", policy: { mode: "auto" } },
+      { id: "import.preview", label: "Preview mapping",  visibility: "member", policy: { mode: "auto" } },
+      { id: "import.run",     label: "Run import",       visibility: "member", policy: { mode: "approval_required", risk: "medium" } },
+      { id: "import.retry",   label: "Retry failed rows",visibility: "member", policy: { mode: "auto" } },
+    ],
+    capabilityVisibility: "member",
+    approvalPolicy: { mode: "approval_required", risk: "medium" },
+  },
+  {
+    id: "lists",
+    rendererPath: "components/suite/workspaces/ListsWorkspace",
+    requiredAgents: ["intelligence"],
+    requiredSkills: ["list-segment"],
+    emitsEvents: ["list.created", "list.updated", "list.deleted", "list.queried"],
+    reactsToEvents: ["list.queried"],
+    allowedActions: [
+      { id: "list.create", label: "Create list", visibility: "member", policy: { mode: "auto" } },
+      { id: "list.update", label: "Update list", visibility: "member", policy: { mode: "auto" } },
+      { id: "list.delete", label: "Delete list", visibility: "member", policy: { mode: "auto" } },
+      { id: "list.query",  label: "Query list",  visibility: "member", policy: { mode: "auto" } },
+    ],
+    capabilityVisibility: "member",
+    approvalPolicy: { mode: "auto" },
+  },
+  {
+    id: "inbox-sync",
+    rendererPath: "components/suite/workspaces/InboxSyncWorkspace",
+    // Canonical agent mapping: communication-project folder houses Creative (draft replies)
+    // + Distribution (channel selection / send timing). Inbox-sync is distribution-side.
+    requiredAgents: ["distribution", "intelligence", "sales"],
+    requiredSkills: ["inbox-sync"],
+    emitsEvents: ["inbox.sync.started", "inbox.sync.completed", "inbox.sync.failed", "inbox.message.linked", "contact.auto_created"],
+    reactsToEvents: ["inbox.sync.completed", "inbox.message.linked"],
+    allowedActions: [
+      { id: "inbox.connect",          label: "Connect inbox",          visibility: "owner",  policy: { mode: "approval_required", risk: "high" } },
+      { id: "inbox.sync_full",        label: "Run full sync",          visibility: "owner",  policy: { mode: "approval_required", risk: "medium" } },
+      { id: "inbox.sync_incremental", label: "Run incremental sync",   visibility: "member", policy: { mode: "auto" } },
+      { id: "inbox.disconnect",       label: "Disconnect mailbox",     visibility: "owner",  policy: { mode: "owner_only" } },
+    ],
+    capabilityVisibility: "owner",
+    approvalPolicy: { mode: "approval_required", risk: "high" },
+  },
+  {
     id: "settings",
     rendererPath: "components/suite/workspaces/SettingsWorkspace",
     requiredAgents: [],

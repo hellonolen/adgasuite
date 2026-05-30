@@ -56,7 +56,10 @@ export const SUITE_ROUTES: SuiteRoute[] = [
   { id: "pending",      path: "/suite/pending",     label: "Approvals",    section: "HIDDEN",    badge: 8, indicator: "accent", capabilities: ["approval.read", "approval.decide"] },
 
   { id: "knowledge",    path: "/suite/templates",   label: "Templates",    section: "LIBRARY",   capabilities: ["template.read"] },
+  { id: "lists",        path: "/suite/lists",       label: "Lists",        section: "LIBRARY",   capabilities: ["list.read", "list.create", "list.query"] },
   { id: "intelligence", path: "/suite/intelligence",label: "Analytics",    section: "LIBRARY",   capabilities: ["forecast.read", "analytics.read"] },
+  { id: "import",       path: "/suite/import",      label: "Import",       section: "LIBRARY",   capabilities: ["import.upload", "import.preview", "import.run", "import.retry"] },
+  { id: "inbox-sync",   path: "/suite/inbox-sync",  label: "Inbox sync",   section: "LIBRARY",   capabilities: ["inbox.connect", "inbox.sync_full", "inbox.sync_incremental", "inbox.disconnect"] },
 
   {
     id: "settings",
