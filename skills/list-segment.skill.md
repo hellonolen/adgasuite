@@ -1,7 +1,7 @@
 ---
 name: list-segment
 owner: intelligence
-description: Saved filtered segment over any record type. "All deals in stage X owned by me with amount > Y" persists as a named List that updates live. The agent-side equivalent of Attio's Lists.
+description: Saved filtered segment over any record type. "All deals in stage X owned by me with amount > Y" persists as a named List that updates live. Drives sidebar pinned views + agent-tracked cohorts.
 inputs:
   - operation: "create" | "update" | "delete" | "query" | "list_all"
   - list:
@@ -30,9 +30,9 @@ state_contracts:
 
 ## Why this exists
 
-Buyers expect "save this filter as a List" — it's the muscle memory from Salesforce, HubSpot,
-Pipedrive, Attio. Without it every prospect has to rebuild their filter every visit, which kills
-perceived intelligence of the workspace.
+Buyers expect "save this filter as a List" — it's the muscle memory from every modern CRM
+(Salesforce, HubSpot, Pipedrive). Without it every prospect has to rebuild their filter every
+visit, which kills perceived intelligence of the workspace.
 
 Lists are also the substrate the Intelligence agent uses to track changing cohorts (e.g. "deals
 that went stale in the last 7 days"). One contract serves both human and agent consumers.

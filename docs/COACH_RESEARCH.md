@@ -356,7 +356,7 @@ Replaces the funnel metaphor with a compounding wheel:
 - **Engage** — turn visitors into leads, leads into customers
 - **Delight** — turn customers into promoters
 
-### Universal CRM Lifecycle (Salesforce / HubSpot / Pipedrive / Attio)
+### Universal CRM Lifecycle (Salesforce / HubSpot / Pipedrive)
 
 The standard record-type sequence across all major CRM platforms:
 

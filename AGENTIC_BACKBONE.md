@@ -96,7 +96,7 @@ Import wedge (source-agnostic ingest — `import-batch` + `import-row` shared st
 - `import-airtable` — owner: Operations — Airtable base adapter (stub)
 - `import-enrichment` — owner: Intelligence — AI cleanup of an ImportBatch (stub)
 
-Attio-parity capability surface:
+Record-graph capability surface:
 - `list-segment` — owner: Intelligence — saved filtered cohorts over any record (stub)
 - `activity-timeline` — owner: Intelligence — chronological per-record event stream (stub)
 - `inbox-sync` — owner: Communication — Gmail/Outlook + Calendar auto-population (stub)
@@ -113,7 +113,7 @@ Real implementations (6):
 
 Stub handlers (contracts declared, implementations return `not_implemented` —
 each graduates to its own file `lib/agents/handlers/<skill>.ts` when built):
-- `lib/agents/handlers/stubs.ts` — remaining 11 import adapters + Attio-parity skills
+- `lib/agents/handlers/stubs.ts` — remaining 11 import adapters + record-graph skills
   (import-hubspot, import-pipedrive, import-salesforce, import-notion, import-airtable,
    import-enrichment, list-segment, activity-timeline, inbox-sync, custom-object, record-comment)
 

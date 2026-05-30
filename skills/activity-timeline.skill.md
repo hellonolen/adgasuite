@@ -26,8 +26,9 @@ state_contracts: []
 
 ## Why this exists
 
-Every record needs a "what happened here" surface. Salesforce calls it Chatter. Attio calls it the
-record timeline. Without it the workspace feels like a database, not a system that does work.
+Every record needs a "what happened here" surface — the chronological story of who touched it,
+what changed, what's pending. Without it the workspace feels like a database, not a system that
+does work.
 
 ADGA already has the source of truth: the `events` table. This skill is the structured read
 adapter that turns events → timeline items, including the per-event human summary that the UI

@@ -43,8 +43,8 @@ all gated by an approval lane the operator controls.
 ## Market
 - **Total dealmaking software** (CRM, deal rooms, pipeline tools): $80B+ TAM
   across M&A advisory, capital markets, complex B2B sales.
-- **Closest comps:** Affinity ($2B valuation, 2021), Attio ($1B valuation, 2024),
-  Salesforce Deal Studio (legacy).
+- **Closest comps:** Affinity ($2B valuation, 2021), modern CRMs raising
+  at $1B+ in 2024, Salesforce Deal Studio (legacy).
 - **Wedge:** small-firm M&A + capital-raise advisors who can't justify a
   Salesforce/Affinity seat but lose deals in spreadsheets. Bottom-up by seat
   density on the operator side of the desk.

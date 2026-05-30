@@ -58,7 +58,7 @@ export function listMcpTools(): McpToolDefinition[] {
     "import-notion",
     "import-airtable",
     "import-enrichment",
-    // Attio-parity capability surface
+    // Record-graph capability surface (lists / timelines / inbox sync / custom objects / comments)
     "list-segment",
     "activity-timeline",
     "inbox-sync",

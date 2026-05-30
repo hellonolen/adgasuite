@@ -15,7 +15,7 @@ own files (one per skill) as the customer case for each is made.
 
 | Layer | Count | Status |
 |---|---|---|
-| `skills/*.skill.md` markdown contracts | 21 | all on disk (5 original + 16 new import/Attio-parity) |
+| `skills/*.skill.md` markdown contracts | 21 | all on disk (5 original + 16 new import + record-graph) |
 | `cloudflare/state/*.schema.json` state schemas | 28 | all on disk |
 | `lib/events/types.ts` typed event variants | 60+ | all unioned |
 | `SUBSCRIPTION_INVENTORY` agent reaction rows | 50+ | every new event has agent subscribers |
