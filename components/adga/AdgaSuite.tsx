@@ -23,6 +23,9 @@ import { KNOWLEDGE } from "@/lib/seed/knowledge";
 // inline switch is the legacy path that shrinks as more workspaces extract.
 const CONTRACT_WORKSPACE_RENDERERS: Record<string, React.LazyExoticComponent<React.ComponentType<any>>> = {
   knowledge: React.lazy(() => import("@/components/suite/workspaces/KnowledgeWorkspace")),
+  "voice-notes": React.lazy(() => import("@/components/suite/workspaces/VoiceNotesWorkspace")),
+  messaging: React.lazy(() => import("@/components/suite/workspaces/MessagingWorkspace")),
+  reports: React.lazy(() => import("@/components/suite/workspaces/ReportsWorkspace")),
 };
 
 declare global {
@@ -8646,9 +8649,27 @@ function App({ bootstrap = null, children = null }: { bootstrap?: any; children?
             ) : <KnowledgePage/>
           )}
           {route === 'intelligence' && <IntelligencePage deals={deals}/>}
-          {route === 'voice-notes' && <VoiceNotesPage/>}
-          {route === 'messaging' && <MessagingPage/>}
-          {route === 'reports'   && <ReportsPage/>}
+          {route === 'voice-notes' && (
+            CONTRACT_WORKSPACE_RENDERERS["voice-notes"] ? (
+              <React.Suspense fallback={<div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>Loading…</div>}>
+                {React.createElement(CONTRACT_WORKSPACE_RENDERERS["voice-notes"])}
+              </React.Suspense>
+            ) : <VoiceNotesPage/>
+          )}
+          {route === 'messaging' && (
+            CONTRACT_WORKSPACE_RENDERERS.messaging ? (
+              <React.Suspense fallback={<div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>Loading…</div>}>
+                {React.createElement(CONTRACT_WORKSPACE_RENDERERS.messaging)}
+              </React.Suspense>
+            ) : <MessagingPage/>
+          )}
+          {route === 'reports' && (
+            CONTRACT_WORKSPACE_RENDERERS.reports ? (
+              <React.Suspense fallback={<div style={{ padding: 24, color: '#6b6760', fontSize: 14 }}>Loading…</div>}>
+                {React.createElement(CONTRACT_WORKSPACE_RENDERERS.reports)}
+              </React.Suspense>
+            ) : <ReportsPage/>
+          )}
           {route === 'admin'     && <AdminPage initialSection={sectionFromUrl}/>}
           {route === 'affiliates' && <AffiliateCenterPage initialSection={sectionFromUrl}/>}
           {route === 'invoicing'  && <InvoicingCenterPage/>}
